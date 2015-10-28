@@ -458,7 +458,7 @@ static int vsp2_pm_suspend(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
 	unsigned int i = 0;
-	int ret;
+	int ret = 0;
 
 	WARN_ON(mutex_is_locked(&vsp2->lock));
 
