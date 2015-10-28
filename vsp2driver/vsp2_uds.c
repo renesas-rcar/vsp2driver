@@ -105,11 +105,11 @@ static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
 		mp = ratio / 4096;
 		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
 
-		return (input - 1) / mp * mp * 4096 / ratio + 1;
+		return input / mp * mp * 4096 / ratio;
 
 	} else {
 		/* Up-scaling */
-		return (input - 1) * 4096 / ratio + 1;
+		return input * 4096 / ratio;
 	}
 }
 
@@ -131,7 +131,7 @@ static void uds_output_limits(unsigned int input,
 static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
 {
 	/* TODO: This is an approximation that will need to be refined. */
-	return (input - 1) * 4096 / (output - 1);
+	return input * 4096 / output;
 }
 
 /* -----------------------------------------------------------------------------
@@ -158,6 +158,10 @@ static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
 
 	hscale = uds_compute_ratio(input->width, output->width);
 	vscale = uds_compute_ratio(input->height, output->height);
+	if ((hscale < 0x100) || (hscale > 0xffff))
+		return -EINVAL;
+	if ((vscale < 0x100) || (vscale > 0xffff))
+		return -EINVAL;
 
 	dev_dbg(uds->entity.vsp2->dev, "hscale %u vscale %u\n", hscale, vscale);
 
@@ -168,7 +172,7 @@ static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
 	else
 		multitap = true;
 
-	vsp_uds->amd = VSP_AMD_NO;
+	vsp_uds->amd = VSP_AMD;
 	vsp_uds->clip = VSP_CLIP_OFF;
 	vsp_uds->alpha = uds->scale_alpha ? VSP_ALPHA_ON : VSP_ALPHA_OFF;
 	vsp_uds->complement = multitap ? VSP_COMPLEMENT_BC : VSP_COMPLEMENT_BIL;
