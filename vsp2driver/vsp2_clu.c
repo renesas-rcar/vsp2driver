@@ -197,7 +197,7 @@ static int clu_set_format(
 
 	/* Default to YUV if the requested format is not supported. */
 	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-/*	    fmt->format.code != V4L2_MBUS_FMT_AHSV8888_1X32 && TODO: need delete check */
+/*	    fmt->format.code != V4L2_MBUS_FMT_AHSV8888_1X32 && TODO:del chk */
 	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
 		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
 

@@ -189,7 +189,7 @@ const char *vsp2_debug_getProductInfo(enum t_deb_gpi_type type)
 /*-----------------------------------------------------------------------------
  *
  *----------------------------------------------------------------------------*/
-static int s_tabCount = 0;
+static int s_tabCount;
 
 /*-----------------------------------------------------------------------------
  *
@@ -851,10 +851,9 @@ void print_vspm_entry_cb(void)
 static void print_version(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
 {
 #ifdef TYPE_GEN2
-	DEBMSG("\n## vsp2 for Gen2 / buid : %s, %s\n\n", __DATE__, __TIME__);
+	DEBMSG("\n## vsp2driver for Gen2 ##\n\n");
 #else
-	DEBMSG("\n## vsp2 for Gen3 / buid : %s, %s\n\n",
-		"unknown date", "unknown time");
+	DEBMSG("\n## vsp2driver for Gen3 ##\n\n");
 #endif
 }
 
@@ -862,7 +861,7 @@ static void print_version(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
  * vspm debug flgag
  *----------------------------------------------------------------------------*/
 
-static bool	s_vspmDebugFlag = false;
+static bool	s_vspmDebugFlag;
 
 static void setVspmDebug(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
 {
