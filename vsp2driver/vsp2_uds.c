@@ -71,7 +71,7 @@
 #define UDS_IN_MIN_SIZE				4U
 #define UDS_IN_MAX_SIZE				8190U
 #define UDS_OUT_MIN_SIZE			4U
-#define UDS_OUT_MAX_SIZE			2048U
+#define UDS_OUT_MAX_SIZE			8190U
 
 #define UDS_MIN_FACTOR				0x0100
 #define UDS_MAX_FACTOR				0xffff

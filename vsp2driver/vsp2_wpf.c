@@ -69,8 +69,8 @@
 #include "vsp2_vspm.h"
 #include "vsp2_debug.h"
 
-#define WPF_MAX_WIDTH				2048
-#define WPF_MAX_HEIGHT				2048
+#define WPF_MAX_WIDTH				8190
+#define WPF_MAX_HEIGHT				8190
 
 /* -----------------------------------------------------------------------------
  * Controls
