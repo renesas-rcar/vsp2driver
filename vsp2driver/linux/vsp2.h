@@ -95,10 +95,16 @@ struct vsp2_lut_config {
 	unsigned char			fxa;
 };
 
+/*
+ * mode = VSP_CLU_MODE_3D      -> tbl_num = 2 to 9826
+ * mode = VSP_CLU_MODE_2D      -> tbl_num = 2 to 578
+ * mode = VSP_CLU_MODE_3D_AUTO -> tbl_num = 1 to 4913
+ * mode = VSP_CLU_MODE_2D_AUTO -> tbl_num = 1 to 289
+ */
 struct vsp2_clu_config {
 	unsigned char 			mode;
 	void *					addr;	/* Allocate memory size is tbl_num * 8 bytes. */
-	unsigned short 			tbl_num;	/* 0 to 4912 */
+	unsigned short 			tbl_num;	/* 1 to 9826 */
 };
 
 struct vsp2_hgo_config {
