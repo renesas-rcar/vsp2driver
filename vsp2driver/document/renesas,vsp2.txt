@@ -42,7 +42,6 @@ Example: R8A7795 (R-Car H3) VSP2 node
 		compatible = "renesas,vsp2";
 		renesas,has-bru;
 		renesas,#rpf = <5>;
-		renesas,#rbu = <1>;
 		renesas,#uds = <0>;
 		renesas,#wpf = <1>;
 	};

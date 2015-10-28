@@ -4,5 +4,5 @@ VSP2 Driver connects VSP Manager with V4L2 Driver
 to expose not only V4L2 API but also VSPM API for DTV/DVD.
 VSP2 Driver is based on VSP1 Driver.
 The based commit ID in renesas.git is as follows.
- commit db32eb6c18d7617e61ca65eb13b66de4dea56f1f
+ commit 533ab2231d15e082f4ef547ee2fe99a8a25ab046
 
