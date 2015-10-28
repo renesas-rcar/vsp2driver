@@ -82,7 +82,6 @@ enum t_deb_gpi_type {
 /* function */
 
 const char *vsp2_debug_getEntityName(struct vsp2_entity *pentity);
-const char *vsp2_debug_getProductInfo(enum t_deb_gpi_type type);
 
 bool vsp2_debug_vspmDebug(void);
 
