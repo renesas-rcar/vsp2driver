@@ -200,6 +200,4 @@ void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
 int vsp2_pipeline_suspend(struct vsp2_pipeline *pipe);
 void vsp2_pipeline_resume(struct vsp2_pipeline *pipe);
 
-void vsp2_control_frame_end(struct vsp2_device *vsp2);
-
 #endif /* __VSP2_VIDEO_H__ */

@@ -98,6 +98,6 @@ static inline struct vsp2_hgo *to_hgo(struct v4l2_subdev *subdev)
 }
 
 struct vsp2_hgo	*vsp2_hgo_create(struct vsp2_device *vsp2);
-void vsp2_hgo_frame_end(struct vsp2_hgo *hgo);
+void vsp2_hgo_buffer_finish(struct vsp2_hgo *hgo);
 
 #endif /* __VSP2_HGO_H__ */

@@ -231,9 +231,9 @@ struct vsp2_hgt *vsp2_hgt_create(struct vsp2_device *vsp2)
 }
 
 /* -----------------------------------------------------------------------------
- * frame end process
+ * buffer finish process
  */
-void vsp2_hgt_frame_end(struct vsp2_hgt *hgt)
+void vsp2_hgt_buffer_finish(struct vsp2_hgt *hgt)
 {
 #ifndef USE_BUFFER /* TODO: delete USE_BUFFER */
 	if (hgt->set_hgt == 1)

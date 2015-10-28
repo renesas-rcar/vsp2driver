@@ -223,9 +223,9 @@ struct vsp2_hgo *vsp2_hgo_create(struct vsp2_device *vsp2)
 }
 
 /* -----------------------------------------------------------------------------
- * frame end process
+ * buffer finish process
  */
-void vsp2_hgo_frame_end(struct vsp2_hgo *hgo)
+void vsp2_hgo_buffer_finish(struct vsp2_hgo *hgo)
 {
 #ifndef USE_BUFFER /* TODO: delete USE_BUFFER */
 	if (hgo->set_hgo == 1)

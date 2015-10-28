@@ -87,10 +87,6 @@ void vsp2_frame_end(struct vsp2_device *vsp2)
 {
 	unsigned int i;
 
-	/* subdevice return proccess */
-
-	vsp2_control_frame_end(vsp2);
-
 	/* pipeline flame end */
 
 	for (i = 0; i < VSP2_COUNT_WPF; ++i) {

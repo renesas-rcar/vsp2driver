@@ -850,6 +850,21 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
+
+void vsp2_video_buffer_finish(struct vb2_buffer *vb)
+{
+	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
+
+	/* subdevice return proccess */
+
+	if (video->vsp2->hgo != NULL)
+		vsp2_hgo_buffer_finish(video->vsp2->hgo);
+
+	if (video->vsp2->hgt != NULL)
+		vsp2_hgt_buffer_finish(video->vsp2->hgt);
+}
+
+
 static void vsp2_entity_route_setup(struct vsp2_entity *source)
 {
 	struct vsp2_entity *sink;
@@ -1072,6 +1087,7 @@ static struct vb2_ops vsp2_video_queue_qops = {
 	.queue_setup = vsp2_video_queue_setup,
 	.buf_prepare = vsp2_video_buffer_prepare,
 	.buf_queue = vsp2_video_buffer_queue,
+	.buf_finish = vsp2_video_buffer_finish,
 	.wait_prepare = vb2_ops_wait_prepare,
 	.wait_finish = vb2_ops_wait_finish,
 	.start_streaming = vsp2_video_start_streaming,
@@ -1402,15 +1418,4 @@ void vsp2_video_cleanup(struct vsp2_video *video)
 
 	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
 	media_entity_cleanup(&video->video.entity);
-}
-
-/* control entity frame end process */
-
-void vsp2_control_frame_end(struct vsp2_device *vsp2)
-{
-	if (vsp2->hgo != NULL)
-		vsp2_hgo_frame_end(vsp2->hgo);
-
-	if (vsp2->hgt != NULL)
-		vsp2_hgt_frame_end(vsp2->hgt);
 }
