@@ -108,7 +108,7 @@ void vsp2_frame_end(struct vsp2_device *vsp2)
  */
 
 /*
- * vsp2_create_links - Create links from all sources to the given sink
+ * vsp2_create_sink_links - Create links from all sources to the given sink
  *
  * This function creates media links from all valid sources to the given sink
  * pad. Links that would be invalid according to the VSP2 hardware capabilities
@@ -117,7 +117,8 @@ void vsp2_frame_end(struct vsp2_device *vsp2)
  * - from a UDS to a UDS (UDS entities can't be chained)
  * - from an entity to itself (no loops are allowed)
  */
-static int vsp2_create_links(struct vsp2_device *vsp2, struct vsp2_entity *sink)
+static int vsp2_create_sink_links(struct vsp2_device *vsp2,
+				  struct vsp2_entity *sink)
 {
 	struct media_entity *entity = &sink->subdev.entity;
 	struct vsp2_entity *source;
@@ -157,6 +158,55 @@ static int vsp2_create_links(struct vsp2_device *vsp2, struct vsp2_entity *sink)
 			if (flags & MEDIA_LNK_FL_ENABLED)
 				source->sink = entity;
 		}
+	}
+
+	return 0;
+}
+
+static int vsp2_create_links(struct vsp2_device *vsp2)
+{
+	struct vsp2_entity *entity;
+	unsigned int i;
+	int ret;
+
+	list_for_each_entry(entity, &vsp2->entities, list_dev) {
+		if (entity->type == VSP2_ENTITY_HGO ||
+		    entity->type == VSP2_ENTITY_HGT ||
+		    entity->type == VSP2_ENTITY_RPF)
+			continue;
+
+		ret = vsp2_create_sink_links(vsp2, entity);
+		if (ret < 0)
+			return ret;
+	}
+
+	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
+		struct vsp2_rwpf *rpf = vsp2->rpf[i];
+
+		ret = media_entity_create_link(&rpf->video->video.entity, 0,
+					       &rpf->entity.subdev.entity,
+					       RWPF_PAD_SINK,
+					       MEDIA_LNK_FL_ENABLED |
+					       MEDIA_LNK_FL_IMMUTABLE);
+		if (ret < 0)
+			return ret;
+	}
+
+	for (i = 0; i < vsp2->pdata.wpf_count; ++i) {
+		/* Connect the video device to the WPF. All connections are
+		 * immutable except for the WPF0 source link.
+		 */
+		struct vsp2_rwpf *wpf = vsp2->wpf[i];
+		unsigned int flags = MEDIA_LNK_FL_ENABLED;
+
+		flags |= MEDIA_LNK_FL_IMMUTABLE;
+
+		ret = media_entity_create_link(&wpf->entity.subdev.entity,
+					       RWPF_PAD_SOURCE,
+					       &wpf->video->video.entity,
+					       0, flags);
+		if (ret < 0)
+			return ret;
 	}
 
 	return 0;
@@ -374,51 +424,9 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	}
 
 	/* Create links. */
-
-	list_for_each_entry(entity, &vsp2->entities, list_dev) {
-		if (entity->type == VSP2_ENTITY_RPF)
-			continue;
-
-		if (entity->type == VSP2_ENTITY_HGO)
-			continue;
-
-		if (entity->type == VSP2_ENTITY_HGT)
-			continue;
-
-		ret = vsp2_create_links(vsp2, entity);
-		if (ret < 0)
-			goto done;
-	}
-
-	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
-		struct vsp2_rwpf *rpf = vsp2->rpf[i];
-
-		ret = media_entity_create_link(&rpf->video->video.entity, 0,
-					       &rpf->entity.subdev.entity,
-					       RWPF_PAD_SINK,
-					       MEDIA_LNK_FL_ENABLED |
-					       MEDIA_LNK_FL_IMMUTABLE);
-		if (ret < 0)
-			goto done;
-	}
-
-	for (i = 0; i < vsp2->pdata.wpf_count; ++i) {
-		/* Connect the video device to the WPF. All connections are
-		 * immutable except for the WPF0 source link if a LIF is
-		 * present.
-		 */
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		unsigned int flags = MEDIA_LNK_FL_ENABLED;
-
-		flags |= MEDIA_LNK_FL_IMMUTABLE;
-
-		ret = media_entity_create_link(&wpf->entity.subdev.entity,
-					       RWPF_PAD_SOURCE,
-					       &wpf->video->video.entity,
-					       0, flags);
-		if (ret < 0)
-			goto done;
-	}
+	ret = vsp2_create_links(vsp2);
+	if (ret < 0)
+		goto done;
 
 	/* Register all subdevs. */
 	list_for_each_entry(entity, &vsp2->entities, list_dev) {
