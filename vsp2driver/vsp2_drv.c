@@ -457,52 +457,27 @@ void vsp2_device_put(struct vsp2_device *vsp2)
 static int vsp2_pm_suspend(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
-	unsigned int i = 0;
-	int ret = 0;
 
 	WARN_ON(mutex_is_locked(&vsp2->lock));
 
 	if (vsp2->ref_count == 0)
 		return 0;
 
-	/* Suspend pipeline */
-	for (i = 0; i < VSP2_COUNT_WPF; ++i) {
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		struct vsp2_pipeline *pipe;
+	vsp2_pipelines_suspend(vsp2);
 
-		if (wpf == NULL)
-			continue;
-
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
-		ret = vsp2_pipeline_suspend(pipe);
-		if (ret < 0)
-			break;
-	}
-
-	return ret;
+	return 0;
 }
 
 static int vsp2_pm_resume(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
-	unsigned int i = 0;
 
 	WARN_ON(mutex_is_locked(&vsp2->lock));
 
 	if (vsp2->ref_count == 0)
 		return 0;
 
-	/* Resume pipeline */
-	for (i = 0; i < VSP2_COUNT_WPF; ++i) {
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		struct vsp2_pipeline *pipe;
-
-		if (wpf == NULL)
-			continue;
-
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
-		vsp2_pipeline_resume(pipe);
-	}
+	vsp2_pipelines_resume(vsp2);
 
 	return 0;
 }
