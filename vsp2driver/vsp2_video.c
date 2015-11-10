@@ -443,7 +443,6 @@ static void __vsp2_pipeline_cleanup(struct vsp2_pipeline *pipe)
 	INIT_LIST_HEAD(&pipe->entities);
 	pipe->state = VSP2_PIPELINE_STOPPED;
 	pipe->buffers_ready = 0;
-	pipe->num_video = 0;
 	pipe->num_inputs = 0;
 	pipe->output = NULL;
 	pipe->bru = NULL;
@@ -469,10 +468,8 @@ static int vsp2_pipeline_validate(struct vsp2_pipeline *pipe,
 		struct vsp2_rwpf *rwpf;
 		struct vsp2_entity *e;
 
-		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
-			pipe->num_video++;
+		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
 			continue;
-		}
 
 		subdev = media_entity_to_v4l2_subdev(entity);
 		e = to_vsp2_entity(subdev);
@@ -1003,7 +1000,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 	int				max_index_rpf = -1;
 
 	mutex_lock(&pipe->lock);
-	if (pipe->stream_count == pipe->num_video - 1) {
+	if (pipe->stream_count == pipe->num_inputs - 1) {
 
 		/* reset vspm use module */
 
