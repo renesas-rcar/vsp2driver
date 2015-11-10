@@ -288,7 +288,7 @@ static struct v4l2_subdev_ops rpf_ops = {
  * Video Device Operations
  */
 
-static void rpf_buf_queue(struct vsp2_rwpf *rpf, struct vsp2_vb2_buffer *buf)
+static void rpf_set_memory(struct vsp2_rwpf *rpf, struct vsp2_rwpf_memory *mem)
 {
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 	unsigned int i;
@@ -300,24 +300,24 @@ static void rpf_buf_queue(struct vsp2_rwpf *rpf, struct vsp2_vb2_buffer *buf)
 	}
 
 	for (i = 0; i < 3; ++i)
-		rpf->buf_addr[i] = buf->addr[i];
+		rpf->buf_addr[i] = mem->addr[i];
 
 	if (!vsp2_entity_is_streaming(&rpf->entity))
 		return;
 
-	vsp_in->addr = (void *)((unsigned long)buf->addr[0] + rpf->offsets[0]);
-	if (buf->buf.num_planes > 1) {
+	vsp_in->addr = (void *)((unsigned long)mem->addr[0] + rpf->offsets[0]);
+	if (mem->num_planes > 1) {
 		vsp_in->addr_c0 =
-			(void *)((unsigned long)buf->addr[1] + rpf->offsets[1]);
+			(void *)((unsigned long)mem->addr[1] + rpf->offsets[1]);
 	}
-	if (buf->buf.num_planes > 2) {
+	if (mem->num_planes > 2) {
 		vsp_in->addr_c1 =
-			(void *)((unsigned long)buf->addr[2] + rpf->offsets[1]);
+			(void *)((unsigned long)mem->addr[2] + rpf->offsets[1]);
 	}
 }
 
 static const struct vsp2_rwpf_operations rpf_vdev_ops = {
-	.queue = rpf_buf_queue,
+	.set_memory = rpf_set_memory,
 };
 
 /* -----------------------------------------------------------------------------

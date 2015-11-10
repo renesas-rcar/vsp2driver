@@ -646,7 +646,7 @@ vsp2_video_complete_buffer(struct vsp2_video *video)
 	done->buf.v4l2_buf.sequence = video->sequence++;
 	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
 	for (i = 0; i < done->buf.num_planes; ++i)
-		vb2_set_plane_payload(&done->buf, i, done->length[i]);
+		vb2_set_plane_payload(&done->buf, i, done->mem.length[i]);
 	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
 
 	return next;
@@ -664,7 +664,7 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	video->rwpf->ops->queue(video->rwpf, buf);
+	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
@@ -861,11 +861,13 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 	if (vb->num_planes < format->num_planes)
 		return -EINVAL;
 
-	for (i = 0; i < vb->num_planes; ++i) {
-		buf->addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
-		buf->length[i] = vb2_plane_size(vb, i);
+	buf->mem.num_planes = vb->num_planes;
 
-		if (buf->length[i] < format->plane_fmt[i].sizeimage)
+	for (i = 0; i < vb->num_planes; ++i) {
+		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
+		buf->mem.length[i] = vb2_plane_size(vb, i);
+
+		if (buf->mem.length[i] < format->plane_fmt[i].sizeimage)
 			return -EINVAL;
 	}
 
@@ -890,7 +892,7 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	video->rwpf->ops->queue(video->rwpf, buf);
+	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	if (vb2_is_streaming(&video->queue) &&

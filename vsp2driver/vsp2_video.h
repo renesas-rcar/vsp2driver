@@ -69,7 +69,8 @@
 #include <media/media-entity.h>
 #include <media/videobuf2-core.h>
 
-struct vsp2_rwpf;
+#include "vsp2_rwpf.h"
+
 struct vsp2_video;
 
 /*
@@ -146,8 +147,7 @@ struct vsp2_vb2_buffer {
 	struct vb2_buffer buf;
 	struct list_head queue;
 
-	dma_addr_t addr[3];
-	unsigned int length[3];
+	struct vsp2_rwpf_memory mem;
 };
 
 static inline struct vsp2_vb2_buffer *to_vsp2_vb2_buffer(struct vb2_buffer *vb)
