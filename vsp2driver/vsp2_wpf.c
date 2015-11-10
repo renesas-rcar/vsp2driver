@@ -244,7 +244,7 @@ static struct v4l2_subdev_ops wpf_ops = {
  * Video Device Operations
  */
 
-static void wpf_buf_queue(struct vsp2_rwpf *wpf, struct vsp2_video_buffer *buf)
+static void wpf_buf_queue(struct vsp2_rwpf *wpf, struct vsp2_vb2_buffer *buf)
 {
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;

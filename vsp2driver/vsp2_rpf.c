@@ -288,7 +288,7 @@ static struct v4l2_subdev_ops rpf_ops = {
  * Video Device Operations
  */
 
-static void rpf_buf_queue(struct vsp2_rwpf *rpf, struct vsp2_video_buffer *buf)
+static void rpf_buf_queue(struct vsp2_rwpf *rpf, struct vsp2_vb2_buffer *buf)
 {
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 	unsigned int i;
