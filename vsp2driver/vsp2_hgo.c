@@ -233,12 +233,15 @@ void vsp2_hgo_buffer_finish(struct vsp2_hgo *hgo)
 #else
 	int remain;
 	int i;
+	int copy_size = HGO_BUFF_SIZE;
 
 	if (hgo->set_hgo == 1) {
 		hgo->set_hgo = 0;
 
+		if (hgo->config.step_mode == 0x00 /*VSP_STEP_64*/)
+			copy_size = sizeof(unsigned int) * 192;
 		remain = (int)copy_to_user(
-			hgo->config.addr, hgo->buff_v, HGO_BUFF_SIZE);
+			hgo->config.addr, hgo->buff_v, copy_size);
 
 		if (remain > 0) {
 
@@ -249,7 +252,7 @@ void vsp2_hgo_buffer_finish(struct vsp2_hgo *hgo)
 
 				remain = (int)copy_to_user(
 					hgo->config.addr, hgo->buff_v,
-						HGO_BUFF_SIZE);
+						copy_size);
 
 				VSP2_PRINT_ALERT(
 					"retry %d / remain = %d", i, remain);
