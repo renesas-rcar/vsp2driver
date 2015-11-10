@@ -1206,11 +1206,7 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 	spin_lock_init(&video->irqlock);
 	INIT_LIST_HEAD(&video->irqqueue);
 
-	mutex_init(&video->pipe.lock);
-	spin_lock_init(&video->pipe.irqlock);
-	INIT_LIST_HEAD(&video->pipe.entities);
-	init_waitqueue_head(&video->pipe.wq);
-	video->pipe.state = VSP2_PIPELINE_STOPPED;
+	vsp2_pipeline_init(&video->pipe);
 	video->pipe.frame_end = vsp2_video_pipeline_frame_end;
 
 	/* Initialize the media entity... */

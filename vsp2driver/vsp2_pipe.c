@@ -97,6 +97,16 @@ void vsp2_pipeline_reset(struct vsp2_pipeline *pipe)
 	pipe->uds = NULL;
 }
 
+void vsp2_pipeline_init(struct vsp2_pipeline *pipe)
+{
+	mutex_init(&pipe->lock);
+	spin_lock_init(&pipe->irqlock);
+	init_waitqueue_head(&pipe->wq);
+
+	INIT_LIST_HEAD(&pipe->entities);
+	pipe->state = VSP2_PIPELINE_STOPPED;
+}
+
 void vsp2_pipeline_run(struct vsp2_pipeline *pipe)
 {
 	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;

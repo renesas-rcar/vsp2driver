@@ -116,6 +116,7 @@ static inline struct vsp2_pipeline *to_vsp2_pipeline(struct media_entity *e)
 }
 
 void vsp2_pipeline_reset(struct vsp2_pipeline *pipe);
+void vsp2_pipeline_init(struct vsp2_pipeline *pipe);
 
 void vsp2_pipeline_run(struct vsp2_pipeline *pipe);
 bool vsp2_pipeline_stopped(struct vsp2_pipeline *pipe);
