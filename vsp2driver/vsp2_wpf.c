@@ -107,9 +107,9 @@ static const struct v4l2_ctrl_ops wpf_ctrl_ops = {
 static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 {
 	struct vsp2_rwpf *wpf = to_rwpf(subdev);
-	struct v4l2_pix_format_mplane *format = &wpf->video.format;
+	struct v4l2_pix_format_mplane *format = &wpf->format;
 	const struct v4l2_rect *crop = &wpf->crop;
-	const struct vsp2_format_info *fmtinfo = wpf->video.fmtinfo;
+	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
 	int ret;
 	u32 stride_y = 0;			/* TODO: delete check */

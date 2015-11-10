@@ -81,6 +81,8 @@ struct vsp2_rwpf {
 	unsigned int max_width;
 	unsigned int max_height;
 
+	struct v4l2_pix_format_mplane format;
+	const struct vsp2_format_info *fmtinfo;
 	struct {
 		unsigned int left;
 		unsigned int top;
