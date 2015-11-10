@@ -664,7 +664,7 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	video->ops->queue(video, buf);
+	video->rwpf->ops->queue(video->rwpf, buf);
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
@@ -890,7 +890,7 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	video->ops->queue(video, buf);
+	video->rwpf->ops->queue(video->rwpf, buf);
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	if (vb2_is_streaming(&video->queue) &&
