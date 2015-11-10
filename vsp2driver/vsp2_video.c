@@ -78,6 +78,7 @@
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
 #include "vsp2_entity.h"
+#include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 #include "vsp2_uds.h"
 #include "vsp2_hgo.h"
@@ -430,26 +431,6 @@ static int vsp2_pipeline_validate_branch(struct vsp2_pipeline *pipe,
 	return 0;
 }
 
-static void __vsp2_pipeline_cleanup(struct vsp2_pipeline *pipe)
-{
-	if (pipe->bru) {
-		struct vsp2_bru *bru = to_bru(&pipe->bru->subdev);
-		unsigned int i;
-
-		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
-			bru->inputs[i].rpf = NULL;
-	}
-
-	INIT_LIST_HEAD(&pipe->entities);
-	pipe->state = VSP2_PIPELINE_STOPPED;
-	pipe->buffers_ready = 0;
-	pipe->num_video = 0;
-	pipe->num_inputs = 0;
-	pipe->output = NULL;
-	pipe->bru = NULL;
-	pipe->uds = NULL;
-}
-
 static int vsp2_pipeline_validate(struct vsp2_pipeline *pipe,
 				  struct vsp2_video *video)
 {
@@ -512,7 +493,7 @@ static int vsp2_pipeline_validate(struct vsp2_pipeline *pipe,
 	return 0;
 
 error:
-	__vsp2_pipeline_cleanup(pipe);
+	vsp2_pipeline_reset(pipe);
 	return ret;
 }
 
@@ -544,63 +525,9 @@ static void vsp2_pipeline_cleanup(struct vsp2_pipeline *pipe)
 
 	/* If we're the last user clean up the pipeline. */
 	if (--pipe->use_count == 0)
-		__vsp2_pipeline_cleanup(pipe);
+		vsp2_pipeline_reset(pipe);
 
 	mutex_unlock(&pipe->lock);
-}
-
-static void vsp2_pipeline_run(struct vsp2_pipeline *pipe)
-{
-	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
-
-	vsp2_vspm_drv_entry(vsp2);
-
-	pipe->state = VSP2_PIPELINE_RUNNING;
-	pipe->buffers_ready = 0;
-}
-
-static bool vsp2_pipeline_stopped(struct vsp2_pipeline *pipe)
-{
-	unsigned long flags;
-	bool stopped;
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-	stopped = pipe->state == VSP2_PIPELINE_STOPPED,
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
-
-	return stopped;
-}
-
-static int vsp2_pipeline_stop(struct vsp2_pipeline *pipe)
-{
-	struct vsp2_entity *entity;
-	unsigned long flags;
-	int ret;
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-	if (pipe->state == VSP2_PIPELINE_RUNNING)
-		pipe->state = VSP2_PIPELINE_STOPPING;
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
-
-	ret = wait_event_timeout(pipe->wq, vsp2_pipeline_stopped(pipe),
-				 msecs_to_jiffies(500));
-	ret = ret == 0 ? -ETIMEDOUT : 0;
-
-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
-	}
-
-	return ret;
-}
-
-static bool vsp2_pipeline_ready(struct vsp2_pipeline *pipe)
-{
-	unsigned int mask;
-
-	mask = ((1 << pipe->num_inputs) - 1) << 1;
-	mask |= 1 << 0;
-
-	return pipe->buffers_ready == mask;
 }
 
 /*
@@ -680,147 +607,6 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 		vsp2_video_frame_end(pipe, pipe->inputs[i]);
 
 	vsp2_video_frame_end(pipe, pipe->output);
-}
-
-void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe)
-{
-	enum vsp2_pipeline_state state;
-	unsigned long flags;
-
-	if (pipe == NULL)
-		return;
-
-	/* Signal frame end to the pipeline handler. */
-	pipe->frame_end(pipe);
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-
-	state = pipe->state;
-	pipe->state = VSP2_PIPELINE_STOPPED;
-
-	/* If a stop has been requested, mark the pipeline as stopped and
-	 * return.
-	 */
-	if (state == VSP2_PIPELINE_STOPPING) {
-		wake_up(&pipe->wq);
-		goto done;
-	}
-
-	/* Restart the pipeline if ready. */
-	if (vsp2_pipeline_ready(pipe))
-		vsp2_pipeline_run(pipe);
-
-done:
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
-}
-
-void vsp2_pipelines_suspend(struct vsp2_device *vsp2)
-{
-	unsigned long flags;
-	unsigned int i;
-	int ret;
-
-	/* To avoid increasing the system suspend time needlessly, loop over the
-	 * pipelines twice, first to set them all to the stopping state, and
-	 * then to wait for the stop to complete.
-	 */
-	for (i = 0; i < vsp2->pdata.wpf_count; ++i) {
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		struct vsp2_pipeline *pipe;
-
-		if (wpf == NULL)
-			continue;
-
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
-		if (pipe == NULL)
-			continue;
-
-		spin_lock_irqsave(&pipe->irqlock, flags);
-		if (pipe->state == VSP2_PIPELINE_RUNNING)
-			pipe->state = VSP2_PIPELINE_STOPPING;
-		spin_unlock_irqrestore(&pipe->irqlock, flags);
-	}
-
-	for (i = 0; i < vsp2->pdata.wpf_count; ++i) {
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		struct vsp2_pipeline *pipe;
-
-		if (wpf == NULL)
-			continue;
-
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
-		if (pipe == NULL)
-			continue;
-
-		ret = wait_event_timeout(pipe->wq, vsp2_pipeline_stopped(pipe),
-					 msecs_to_jiffies(500));
-		if (ret == 0)
-			dev_warn(vsp2->dev, "pipeline %u stop timeout\n",
-				 wpf->entity.index);
-	}
-}
-
-void vsp2_pipelines_resume(struct vsp2_device *vsp2)
-{
-	unsigned int i;
-
-	/* Resume pipeline all running pipelines. */
-	for (i = 0; i < vsp2->pdata.wpf_count; ++i) {
-		struct vsp2_rwpf *wpf = vsp2->wpf[i];
-		struct vsp2_pipeline *pipe;
-
-		if (wpf == NULL)
-			continue;
-
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
-		if (pipe == NULL)
-			continue;
-
-		if (vsp2_pipeline_ready(pipe))
-			vsp2_pipeline_run(pipe);
-	}
-}
-
-/*
- * Propagate the alpha value through the pipeline.
- *
- * As the UDS has restricted scaling capabilities when the alpha component needs
- * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
- * value. The UDS then outputs a fixed alpha value which needs to be programmed
- * from the input RPF alpha.
- */
-void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
-				   struct vsp2_entity *input,
-				   unsigned int alpha)
-{
-	struct vsp2_entity *entity;
-	struct media_pad *pad;
-
-	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
-
-	while (pad) {
-		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-			break;
-
-		entity = to_vsp2_entity(
-			media_entity_to_v4l2_subdev(pad->entity));
-
-		/* The BRU background color has a fixed alpha value set to 255,
-		 * the output alpha value is thus always equal to 255.
-		 */
-		if (entity->type == VSP2_ENTITY_BRU)
-			alpha = 255;
-
-		if (entity->type == VSP2_ENTITY_UDS) {
-			struct vsp2_uds *uds = to_uds(&entity->subdev);
-
-			vsp2_uds_set_alpha(uds, alpha);
-			break;
-		}
-
-		pad = &entity->pads[entity->source_pad];
-		pad = media_entity_remote_pad(pad);
-	}
 }
 
 /* -----------------------------------------------------------------------------

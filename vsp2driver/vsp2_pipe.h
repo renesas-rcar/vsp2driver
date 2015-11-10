@@ -59,84 +59,76 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */ /*************************************************************************/
 
-#ifndef __VSP2_VIDEO_H__
-#define __VSP2_VIDEO_H__
+#ifndef __VSP2_PIPE_H__
+#define __VSP2_PIPE_H__
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
+#include <linux/wait.h>
 
-#include <media/videobuf2-core.h>
+#include <media/media-entity.h>
 
-#include "vsp2_pipe.h"
-#include "vsp2_rwpf.h"
+struct vsp2_rwpf;
+
+enum vsp2_pipeline_state {
+	VSP2_PIPELINE_STOPPED,
+	VSP2_PIPELINE_RUNNING,
+	VSP2_PIPELINE_STOPPING,
+};
 
 /*
- * struct vsp2_format_info - VSP2 video format description
- * @mbus: media bus format code
- * @fourcc: V4L2 pixel format FCC identifier
- * @planes: number of planes
- * @bpp: bits per pixel
- * @hwfmt: VSP2 hardware format
- * @swap_yc: the Y and C components are swapped (Y comes before C)
- * @swap_uv: the U and V components are swapped (V comes before U)
- * @hsub: horizontal subsampling factor
- * @vsub: vertical subsampling factor
- * @alpha: has an alpha channel
+ * struct vsp2_pipeline - A VSP2 hardware pipeline
+ * @media: the media pipeline
+ * @irqlock: protects the pipeline state
+ * @lock: protects the pipeline use count and stream count
  */
-struct vsp2_format_info {
-	u32 fourcc;
-	unsigned int mbus;
-	unsigned int hwfmt;
-	unsigned int swap;
-	unsigned int planes;
-	unsigned int bpp[3];
-	bool swap_yc;
-	bool swap_uv;
-	unsigned int hsub;
-	unsigned int vsub;
-	bool alpha;
-};
+struct vsp2_pipeline {
+	struct media_pipeline pipe;
 
-struct vsp2_vb2_buffer {
-	struct vb2_buffer buf;
-	struct list_head queue;
+	spinlock_t irqlock;
+	enum vsp2_pipeline_state state;
+	wait_queue_head_t wq;
 
-	struct vsp2_rwpf_memory mem;
-};
-
-static inline struct vsp2_vb2_buffer *to_vsp2_vb2_buffer(struct vb2_buffer *vb)
-{
-	return container_of(vb, struct vsp2_vb2_buffer, buf);
-}
-
-struct vsp2_video {
-	struct list_head list;
-	struct vsp2_device *vsp2;
-	struct vsp2_rwpf *rwpf;
-
-	struct video_device video;
-	enum v4l2_buf_type type;
-	struct media_pad pad;
+	void (*frame_end)(struct vsp2_pipeline *pipe);
 
 	struct mutex lock;
+	unsigned int use_count;
+	unsigned int stream_count;
+	unsigned int buffers_ready;
 
-	struct vsp2_pipeline pipe;
-	unsigned int pipe_index;
+	unsigned int num_video;
+	unsigned int num_inputs;
+	struct vsp2_rwpf *inputs[VSP2_COUNT_RPF];
+	struct vsp2_rwpf *output;
+	struct vsp2_entity *bru;
+	struct vsp2_entity *uds;
+	struct vsp2_entity *uds_input;
 
-	struct vb2_queue queue;
-	void *alloc_ctx;
-	spinlock_t irqlock;
-	struct list_head irqqueue;
-	unsigned int sequence;
+	struct list_head entities;
 };
 
-static inline struct vsp2_video *to_vsp2_video(struct video_device *vdev)
+static inline struct vsp2_pipeline *to_vsp2_pipeline(struct media_entity *e)
 {
-	return container_of(vdev, struct vsp2_video, video);
+	if (likely(e->pipe))
+		return container_of(e->pipe, struct vsp2_pipeline, pipe);
+	else
+		return NULL;
 }
 
-struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
-				     struct vsp2_rwpf *rwpf);
-void vsp2_video_cleanup(struct vsp2_video *video);
+void vsp2_pipeline_reset(struct vsp2_pipeline *pipe);
 
-#endif /* __VSP2_VIDEO_H__ */
+void vsp2_pipeline_run(struct vsp2_pipeline *pipe);
+bool vsp2_pipeline_stopped(struct vsp2_pipeline *pipe);
+int vsp2_pipeline_stop(struct vsp2_pipeline *pipe);
+bool vsp2_pipeline_ready(struct vsp2_pipeline *pipe);
+
+void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe);
+
+void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
+				   struct vsp2_entity *input,
+				   unsigned int alpha);
+
+void vsp2_pipelines_suspend(struct vsp2_device *vsp2);
+void vsp2_pipelines_resume(struct vsp2_device *vsp2);
+
+#endif /* __VSP2_PIPE_H__ */
