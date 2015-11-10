@@ -124,4 +124,6 @@ void vsp2_entity_init_formats(struct v4l2_subdev *subdev,
 bool vsp2_entity_is_streaming(struct vsp2_entity *entity);
 int vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming);
 
+void vsp2_entity_route_setup(struct vsp2_entity *source);
+
 #endif /* __VSP2_ENTITY_H__ */
