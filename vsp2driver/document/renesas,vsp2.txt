@@ -8,12 +8,13 @@ Required properties:
   - compatible: Must contain "renesas,vsp2"
 
   - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP2.
-  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP2.
   - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP2.
 
   VSP Manager sets reg, interrupts and clocks.
 
 Optional properties:
+  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP2. Defaults
+    to 0 if not present.
   - renesas,has-bru: Boolean, indicates that Blend ROP Unit (BRU) module is
     available.
   - renesas,has-lut: Boolean, indicates that Look Up Table Unit (LUT) module is

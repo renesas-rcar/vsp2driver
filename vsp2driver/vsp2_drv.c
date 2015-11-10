@@ -577,7 +577,7 @@ static int vsp2_parse_dt(struct vsp2_device *vsp2)
 		return -EINVAL;
 	}
 
-	if (pdata->uds_count < 0 || pdata->uds_count > VSP2_COUNT_UDS) {
+	if (pdata->uds_count > VSP2_COUNT_UDS) {
 		dev_err(vsp2->dev, "invalid number of UDS (%u)\n",
 			pdata->uds_count);
 		return -EINVAL;
