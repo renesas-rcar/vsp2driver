@@ -989,7 +989,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 					       s_stream, 1);
 			if (ret < 0) {
 				mutex_unlock(&pipe->lock);
-				return ret;
+				goto error_end;
 			}
 			if (entity->type == VSP2_ENTITY_RPF) {
 
@@ -1007,7 +1007,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 			ret = -EINVAL;
 			mutex_unlock(&pipe->lock);
-			return ret;
+			goto error_end;
 		}
 
 		/* control entity setup -> set vspm params */
@@ -1021,7 +1021,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 					&entity->subdev, video, s_stream, 1);
 			if (ret < 0) {
 				mutex_unlock(&pipe->lock);
-				return ret;
+				goto error_end;
 			}
 		}
 
@@ -1034,7 +1034,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 					&entity->subdev, video, s_stream, 1);
 			if (ret < 0) {
 				mutex_unlock(&pipe->lock);
-				return ret;
+				goto error_end;
 			}
 		}
 
@@ -1050,6 +1050,22 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 
 	return 0;
+
+error_end:
+	spin_lock_irqsave(&video->irqlock, flags);
+
+	while (!list_empty(&video->irqqueue)) {
+		struct vsp2_video_buffer *buffer;
+
+		buffer = list_entry(video->irqqueue.next,
+					struct vsp2_video_buffer, queue);
+		list_del(&buffer->queue);
+		vb2_buffer_done(&buffer->buf, VB2_BUF_STATE_QUEUED);
+	}
+
+	spin_unlock_irqrestore(&video->irqlock, flags);
+
+	return ret;
 }
 
 static void vsp2_video_stop_streaming(struct vb2_queue *vq)
