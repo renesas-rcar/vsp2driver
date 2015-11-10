@@ -156,6 +156,7 @@ static inline struct vsp2_vb2_buffer *to_vsp2_vb2_buffer(struct vb2_buffer *vb)
 }
 
 struct vsp2_video {
+	struct list_head list;
 	struct vsp2_device *vsp2;
 	struct vsp2_rwpf *rwpf;
 
@@ -180,7 +181,8 @@ static inline struct vsp2_video *to_vsp2_video(struct video_device *vdev)
 	return container_of(vdev, struct vsp2_video, video);
 }
 
-int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf);
+struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
+				     struct vsp2_rwpf *rwpf);
 void vsp2_video_cleanup(struct vsp2_video *video);
 
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe);

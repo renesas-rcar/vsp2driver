@@ -67,6 +67,7 @@
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
 #include "vsp2_rwpf.h"
+#include "vsp2_video.h"
 #include "vsp2_vspm.h"
 
 #define BRU_MIN_SIZE				1U

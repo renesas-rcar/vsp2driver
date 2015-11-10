@@ -68,7 +68,6 @@
 
 #include "vsp2_device.h"
 #include "vsp2_entity.h"
-#include "vsp2_video.h"
 
 bool vsp2_entity_is_streaming(struct vsp2_entity *entity)
 {
@@ -275,8 +274,6 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 
 void vsp2_entity_destroy(struct vsp2_entity *entity)
 {
-	if (entity->video)
-		vsp2_video_cleanup(entity->video);
 	if (entity->subdev.ctrl_handler)
 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
 	media_entity_cleanup(&entity->subdev.entity);

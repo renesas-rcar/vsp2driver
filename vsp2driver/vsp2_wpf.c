@@ -268,9 +268,7 @@ static const struct vsp2_rwpf_operations wpf_vdev_ops = {
 struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 {
 	struct v4l2_subdev *subdev;
-	struct vsp2_video *video;
 	struct vsp2_rwpf *wpf;
-	unsigned int flags;
 	int ret;
 
 	wpf = devm_kzalloc(vsp2->dev, sizeof(*wpf), GFP_KERNEL);
@@ -315,31 +313,6 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 		ret = wpf->ctrls.error;
 		goto error;
 	}
-
-	/* Initialize the video device. */
-	video = &wpf->video;
-
-	video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-	video->vsp2 = vsp2;
-
-	ret = vsp2_video_init(video, wpf);
-	if (ret < 0)
-		goto error;
-
-	wpf->entity.video = video;
-
-	/* Connect the video device to the WPF. All connections are immutable.
-	 */
-	flags = MEDIA_LNK_FL_ENABLED;
-	flags |= MEDIA_LNK_FL_IMMUTABLE;
-
-	ret = media_entity_create_link(&wpf->entity.subdev.entity,
-				       RWPF_PAD_SOURCE,
-				       &wpf->video.video.entity, 0, flags);
-	if (ret < 0)
-		goto error;
-
-	wpf->entity.sink = &wpf->video.video.entity;
 
 	return wpf;
 

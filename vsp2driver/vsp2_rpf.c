@@ -327,7 +327,6 @@ static const struct vsp2_rwpf_operations rpf_vdev_ops = {
 struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 {
 	struct v4l2_subdev *subdev;
-	struct vsp2_video *video;
 	struct vsp2_rwpf *rpf;
 	int ret;
 
@@ -373,27 +372,6 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 		ret = rpf->ctrls.error;
 		goto error;
 	}
-
-	/* Initialize the video device. */
-	video = &rpf->video;
-
-	video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-	video->vsp2 = vsp2;
-
-	ret = vsp2_video_init(video, rpf);
-	if (ret < 0)
-		goto error;
-
-	rpf->entity.video = video;
-
-	/* Connect the video device to the RPF. */
-	ret = media_entity_create_link(&rpf->video.video.entity, 0,
-				       &rpf->entity.subdev.entity,
-				       RWPF_PAD_SINK,
-				       MEDIA_LNK_FL_ENABLED |
-				       MEDIA_LNK_FL_IMMUTABLE);
-	if (ret < 0)
-		goto error;
 
 	return rpf;
 

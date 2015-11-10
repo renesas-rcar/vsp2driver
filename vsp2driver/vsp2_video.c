@@ -481,11 +481,11 @@ static int vsp2_pipeline_validate(struct vsp2_pipeline *pipe,
 		if (e->type == VSP2_ENTITY_RPF) {
 			rwpf = to_rwpf(subdev);
 			pipe->inputs[pipe->num_inputs++] = rwpf;
-			rwpf->video.pipe_index = pipe->num_inputs;
+			rwpf->entity.video->pipe_index = pipe->num_inputs;
 		} else if (e->type == VSP2_ENTITY_WPF) {
 			rwpf = to_rwpf(subdev);
 			pipe->output = to_rwpf(subdev);
-			rwpf->video.pipe_index = 0;
+			rwpf->entity.video->pipe_index = 0;
 		} else if (e->type == VSP2_ENTITY_BRU) {
 			pipe->bru = e;
 		}
@@ -681,9 +681,9 @@ void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe)
 
 	/* Complete buffers on all video nodes. */
 	for (i = 0; i < pipe->num_inputs; ++i)
-		vsp2_video_frame_end(pipe, &pipe->inputs[i]->video);
+		vsp2_video_frame_end(pipe, pipe->inputs[i]->entity.video);
 
-	vsp2_video_frame_end(pipe, &pipe->output->video);
+	vsp2_video_frame_end(pipe, pipe->output->entity.video);
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
@@ -1378,28 +1378,33 @@ static struct v4l2_file_operations vsp2_video_fops = {
  * Initialization and Cleanup
  */
 
-int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf)
+struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
+				     struct vsp2_rwpf *rwpf)
 {
+	struct vsp2_video *video;
 	const char *direction;
 	int ret;
 
-	switch (video->type) {
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-		direction = "output";
-		video->pad.flags = MEDIA_PAD_FL_SINK;
-		break;
+	video = devm_kzalloc(vsp2->dev, sizeof(*video), GFP_KERNEL);
+	if (!video)
+		return ERR_PTR(-ENOMEM);
 
-	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+	rwpf->entity.video = video;
+
+	video->vsp2 = vsp2;
+	video->rwpf = rwpf;
+
+	if (rwpf->entity.type == VSP2_ENTITY_RPF) {
 		direction = "input";
+		video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
 		video->pad.flags = MEDIA_PAD_FL_SOURCE;
 		video->video.vfl_dir = VFL_DIR_TX;
-		break;
-
-	default:
-		return -EINVAL;
+	} else {
+		direction = "output";
+		video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+		video->pad.flags = MEDIA_PAD_FL_SINK;
+		video->video.vfl_dir = VFL_DIR_RX;
 	}
-
-	video->rwpf = rwpf;
 
 	mutex_init(&video->lock);
 	spin_lock_init(&video->irqlock);
@@ -1414,7 +1419,7 @@ int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf)
 	/* Initialize the media entity... */
 	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
 	if (ret < 0)
-		return ret;
+		return ERR_PTR(ret);
 
 	/* ... and the format ... */
 	rwpf->fmtinfo = vsp2_get_format_info(VSP2_VIDEO_DEF_FORMAT);
@@ -1469,12 +1474,12 @@ int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf)
 		goto error;
 	}
 
-	return 0;
+	return video;
 
 error:
 	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
 	vsp2_video_cleanup(video);
-	return ret;
+	return ERR_PTR(ret);
 }
 
 void vsp2_video_cleanup(struct vsp2_video *video)

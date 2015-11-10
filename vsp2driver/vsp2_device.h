@@ -142,6 +142,7 @@ struct vsp2_device {
 	struct vsp2_rwpf	*wpf[VSP2_COUNT_WPF];
 
 	struct list_head	entities;
+	struct list_head videos;
 
 	struct v4l2_device	v4l2_dev;
 	struct media_device media_dev;
