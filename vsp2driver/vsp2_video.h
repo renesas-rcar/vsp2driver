@@ -69,6 +69,7 @@
 #include <media/media-entity.h>
 #include <media/videobuf2-core.h>
 
+struct vsp2_rwpf;
 struct vsp2_video;
 
 /*
@@ -161,7 +162,7 @@ struct vsp2_video_operations {
 
 struct vsp2_video {
 	struct vsp2_device *vsp2;
-	struct vsp2_entity *rwpf;
+	struct vsp2_rwpf *rwpf;
 
 	const struct vsp2_video_operations *ops;
 
@@ -188,7 +189,7 @@ static inline struct vsp2_video *to_vsp2_video(struct video_device *vdev)
 	return container_of(vdev, struct vsp2_video, video);
 }
 
-int vsp2_video_init(struct vsp2_video *video, struct vsp2_entity *rwpf);
+int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf);
 void vsp2_video_cleanup(struct vsp2_video *video);
 
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe);

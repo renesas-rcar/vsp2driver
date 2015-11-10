@@ -323,7 +323,7 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	video->vsp2 = vsp2;
 	video->ops = &wpf_vdev_ops;
 
-	ret = vsp2_video_init(video, &wpf->entity);
+	ret = vsp2_video_init(video, wpf);
 	if (ret < 0)
 		goto error;
 

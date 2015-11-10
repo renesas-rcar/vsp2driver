@@ -1378,7 +1378,7 @@ static struct v4l2_file_operations vsp2_video_fops = {
  * Initialization and Cleanup
  */
 
-int vsp2_video_init(struct vsp2_video *video, struct vsp2_entity *rwpf)
+int vsp2_video_init(struct vsp2_video *video, struct vsp2_rwpf *rwpf)
 {
 	const char *direction;
 	int ret;
@@ -1433,7 +1433,7 @@ int vsp2_video_init(struct vsp2_video *video, struct vsp2_entity *rwpf)
 	video->video.v4l2_dev = &video->vsp2->v4l2_dev;
 	video->video.fops = &vsp2_video_fops;
 	snprintf(video->video.name, sizeof(video->video.name), "%s %s",
-		 rwpf->subdev.name, direction);
+		 rwpf->entity.subdev.name, direction);
 	video->video.vfl_type = VFL_TYPE_GRABBER;
 	video->video.release = video_device_release_empty;
 	video->video.ioctl_ops = &vsp2_video_ioctl_ops;
