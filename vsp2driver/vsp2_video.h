@@ -124,6 +124,7 @@ struct vsp2_pipeline {
 	unsigned int stream_count;
 	unsigned int buffers_ready;
 
+	unsigned int num_video;
 	unsigned int num_inputs;
 	struct vsp2_rwpf *inputs[VSP2_COUNT_RPF];
 	struct vsp2_rwpf *output;
