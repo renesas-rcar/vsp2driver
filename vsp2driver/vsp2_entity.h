@@ -68,7 +68,6 @@
 #include <media/v4l2-subdev.h>
 
 struct vsp2_device;
-struct vsp2_video;
 
 enum vsp2_entity_type {
 	VSP2_ENTITY_BRU,
@@ -98,8 +97,6 @@ struct vsp2_entity {
 
 	struct v4l2_subdev subdev;
 	struct v4l2_mbus_framefmt *formats;
-
-	struct vsp2_video *video;
 
 	spinlock_t lock;		/* Protects the streaming field */
 	bool streaming;

@@ -393,8 +393,7 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
 		struct vsp2_rwpf *rpf = vsp2->rpf[i];
 
-		ret = media_entity_create_link(&rpf->entity.video->video.entity,
-					       0,
+		ret = media_entity_create_link(&rpf->video->video.entity, 0,
 					       &rpf->entity.subdev.entity,
 					       RWPF_PAD_SINK,
 					       MEDIA_LNK_FL_ENABLED |
@@ -415,7 +414,7 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 
 		ret = media_entity_create_link(&wpf->entity.subdev.entity,
 					       RWPF_PAD_SOURCE,
-					       &wpf->entity.video->video.entity,
+					       &wpf->video->video.entity,
 					       0, flags);
 		if (ret < 0)
 			goto done;
