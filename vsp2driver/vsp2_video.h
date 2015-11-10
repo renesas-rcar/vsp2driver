@@ -119,6 +119,8 @@ struct vsp2_pipeline {
 	enum vsp2_pipeline_state state;
 	wait_queue_head_t wq;
 
+	void (*frame_end)(struct vsp2_pipeline *pipe);
+
 	struct mutex lock;
 	unsigned int use_count;
 	unsigned int stream_count;

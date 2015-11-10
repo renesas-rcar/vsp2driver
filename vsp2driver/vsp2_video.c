@@ -653,8 +653,9 @@ vsp2_video_complete_buffer(struct vsp2_video *video)
 }
 
 static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
-				 struct vsp2_video *video)
+				 struct vsp2_rwpf *rwpf)
 {
+	struct vsp2_video *video = rwpf->video;
 	struct vsp2_vb2_buffer *buf;
 	unsigned long flags;
 
@@ -670,20 +671,27 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
+static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
+{
+	unsigned int i;
+
+	/* Complete buffers on all video nodes. */
+	for (i = 0; i < pipe->num_inputs; ++i)
+		vsp2_video_frame_end(pipe, pipe->inputs[i]);
+
+	vsp2_video_frame_end(pipe, pipe->output);
+}
+
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe)
 {
 	enum vsp2_pipeline_state state;
 	unsigned long flags;
-	unsigned int i;
 
 	if (pipe == NULL)
 		return;
 
-	/* Complete buffers on all video nodes. */
-	for (i = 0; i < pipe->num_inputs; ++i)
-		vsp2_video_frame_end(pipe, pipe->inputs[i]->video);
-
-	vsp2_video_frame_end(pipe, pipe->output->video);
+	/* Signal frame end to the pipeline handler. */
+	pipe->frame_end(pipe);
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
@@ -1417,6 +1425,7 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 	INIT_LIST_HEAD(&video->pipe.entities);
 	init_waitqueue_head(&video->pipe.wq);
 	video->pipe.state = VSP2_PIPELINE_STOPPED;
+	video->pipe.frame_end = vsp2_video_pipeline_frame_end;
 
 	/* Initialize the media entity... */
 	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
