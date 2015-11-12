@@ -372,7 +372,7 @@ struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index)
 	subdev = &uds->entity.subdev;
 	v4l2_subdev_init(subdev, &uds_ops);
 
-	subdev->entity.ops = &vsp2_media_ops;
+	subdev->entity.ops = &vsp2->media_ops;
 	subdev->internal_ops = &vsp2_subdev_internal_ops;
 	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
 		 dev_name(vsp2->dev), index);

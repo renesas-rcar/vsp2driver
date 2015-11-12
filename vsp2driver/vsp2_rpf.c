@@ -354,7 +354,7 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 	subdev = &rpf->entity.subdev;
 	v4l2_subdev_init(subdev, &rpf_ops);
 
-	subdev->entity.ops = &vsp2_media_ops;
+	subdev->entity.ops = &vsp2->media_ops;
 	subdev->internal_ops = &vsp2_subdev_internal_ops;
 	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
 		 dev_name(vsp2->dev), index);

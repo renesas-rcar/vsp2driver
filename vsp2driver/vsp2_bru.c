@@ -510,7 +510,7 @@ struct vsp2_bru *vsp2_bru_create(struct vsp2_device *vsp2)
 	subdev = &bru->entity.subdev;
 	v4l2_subdev_init(subdev, &bru_ops);
 
-	subdev->entity.ops = &vsp2_media_ops;
+	subdev->entity.ops = &vsp2->media_ops;
 	subdev->internal_ops = &vsp2_subdev_internal_ops;
 	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
 		 dev_name(vsp2->dev));

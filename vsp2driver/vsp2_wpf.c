@@ -295,7 +295,7 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	subdev = &wpf->entity.subdev;
 	v4l2_subdev_init(subdev, &wpf_ops);
 
-	subdev->entity.ops = &vsp2_media_ops;
+	subdev->entity.ops = &vsp2->media_ops;
 	subdev->internal_ops = &vsp2_subdev_internal_ops;
 	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
 		 dev_name(vsp2->dev), index);

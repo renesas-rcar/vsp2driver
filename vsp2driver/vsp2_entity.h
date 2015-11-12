@@ -112,7 +112,10 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 void vsp2_entity_destroy(struct vsp2_entity *entity);
 
 extern const struct v4l2_subdev_internal_ops vsp2_subdev_internal_ops;
-extern const struct media_entity_operations vsp2_media_ops;
+
+int vsp2_entity_link_setup(struct media_entity *entity,
+			   const struct media_pad *local,
+			   const struct media_pad *remote, u32 flags);
 
 struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,

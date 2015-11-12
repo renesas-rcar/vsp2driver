@@ -147,6 +147,8 @@ struct vsp2_device {
 	struct v4l2_device	v4l2_dev;
 	struct media_device media_dev;
 
+	struct media_entity_operations media_ops;
+
 	struct vsp2_vspm	*vspm;
 };
 

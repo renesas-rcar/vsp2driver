@@ -284,7 +284,7 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 	subdev = &clu->entity.subdev;
 	v4l2_subdev_init(subdev, &clu_ops);
 
-	subdev->entity.ops   = &vsp2_media_ops;
+	subdev->entity.ops   = &vsp2->media_ops;
 	subdev->internal_ops = &vsp2_subdev_internal_ops;
 
 	snprintf(subdev->name, sizeof(subdev->name), "%s clu",
