@@ -70,33 +70,6 @@
 #include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 
-/*
- * struct vsp2_format_info - VSP2 video format description
- * @mbus: media bus format code
- * @fourcc: V4L2 pixel format FCC identifier
- * @planes: number of planes
- * @bpp: bits per pixel
- * @hwfmt: VSP2 hardware format
- * @swap_yc: the Y and C components are swapped (Y comes before C)
- * @swap_uv: the U and V components are swapped (V comes before U)
- * @hsub: horizontal subsampling factor
- * @vsub: vertical subsampling factor
- * @alpha: has an alpha channel
- */
-struct vsp2_format_info {
-	u32 fourcc;
-	unsigned int mbus;
-	unsigned int hwfmt;
-	unsigned int swap;
-	unsigned int planes;
-	unsigned int bpp[3];
-	bool swap_yc;
-	bool swap_uv;
-	unsigned int hsub;
-	unsigned int vsub;
-	bool alpha;
-};
-
 struct vsp2_vb2_buffer {
 	struct vb2_buffer buf;
 	struct list_head queue;

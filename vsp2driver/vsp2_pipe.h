@@ -70,6 +70,33 @@
 
 struct vsp2_rwpf;
 
+/*
+ * struct vsp2_format_info - VSP2 video format description
+ * @mbus: media bus format code
+ * @fourcc: V4L2 pixel format FCC identifier
+ * @planes: number of planes
+ * @bpp: bits per pixel
+ * @hwfmt: VSP2 hardware format
+ * @swap_yc: the Y and C components are swapped (Y comes before C)
+ * @swap_uv: the U and V components are swapped (V comes before U)
+ * @hsub: horizontal subsampling factor
+ * @vsub: vertical subsampling factor
+ * @alpha: has an alpha channel
+ */
+struct vsp2_format_info {
+	u32 fourcc;
+	unsigned int mbus;
+	unsigned int hwfmt;
+	unsigned int swap;
+	unsigned int planes;
+	unsigned int bpp[3];
+	bool swap_yc;
+	bool swap_uv;
+	unsigned int hsub;
+	unsigned int vsub;
+	bool alpha;
+};
+
 enum vsp2_pipeline_state {
 	VSP2_PIPELINE_STOPPED,
 	VSP2_PIPELINE_RUNNING,
@@ -145,5 +172,7 @@ void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
 
 void vsp2_pipelines_suspend(struct vsp2_device *vsp2);
 void vsp2_pipelines_resume(struct vsp2_device *vsp2);
+
+const struct vsp2_format_info *vsp2_get_format_info(u32 fourcc);
 
 #endif /* __VSP2_PIPE_H__ */
