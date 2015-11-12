@@ -116,7 +116,7 @@ enum vsp2_pipeline_state {
  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
  * @num_video: number of video devices
  * @num_inputs: number of RPFs
- * @inputs: array of RPFs in the pipeline
+ * @inputs: array of RPFs in the pipeline (indexed by RPF index)
  * @output: WPF at the output of the pipeline
  * @bru: BRU entity, if present
  * @uds: UDS entity, if present
