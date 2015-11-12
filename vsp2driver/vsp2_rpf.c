@@ -124,6 +124,7 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
 
 static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 {
+	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&subdev->entity);
 	struct vsp2_rwpf *rpf = to_rwpf(subdev);
 	const struct vsp2_format_info *fmtinfo = rpf->fmtinfo;
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
@@ -232,6 +233,9 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_in->pwd		= VSP_LAYER_CHILD;
 	vsp_in->vir		= VSP_NO_VIR;
 	vsp_in->vircolor	= 0;
+
+	vsp_in->alpha->afix = rpf->alpha->cur.val;
+	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
 
 	vsp_in->alpha->addr_a = NULL;
 /* TODO: delete check                      */
@@ -361,8 +365,9 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 
 	/* Initialize the control handler. */
 	v4l2_ctrl_handler_init(&rpf->ctrls, 1);
-	v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
-			  0, 255, 1, 255);
+	rpf->alpha = v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops,
+				       V4L2_CID_ALPHA_COMPONENT,
+				       0, 255, 1, 255);
 
 	rpf->entity.subdev.ctrl_handler = &rpf->ctrls;
 

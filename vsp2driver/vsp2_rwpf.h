@@ -72,6 +72,7 @@
 #define RWPF_PAD_SINK				0
 #define RWPF_PAD_SOURCE				1
 
+struct v4l2_ctrl;
 struct vsp2_rwpf;
 struct vsp2_video;
 
@@ -89,6 +90,7 @@ struct vsp2_rwpf_operations {
 struct vsp2_rwpf {
 	struct vsp2_entity entity;
 	struct v4l2_ctrl_handler ctrls;
+	struct v4l2_ctrl *alpha;
 
 	struct vsp2_video *video;
 

@@ -158,6 +158,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	    wpf->entity.formats[RWPF_PAD_SOURCE].code)
 		outfmt |= VI6_WPF_OUTFMT_CSC;
 
+	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;
+
 	/* Take the control handler lock to ensure that the PDV value won't be
 	 * changed behind our back by a set control operation.
 	 */
@@ -177,6 +179,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_out->iturbt		= (outfmt & (3 << 10)) >> 10;
 	vsp_out->dith		= (outfmt & (3 << 12)) >> 12;
 	vsp_out->pxa		= (outfmt & (1 << 23)) >> 23;
+
+	vsp_out->pad = (outfmt & (0xff << 24)) >> 24;
 
 	vsp_out->cbrm		= VSP_CSC_ROUND_DOWN;
 	vsp_out->abrm		= VSP_CONVERSION_ROUNDDOWN;
@@ -302,8 +306,9 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 
 	/* Initialize the control handler. */
 	v4l2_ctrl_handler_init(&wpf->ctrls, 1);
-	v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
-			  0, 255, 1, 255);
+	wpf->alpha = v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops,
+				       V4L2_CID_ALPHA_COMPONENT,
+				       0, 255, 1, 255);
 
 	wpf->entity.subdev.ctrl_handler = &wpf->ctrls;
 
