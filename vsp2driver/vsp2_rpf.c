@@ -130,6 +130,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
 	const struct v4l2_rect *crop = &rpf->crop;
 	u32 infmt;
+	u32 alph_sel, laya;
 	int ret;
 	u32 stride_y = 0;	/* TODO: delete check */
 	u32 stride_c = 0;
@@ -234,7 +235,30 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_in->vir		= VSP_NO_VIR;
 	vsp_in->vircolor	= 0;
 
-	vsp_in->alpha->afix = rpf->alpha->cur.val;
+	switch (fmtinfo->fourcc) {
+	case V4L2_PIX_FMT_ARGB555:
+		if (CONFIG_VIDEO_RENESAS_VSP_ALPHA_BIT_ARGB1555 == 1)
+			alph_sel = (2 << 28) | (1 << 18) |
+				   (0xFF << 8) | (rpf->alpha->cur.val & 0xFF);
+		else
+			alph_sel = (2 << 28) | (1 << 18) |
+				   ((rpf->alpha->cur.val & 0xFF) << 8) | 0xFF;
+		laya = 0;
+		break;
+	case V4L2_PIX_FMT_ABGR32:
+	case V4L2_PIX_FMT_ARGB32:
+	case V4L2_PIX_FMT_ARGB444:
+	case V4L2_PIX_FMT_XRGB444:
+		alph_sel = (1 << 18);
+		laya = 0;
+		break;
+	default:
+		alph_sel = (4 << 28) | (1 << 18);
+		laya = rpf->alpha->cur.val;
+		break;
+	}
+
+	vsp_in->alpha->afix = laya;
 	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
 
 	vsp_in->alpha->addr_a = NULL;
@@ -244,11 +268,10 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 /*	vsp_in->alpha->alpha2 = 0;             */
 	vsp_in->alpha->stride_a = 0;
 	vsp_in->alpha->swap = VSP_SWAP_NO;
-	vsp_in->alpha->asel = fmtinfo->alpha ?
-					VSP_ALPHA_NUM1 : VSP_ALPHA_NUM5;
-	vsp_in->alpha->aext = VSP_AEXT_COPY;
-	vsp_in->alpha->anum0 = 0;
-	vsp_in->alpha->anum1 = 0;
+	vsp_in->alpha->asel = (alph_sel & (7 << 28)) >> 28;
+	vsp_in->alpha->aext = (alph_sel & (3 << 18)) >> 18;
+	vsp_in->alpha->anum0 = (alph_sel & (0xff << 0)) >> 0;
+	vsp_in->alpha->anum1 = (alph_sel & (0xff << 8)) >> 8;
 /* TODO: delete check                                */
 /*	vsp_in->alpha->irop = VSP_IROP_NOP;              */
 /*	vsp_in->alpha_blend->msken    = VSP_MSKEN_ALPHA; */
