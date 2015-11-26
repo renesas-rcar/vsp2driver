@@ -100,19 +100,13 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 
 	/* Initialize struct vsp_uds_t. */
 	memset(vsp_par->ctrl_par->uds, 0x00, sizeof(struct vsp_uds_t));
-	/* TODO:add  lut, clu, hgo, hgt*/
 
 	/* Initialize struct vsp_bru_t. */
 	vsp_par->ctrl_par->bru->lay_order	= 0;
 	vsp_par->ctrl_par->bru->adiv		= 0;
-/* TODO: delete check                           */
-/*  memset(vsp_par->ctrl_par->bru->qnt,         */
-/*      0x00,                                   */
-/*      sizeof(vsp_par->ctrl_par->bru->qnt));   */
 	memset(vsp_par->ctrl_par->bru->dither_unit,
 		0x00,
 		sizeof(vsp_par->ctrl_par->bru->dither_unit));
-		/*TODO: How to use this item ?*/
 	vsp_par->ctrl_par->bru->rop_unit	= NULL;
 	vsp_par->ctrl_par->bru->connect		= 0;
 
@@ -121,7 +115,7 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 		0x00,
 		sizeof(struct vsp_bld_vir_t));
 
-	for (i = 0; i < 5; i++) {/*TODO; use macro ?*/
+	for (i = 0; i < 5; i++) {
 		struct vsp_bld_ctrl_t *vsp_blend_ctrl;
 
 		switch (i) {
