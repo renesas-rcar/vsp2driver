@@ -132,7 +132,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	u32 infmt;
 	u32 alph_sel, laya;
 	int ret;
-	u32 stride_y = 0;	/* TODO: delete check */
+	u32 stride_y = 0;
 	u32 stride_c = 0;
 	u32 height = 0;
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
@@ -262,25 +262,14 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
 
 	vsp_in->alpha->addr_a = NULL;
-/* TODO: delete check                      */
-/*	vsp_in->alpha->alphan = VSP_ALPHA_NO;  */
-/*	vsp_in->alpha->alpha1 = 0;             */
-/*	vsp_in->alpha->alpha2 = 0;             */
 	vsp_in->alpha->stride_a = 0;
 	vsp_in->alpha->swap = VSP_SWAP_NO;
 	vsp_in->alpha->asel = (alph_sel & (7 << 28)) >> 28;
 	vsp_in->alpha->aext = (alph_sel & (3 << 18)) >> 18;
 	vsp_in->alpha->anum0 = (alph_sel & (0xff << 0)) >> 0;
 	vsp_in->alpha->anum1 = (alph_sel & (0xff << 8)) >> 8;
-/* TODO: delete check                                */
-/*	vsp_in->alpha->irop = VSP_IROP_NOP;              */
-/*	vsp_in->alpha_blend->msken    = VSP_MSKEN_ALPHA; */
-/*	vsp_in->alpha_blend->bsel     = 0;               */
-/*	vsp_in->alpha_blend->mgcolor  = 0;               */
-/*	vsp_in->alpha_blend->mscolor0 = 0;               */
-/*	vsp_in->alpha_blend->mscolor1 = 0;               */
-	vsp_in->alpha->irop = NULL;	/* TODO: NULL ok ? */
-	vsp_in->alpha->ckey = NULL;	/* TODO: NULL ok ? */
+	vsp_in->alpha->irop = NULL;
+	vsp_in->alpha->ckey = NULL;
 
 	if (rpf->entity.formats[RWPF_PAD_SOURCE].code ==
 	    MEDIA_BUS_FMT_AYUV8_1X32) {
