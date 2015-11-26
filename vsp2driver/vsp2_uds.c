@@ -130,7 +130,6 @@ static void uds_output_limits(unsigned int input,
 
 static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
 {
-	/* TODO: This is an approximation that will need to be refined. */
 	return input * 4096 / output;
 }
 
