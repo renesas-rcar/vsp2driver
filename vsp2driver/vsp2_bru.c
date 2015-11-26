@@ -142,18 +142,6 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
 		 0 : VI6_BRU_INCTRL_NRM;
 	vsp_bru->adiv    = (inctrl & (1 << 28)) >> 28;
 
-/*	TODO: need delete check
-	vsp_bru->qnt[0]  = (inctrl & (1 << 16)) >> 16;
-	vsp_bru->qnt[1]  = (inctrl & (1 << 17)) >> 17;
-	vsp_bru->qnt[2]  = (inctrl & (1 << 18)) >> 18;
-	vsp_bru->qnt[3]  = (inctrl & (1 << 19)) >> 19;
-	//TODO: How to use new item 'dither_unit'
-	vsp_bru->dith[0] = (inctrl & (0x000F <<  0)) >>  0;
-	vsp_bru->dith[1] = (inctrl & (0x000F <<  4)) >>  4;
-	vsp_bru->dith[2] = (inctrl & (0x000F <<  8)) >>  8;
-	vsp_bru->dith[3] = (inctrl & (0x000F << 12)) >> 12;
-*/
-
 	/* Set the background position to cover the whole output image. */
 	vsp_bru->blend_virtual->width		= format->width;
 	vsp_bru->blend_virtual->height		= format->height;
