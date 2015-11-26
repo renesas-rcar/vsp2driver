@@ -281,7 +281,17 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 /*	vsp_in->alpha_blend->mscolor1 = 0;               */
 	vsp_in->alpha->irop = NULL;	/* TODO: NULL ok ? */
 	vsp_in->alpha->ckey = NULL;	/* TODO: NULL ok ? */
-	vsp_in->alpha->mult = NULL;	/* TODO: NULL ok ? */
+
+	if (rpf->entity.formats[RWPF_PAD_SOURCE].code ==
+	    MEDIA_BUS_FMT_AYUV8_1X32) {
+		vsp_in->alpha->mult->a_mmd = VSP_MULT_THROUGH;
+		vsp_in->alpha->mult->p_mmd = VSP_MULT_THROUGH;
+		vsp_in->alpha->mult->ratio = 0;
+	} else {
+		vsp_in->alpha->mult->a_mmd = VSP_MULT_RATIO;
+		vsp_in->alpha->mult->p_mmd = VSP_MULT_THROUGH;
+		vsp_in->alpha->mult->ratio = rpf->alpha->cur.val;
+	}
 
 	/* Count rpf_num. */
 	rpf->entity.vsp2->vspm->ip_par.par.vsp->rpf_num++;

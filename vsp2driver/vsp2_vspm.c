@@ -85,8 +85,14 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 		vsp_par->src_par[i]->alpha = temp_vp;
 
 		/* Initialize struct vsp_alpha_unit_t. */
+		temp_vp = vsp_par->src_par[i]->alpha->mult;
 		memset(vsp_par->src_par[i]->alpha,
 				0x00, sizeof(struct vsp_alpha_unit_t));
+		vsp_par->src_par[i]->alpha->mult = temp_vp;
+
+		/* Initialize struct vsp_mult_unit_t. */
+		memset(vsp_par->src_par[i]->alpha->mult,
+				0x00, sizeof(struct vsp_mult_unit_t));
 	}
 
 	/* Initialize struct vsp_dst_t. */
@@ -164,6 +170,11 @@ static int vsp2_vspm_alloc_vsp_in(struct device *dev, struct vsp_src_t **in)
 	vsp_in->alpha =
 	  devm_kzalloc(dev, sizeof(*vsp_in->alpha), GFP_KERNEL);
 	if (vsp_in->alpha == NULL)
+		return -ENOMEM;
+
+	vsp_in->alpha->mult =
+	  devm_kzalloc(dev, sizeof(*vsp_in->alpha->mult), GFP_KERNEL);
+	if (vsp_in->alpha->mult == NULL)
 		return -ENOMEM;
 
 	return 0;
