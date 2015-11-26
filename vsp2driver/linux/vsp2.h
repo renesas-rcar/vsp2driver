@@ -90,9 +90,9 @@
  */
 
 struct vsp2_lut_config {
-	void *					addr;	/* Allocate memory size is tbl_num * 8 bytes. */
-	unsigned short 			tbl_num;	/* 1 to 256 */
-	unsigned char			fxa;
+	void		*addr;	/* Allocate memory size is tbl_num * 8 bytes. */
+	unsigned short	tbl_num;	/* 1 to 256 */
+	unsigned char	fxa;
 };
 
 /*
@@ -102,34 +102,34 @@ struct vsp2_lut_config {
  * mode = VSP_CLU_MODE_2D_AUTO -> tbl_num = 1 to 289
  */
 struct vsp2_clu_config {
-	unsigned char 			mode;
-	void *					addr;	/* Allocate memory size is tbl_num * 8 bytes. */
-	unsigned short 			tbl_num;	/* 1 to 9826 */
+	unsigned char	mode;
+	void		*addr;	/* Allocate memory size is tbl_num * 8 bytes. */
+	unsigned short	tbl_num;	/* 1 to 9826 */
 };
 
 struct vsp2_hgo_config {
-	void*					addr;	/* Allocate memory size is 1088 bytes.	*/
-	unsigned short 			width;	/* horizontal size 	*/
-	unsigned short 			height;	/* vertical size 	*/
-	unsigned short			x_offset;
-	unsigned short			y_offset;
-	unsigned char			binary_mode;
-	unsigned char			maxrgb_mode;
-	unsigned char			step_mode;
-	unsigned long 			sampling;	/* sampling module 	*/
+	void		*addr;	/* Allocate memory size is 1088 bytes. */
+	unsigned short	width;	/* horizontal size */
+	unsigned short	height;	/* vertical size */
+	unsigned short	x_offset;
+	unsigned short	y_offset;
+	unsigned char	binary_mode;
+	unsigned char	maxrgb_mode;
+	unsigned char	step_mode;
+	unsigned long	sampling;	/* sampling module */
 };
 
 struct vsp2_hue_area {
-	unsigned char			lower;
-	unsigned char			upper;
+	unsigned char lower;
+	unsigned char upper;
 };
 
 struct vsp2_hgt_config {
-	void*					addr;	/* Allocate memory size is 800 bytes.	*/
-	unsigned short 			width;	/* horizontal size 	*/
-	unsigned short 			height;	/* vertical size 	*/
-	struct vsp2_hue_area	area[6];
-	unsigned long 			sampling;	/* sampling module 	*/
+	void		*addr;	/* Allocate memory size is 800 bytes. */
+	unsigned short	width;	/* horizontal size */
+	unsigned short	height;	/* vertical size */
+	struct vsp2_hue_area area[6];
+	unsigned long	sampling;	/* sampling module */
 };
 
 /* HGO,HGT sampling module */
