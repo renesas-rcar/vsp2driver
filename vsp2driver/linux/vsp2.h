@@ -134,7 +134,7 @@ struct vsp2_hgt_config {
 
 /* HGO,HGT sampling module */
 /*
-TODO: delete check
+Use the following value to sampling module in application.
 #define VSP_SMPPT_SRC1				(0)
 #define VSP_SMPPT_SRC2				(1)
 #define VSP_SMPPT_SRC3				(2)
