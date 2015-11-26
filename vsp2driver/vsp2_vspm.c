@@ -337,7 +337,6 @@ static void vsp2_vspm_drv_entry_cb(unsigned long job_id, long result,
 {
 	struct vsp2_device *vsp2;
 
-	/* TODO: for debug */
 #ifdef VSP2_DEBUG
 	if (vsp2_debug_vspmDebug() == true)
 		print_vspm_entry_cb();
@@ -395,7 +394,6 @@ void vsp2_vspm_drv_entry_work(struct work_struct *work)
 		vsp_par->src_par[0]->pwd = VSP_LAYER_PARENT;
 	}
 
-	/* TODO: for debug */
 #ifdef VSP2_DEBUG
 	if (vsp2_debug_vspmDebug() == true)
 		print_vspm_entry(vsp2->vspm->ip_par.par.vsp);
