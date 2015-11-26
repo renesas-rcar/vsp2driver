@@ -112,7 +112,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
 	int ret;
-	u32 stride_y = 0;			/* TODO: delete check */
+	u32 stride_y = 0;
 	u32 stride_c = 0;
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
@@ -186,9 +186,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_out->abrm		= VSP_CONVERSION_ROUNDDOWN;
 	vsp_out->athres		= 0;
 	vsp_out->clmd		= VSP_CLMD_NO;
-/*	vsp_out->ln16		= 0;	TODO: delete check */
 	vsp_out->rotation	= 0;
-/*	vsp_out->mirror		= 0;	TODO: delete check */
 
 	return 0;
 }
