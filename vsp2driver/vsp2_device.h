@@ -70,7 +70,6 @@
 #include <media/v4l2-device.h>
 #include <media/v4l2-subdev.h>
 
-/* TODO: delete check */
 #include "vsp2_regs.h"
 
 #define VSP2_PRINT_ALERT(fmt, args...) \
