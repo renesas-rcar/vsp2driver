@@ -68,10 +68,9 @@
 
 unsigned long vsp2_addr_uv2kv(unsigned long uvaddr)
 {
-#ifdef USE_BUFFER
+#ifdef USE_BUFFER	/* TODO: delete USE_BUFFER */
 	return 0;
 #else
-	/* TODO: need re-cording for gen3.*/
 
 	struct vm_area_struct	*vma;
 	struct mm_struct		*mm = current->mm;
@@ -96,10 +95,9 @@ unsigned long vsp2_addr_uv2kv(unsigned long uvaddr)
 
 unsigned long vsp2_addr_uv2hd(unsigned long uvaddr)
 {
-#ifdef USE_BUFFER
+#ifdef USE_BUFFER	/* TODO: delete USE_BUFFER */
 	return 0;
 #else
-	/* TODO: need re-cording for gen3.*/
 
 	struct vm_area_struct	*vma;
 	struct mm_struct		*mm = current->mm;
