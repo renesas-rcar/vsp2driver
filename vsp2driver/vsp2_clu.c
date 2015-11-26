@@ -243,7 +243,6 @@ static int clu_set_format(
 
 	/* Default to YUV if the requested format is not supported. */
 	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-/*	    fmt->format.code != V4L2_MBUS_FMT_AHSV8888_1X32 && TODO:del chk */
 	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
 		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
 
@@ -254,13 +253,13 @@ static int clu_set_format(
 
 		/* The CLU output format can't be modified. */
 
-		format->code    = fmt->format.code; /* TODO: need check */
+		format->code    = fmt->format.code;
 		fmt->format     = *format;
 
 		return 0;
 	}
 
-	format->code = fmt->format.code; /* TODO: need check */
+	format->code = fmt->format.code;
 
 	format->width = clamp_t(unsigned int, fmt->format.width,
 				CLU_MIN_SIZE, CLU_MAX_SIZE);
