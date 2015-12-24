@@ -72,7 +72,7 @@
 #include <media/v4l2-fh.h>
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-subdev.h>
-#include <media/videobuf2-core.h>
+#include <media/videobuf2-v4l2.h>
 #include <media/videobuf2-dma-contig.h>
 
 #include "vsp2_device.h"
@@ -466,11 +466,12 @@ vsp2_video_complete_buffer(struct vsp2_video *video)
 
 	spin_unlock_irqrestore(&video->irqlock, flags);
 
-	done->buf.v4l2_buf.sequence = video->sequence++;
-	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
-	for (i = 0; i < done->buf.num_planes; ++i)
-		vb2_set_plane_payload(&done->buf, i, done->mem.length[i]);
-	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
+	done->buf.sequence = video->sequence++;
+	v4l2_get_timestamp(&done->buf.timestamp);
+	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
+		vb2_set_plane_payload(&done->buf.vb2_buf, i,
+				      done->mem.length[i]);
+	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
 
 	return next;
 }
@@ -515,10 +516,11 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
  */
 
 static int
-vsp2_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+vsp2_video_queue_setup(struct vb2_queue *vq, const void *parg,
 		     unsigned int *nbuffers, unsigned int *nplanes,
 		     unsigned int sizes[], void *alloc_ctxs[])
 {
+	const struct v4l2_format *fmt = parg;
 	struct vsp2_video *video = vb2_get_drv_priv(vq);
 	const struct v4l2_pix_format_mplane *format;
 	struct v4l2_pix_format_mplane pix_mp;
@@ -548,8 +550,9 @@ vsp2_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
 
 static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 {
+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
-	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vb);
+	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vbuf);
 	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
 	unsigned int i;
 
@@ -571,9 +574,10 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 
 static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 {
+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
 	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&video->video.entity);
-	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vb);
+	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vbuf);
 	unsigned long flags;
 	bool empty;
 
@@ -735,7 +739,7 @@ error_end:
 		buffer = list_entry(video->irqqueue.next,
 					struct vsp2_vb2_buffer, queue);
 		list_del(&buffer->queue);
-		vb2_buffer_done(&buffer->buf, VB2_BUF_STATE_QUEUED);
+		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_QUEUED);
 	}
 
 	spin_unlock_irqrestore(&video->irqlock, flags);
@@ -769,7 +773,7 @@ static void vsp2_video_stop_streaming(struct vb2_queue *vq)
 	/* Remove all buffers from the IRQ queue. */
 	spin_lock_irqsave(&video->irqlock, flags);
 	list_for_each_entry(buffer, &video->irqqueue, queue)
-		vb2_buffer_done(&buffer->buf, VB2_BUF_STATE_ERROR);
+		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
 	INIT_LIST_HEAD(&video->irqqueue);
 	spin_unlock_irqrestore(&video->irqlock, flags);
 }

@@ -65,21 +65,22 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 
-#include <media/videobuf2-core.h>
+#include <media/videobuf2-v4l2.h>
 
 #include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 
 struct vsp2_vb2_buffer {
-	struct vb2_buffer buf;
+	struct vb2_v4l2_buffer buf;
 	struct list_head queue;
 
 	struct vsp2_rwpf_memory mem;
 };
 
-static inline struct vsp2_vb2_buffer *to_vsp2_vb2_buffer(struct vb2_buffer *vb)
+static inline struct vsp2_vb2_buffer *
+to_vsp2_vb2_buffer(struct vb2_v4l2_buffer *vbuf)
 {
-	return container_of(vb, struct vsp2_vb2_buffer, buf);
+	return container_of(vbuf, struct vsp2_vb2_buffer, buf);
 }
 
 struct vsp2_video {
