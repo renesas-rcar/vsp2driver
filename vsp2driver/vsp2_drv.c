@@ -658,7 +658,7 @@ static int vsp2_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id vsp2_of_match[] = {
-	{ .compatible = "renesas,vsp2" },
+	{ .compatible = "renesas,vspm-vsp2" },
 	{ },
 };
 

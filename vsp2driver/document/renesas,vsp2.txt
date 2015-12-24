@@ -28,8 +28,16 @@ Optional properties:
 
 Example: R8A7795 (R-Car H3) VSP2 node
 
-	vsp2@vspmvspb0 {
-		compatible = "renesas,vsp2";
+	vspbd@fe960000 {
+		compatible = "renesas,vspm-vsp2";
+		renesas,has-bru;
+		renesas,#rpf = <5>;
+		renesas,#uds = <0>;
+		renesas,#wpf = <1>;
+	};
+
+	vspbc@fe920000 {
+		compatible = "renesas,vspm-vsp2";
 		renesas,has-bru;
 		renesas,has-lut;
 		renesas,has-clu;
@@ -39,16 +47,8 @@ Example: R8A7795 (R-Car H3) VSP2 node
 		renesas,#wpf = <1>;
 	};
 
-	vsp2@vspmvspb1 {
-		compatible = "renesas,vsp2";
-		renesas,has-bru;
-		renesas,#rpf = <5>;
-		renesas,#uds = <0>;
-		renesas,#wpf = <1>;
-	};
-
-	vsp2@vspmvspi0 {
-		compatible = "renesas,vsp2";
+	vspi0@fe9a0000 {
+		compatible = "renesas,vspm-vsp2";
 		renesas,has-lut;
 		renesas,has-clu;
 		renesas,has-hgo;
@@ -58,8 +58,8 @@ Example: R8A7795 (R-Car H3) VSP2 node
 		renesas,#wpf = <1>;
 	};
 
-	vsp2@vspmvspi1 {
-		compatible = "renesas,vsp2";
+	vspi1@fe9b0000 {
+		compatible = "renesas,vspm-vsp2";
 		renesas,has-lut;
 		renesas,has-clu;
 		renesas,has-hgo;
@@ -69,8 +69,8 @@ Example: R8A7795 (R-Car H3) VSP2 node
 		renesas,#wpf = <1>;
 	};
 
-	vsp2@vspmvspi2 {
-		compatible = "renesas,vsp2";
+	vspi2@fe9c0000 {
+		compatible = "renesas,vspm-vsp2";
 		renesas,has-lut;
 		renesas,has-clu;
 		renesas,has-hgo;
