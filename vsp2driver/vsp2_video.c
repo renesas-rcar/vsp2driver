@@ -214,35 +214,6 @@ static int __vsp2_video_try_format(struct vsp2_video *video,
 	return 0;
 }
 
-static bool
-vsp2_video_format_adjust(struct vsp2_video *video,
-			 const struct v4l2_pix_format_mplane *format,
-			 struct v4l2_pix_format_mplane *adjust)
-{
-	unsigned int i;
-
-	*adjust = *format;
-	__vsp2_video_try_format(video, adjust, NULL);
-
-	if (format->width != adjust->width ||
-	    format->height != adjust->height ||
-	    format->pixelformat != adjust->pixelformat ||
-	    format->num_planes != adjust->num_planes)
-		return false;
-
-	for (i = 0; i < format->num_planes; ++i) {
-		if (format->plane_fmt[i].bytesperline !=
-		    adjust->plane_fmt[i].bytesperline)
-			return false;
-
-		adjust->plane_fmt[i].sizeimage =
-			max(adjust->plane_fmt[i].sizeimage,
-			    format->plane_fmt[i].sizeimage);
-	}
-
-	return true;
-}
-
 /* -----------------------------------------------------------------------------
  * Pipeline Management
  */
@@ -516,26 +487,24 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
  */
 
 static int
-vsp2_video_queue_setup(struct vb2_queue *vq, const void *parg,
+vsp2_video_queue_setup(struct vb2_queue *vq,
 		     unsigned int *nbuffers, unsigned int *nplanes,
 		     unsigned int sizes[], void *alloc_ctxs[])
 {
-	const struct v4l2_format *fmt = parg;
 	struct vsp2_video *video = vb2_get_drv_priv(vq);
-	const struct v4l2_pix_format_mplane *format;
-	struct v4l2_pix_format_mplane pix_mp;
+	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
 	unsigned int i;
 
-	if (fmt) {
-		/* Make sure the format is valid and adjust the sizeimage field
-		 * if needed.
-		 */
-		if (!vsp2_video_format_adjust(video, &fmt->fmt.pix_mp, &pix_mp))
+	if (*nplanes) {
+		if (*nplanes != format->num_planes)
 			return -EINVAL;
 
-		format = &pix_mp;
-	} else {
-		format = &video->rwpf->format;
+		for (i = 0; i < *nplanes; i++) {
+			if (sizes[i] < format->plane_fmt[i].sizeimage)
+				return -EINVAL;
+			alloc_ctxs[i] = video->alloc_ctx;
+		}
+		return 0;
 	}
 
 	*nplanes = format->num_planes;
