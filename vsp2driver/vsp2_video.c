@@ -438,7 +438,7 @@ vsp2_video_complete_buffer(struct vsp2_video *video)
 	spin_unlock_irqrestore(&video->irqlock, flags);
 
 	done->buf.sequence = video->sequence++;
-	v4l2_get_timestamp(&done->buf.timestamp);
+	done->buf.vb2_buf.timestamp = ktime_get_ns();
 	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
 		vb2_set_plane_payload(&done->buf.vb2_buf, i,
 				      done->mem.length[i]);
