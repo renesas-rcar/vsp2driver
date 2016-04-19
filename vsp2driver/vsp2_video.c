@@ -910,6 +910,7 @@ static const struct v4l2_ioctl_ops vsp2_video_ioctl_ops = {
 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
 	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
 	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+	.vidioc_expbuf			= vb2_ioctl_expbuf,
 	.vidioc_streamon		= vsp2_video_streamon,
 	.vidioc_streamoff		= vb2_ioctl_streamoff,
 };
