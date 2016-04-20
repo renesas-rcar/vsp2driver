@@ -142,7 +142,7 @@ static int clu_s_stream(struct v4l2_subdev *subdev, int enable)
 		(void *)vsp2_addr_uv2kv((unsigned long)clu->config.addr);
 #endif
 	vsp_clu->clu.tbl_num    = clu->config.tbl_num;
-	vsp_clu->fxa            = 0;
+	vsp_clu->fxa            = clu->config.fxa;
 	/*vsp_clu->connect      = 0;  set by vsp2_entity_route_setup() */
 
 	return 0;

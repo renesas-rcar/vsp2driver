@@ -104,6 +104,7 @@ struct vsp2_lut_config {
 struct vsp2_clu_config {
 	unsigned char	mode;
 	void		*addr;	/* Allocate memory size is tbl_num * 8 bytes. */
+	unsigned char	fxa;
 	unsigned short	tbl_num;	/* 1 to 9826 */
 };
 
