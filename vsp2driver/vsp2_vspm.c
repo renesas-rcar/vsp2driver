@@ -301,9 +301,12 @@ long vsp2_vspm_drv_init(struct vsp2_device *vsp2)
 #ifdef TYPE_GEN2 /* TODO: delete TYPE_GEN2 */
 	init_par.use_ch = VSPM_USE_CH1;
 #else /*TYPE_GEN3 */
-	init_par.use_ch = VSPM_EMPTY_CH;
+	init_par.use_ch = vsp2->pdata.use_ch;
 #endif
-	init_par.mode = VSPM_MODE_MUTUAL;
+	if (init_par.use_ch == (unsigned int)VSPM_EMPTY_CH)
+		init_par.mode = VSPM_MODE_MUTUAL;
+	else
+		init_par.mode = VSPM_MODE_OCCUPY;
 	init_par.type = VSPM_TYPE_VSP_AUTO;
 	ret = vspm_init_driver(&vsp2->vspm->hdl, &init_par);
 	if (ret != R_VSPM_OK) {
@@ -344,10 +347,12 @@ static void vsp2_vspm_drv_entry_cb(unsigned long job_id, long result,
 
 	vsp2 = (struct vsp2_device *)user_data;
 
-	if (job_id != vsp2->vspm->job_id)
-		dev_err(vsp2->dev,
-			"vspm_entry_job: unexpected job id %lu (exp=%lu)\n",
-			job_id, vsp2->vspm->job_id);
+	/* check job_id when mode is VSPM_MODE_MUTUAL */
+	if (vsp2->pdata.use_ch == (unsigned int)VSPM_EMPTY_CH)
+		if (job_id != vsp2->vspm->job_id)
+			dev_err(vsp2->dev,
+				"vspm_entry_job: unexpected job id %lu (exp=%lu)\n",
+				job_id, vsp2->vspm->job_id);
 
 	if (result != R_VSPM_OK)
 		dev_err(vsp2->dev, "vspm_entry_job: result=%ld\n", result);

@@ -25,6 +25,8 @@ Optional properties:
     Unit (HGO) module is available. 
   - renesas,has-hgo: Boolean, indicates that Histogram Generator TWo dimension
     Unit (HGT) module is available. 
+  - renesas,#ch: Designation of the vspm channel number. Non-designation by
+    default.
 
 Example: R8A7795 (R-Car H3) VSP2 node
 

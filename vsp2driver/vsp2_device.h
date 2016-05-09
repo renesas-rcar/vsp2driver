@@ -122,6 +122,7 @@ struct vsp2_platform_data {
 	unsigned int rpf_count;
 	unsigned int uds_count;
 	unsigned int wpf_count;
+	unsigned int use_ch;
 };
 
 struct vsp2_device {

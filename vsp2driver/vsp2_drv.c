@@ -566,6 +566,7 @@ static int vsp2_parse_dt(struct vsp2_device *vsp2)
 {
 	struct device_node			*np = vsp2->dev->of_node;
 	struct vsp2_platform_data	*pdata = &vsp2->pdata;
+	unsigned int ch;
 
 	if (of_property_read_bool(np, "renesas,has-bru"))
 		pdata->features |= VSP2_HAS_BRU;
@@ -602,6 +603,30 @@ static int vsp2_parse_dt(struct vsp2_device *vsp2)
 		dev_err(vsp2->dev, "invalid number of WPF (%u)\n",
 			pdata->wpf_count);
 		return -EINVAL;
+	}
+
+	if (of_property_read_u32(np, "renesas,#ch", &ch) == 0) {
+		switch (ch) {
+		case 0:
+			pdata->use_ch = VSPM_USE_CH0;
+			break;
+		case 1:
+			pdata->use_ch = VSPM_USE_CH1;
+			break;
+		case 2:
+			pdata->use_ch = VSPM_USE_CH2;
+			break;
+		case 3:
+			pdata->use_ch = VSPM_USE_CH3;
+			break;
+		case 4:
+			pdata->use_ch = VSPM_USE_CH4;
+			break;
+		default:
+			return -EINVAL;
+		}
+	} else {
+		pdata->use_ch = VSPM_EMPTY_CH;
 	}
 
 	return 0;
