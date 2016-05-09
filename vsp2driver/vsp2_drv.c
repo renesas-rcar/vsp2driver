@@ -508,6 +508,9 @@ void vsp2_device_put(struct vsp2_device *vsp2)
 {
 	long vspm_ret = R_VSPM_OK;
 
+	if (vsp2->ref_count == 0)
+		return;
+
 	mutex_lock(&vsp2->lock);
 
 	if (--vsp2->ref_count == 0) {
