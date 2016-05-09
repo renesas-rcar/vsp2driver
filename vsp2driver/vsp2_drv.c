@@ -253,9 +253,7 @@ static void vsp2_destroy_entities(struct vsp2_device *vsp2)
 	vsp2_free_buffers(vsp2);
 #endif
 
-	/* To evade a NULL access problem */
 	v4l2_device_unregister(&vsp2->v4l2_dev);
-	media_device_unregister(&vsp2->media_dev);
 
 	list_for_each_entry_safe(entity, _entity, &vsp2->entities, list_dev) {
 		list_del(&entity->list_dev);
@@ -267,9 +265,7 @@ static void vsp2_destroy_entities(struct vsp2_device *vsp2)
 		vsp2_video_cleanup(video);
 	}
 
-	/* To evade a NULL access problem */
-/*	v4l2_device_unregister(&vsp2->v4l2_dev);
-	media_device_unregister(&vsp2->media_dev); */
+	media_device_unregister(&vsp2->media_dev);
 }
 
 static int vsp2_create_entities(struct vsp2_device *vsp2)
@@ -651,6 +647,7 @@ static int vsp2_remove(struct platform_device *pdev)
 {
 	struct vsp2_device *vsp2 = platform_get_drvdata(pdev);
 
+	vsp2_device_put(vsp2);
 	vsp2_destroy_entities(vsp2);
 
 	/* Finalize VSPM */
