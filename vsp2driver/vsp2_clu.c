@@ -310,7 +310,6 @@ static struct v4l2_subdev_ops clu_ops = {
 
 struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 {
-	struct v4l2_subdev  *subdev;
 	struct vsp2_clu     *clu;
 	int                 ret;
 
@@ -320,26 +319,9 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 
 	clu->entity.type = VSP2_ENTITY_CLU;
 
-	ret = vsp2_entity_init(vsp2, &clu->entity, 2);
+	ret = vsp2_entity_init(vsp2, &clu->entity, "clu", 2, &clu_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-
-	subdev = &clu->entity.subdev;
-	v4l2_subdev_init(subdev, &clu_ops);
-
-	subdev->entity.ops   = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-
-	snprintf(subdev->name, sizeof(subdev->name), "%s clu",
-		 dev_name(vsp2->dev));
-
-	v4l2_set_subdevdata(subdev, clu);
-
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	clu->buff_v = dma_alloc_coherent(vsp2->dev,

@@ -269,8 +269,8 @@ static const struct vsp2_rwpf_operations wpf_vdev_ops = {
 
 struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 {
-	struct v4l2_subdev *subdev;
 	struct vsp2_rwpf *wpf;
+	char name[6];
 	int ret;
 
 	wpf = devm_kzalloc(vsp2->dev, sizeof(*wpf), GFP_KERNEL);
@@ -285,22 +285,10 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	wpf->entity.type = VSP2_ENTITY_WPF;
 	wpf->entity.index = index;
 
-	ret = vsp2_entity_init(vsp2, &wpf->entity, 2);
+	sprintf(name, "wpf.%u", index);
+	ret = vsp2_entity_init(vsp2, &wpf->entity, name, 2, &wpf_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-	subdev = &wpf->entity.subdev;
-	v4l2_subdev_init(subdev, &wpf_ops);
-
-	subdev->entity.ops = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
-		 dev_name(vsp2->dev), index);
-	v4l2_set_subdevdata(subdev, wpf);
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 	/* Initialize the control handler. */
 	v4l2_ctrl_handler_init(&wpf->ctrls, 1);

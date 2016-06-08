@@ -299,7 +299,6 @@ static struct v4l2_subdev_ops lut_ops = {
 
 struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 {
-	struct v4l2_subdev *subdev;
 	struct vsp2_lut *lut;
 	int ret;
 
@@ -309,22 +308,9 @@ struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 
 	lut->entity.type = VSP2_ENTITY_LUT;
 
-	ret = vsp2_entity_init(vsp2, &lut->entity, 2);
+	ret = vsp2_entity_init(vsp2, &lut->entity, "lut", 2, &lut_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-	subdev = &lut->entity.subdev;
-	v4l2_subdev_init(subdev, &lut_ops);
-
-	subdev->entity.ops = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
-		 dev_name(vsp2->dev));
-	v4l2_set_subdevdata(subdev, lut);
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	lut->buff_v = dma_alloc_coherent(vsp2->dev,

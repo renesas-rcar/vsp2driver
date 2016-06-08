@@ -352,8 +352,8 @@ static struct v4l2_subdev_ops uds_ops = {
 
 struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index)
 {
-	struct v4l2_subdev *subdev;
 	struct vsp2_uds *uds;
+	char name[6];
 	int ret;
 
 	uds = devm_kzalloc(vsp2->dev, sizeof(*uds), GFP_KERNEL);
@@ -363,22 +363,10 @@ struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index)
 	uds->entity.type = VSP2_ENTITY_UDS;
 	uds->entity.index = index;
 
-	ret = vsp2_entity_init(vsp2, &uds->entity, 2);
+	sprintf(name, "uds.%u", index);
+	ret = vsp2_entity_init(vsp2, &uds->entity, name, 2, &uds_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-	subdev = &uds->entity.subdev;
-	v4l2_subdev_init(subdev, &uds_ops);
-
-	subdev->entity.ops = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
-		 dev_name(vsp2->dev), index);
-	v4l2_set_subdevdata(subdev, uds);
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 	return uds;
 }

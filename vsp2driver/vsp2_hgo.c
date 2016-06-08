@@ -185,7 +185,6 @@ static struct v4l2_subdev_ops hgo_ops = {
 
 struct vsp2_hgo *vsp2_hgo_create(struct vsp2_device *vsp2)
 {
-	struct v4l2_subdev *subdev;
 	struct vsp2_hgo *hgo;
 	int ret;
 
@@ -195,24 +194,9 @@ struct vsp2_hgo *vsp2_hgo_create(struct vsp2_device *vsp2)
 
 	hgo->entity.type = VSP2_ENTITY_HGO;
 
-	ret = vsp2_entity_init(vsp2, &hgo->entity, 2);
+	ret = vsp2_entity_init(vsp2, &hgo->entity, "hgo", 2, &hgo_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-
-	subdev = &hgo->entity.subdev;
-	v4l2_subdev_init(subdev, &hgo_ops);
-
-	subdev->entity.ops   = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-
-	snprintf(subdev->name, sizeof(subdev->name), "%s hgo",
-		 dev_name(vsp2->dev));
-	v4l2_set_subdevdata(subdev, hgo);
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	hgo->buff_v = dma_alloc_coherent(vsp2->dev,

@@ -480,7 +480,6 @@ static struct v4l2_subdev_ops bru_ops = {
 
 struct vsp2_bru *vsp2_bru_create(struct vsp2_device *vsp2)
 {
-	struct v4l2_subdev *subdev;
 	struct vsp2_bru *bru;
 	int ret;
 
@@ -490,22 +489,10 @@ struct vsp2_bru *vsp2_bru_create(struct vsp2_device *vsp2)
 
 	bru->entity.type = VSP2_ENTITY_BRU;
 
-	ret = vsp2_entity_init(vsp2, &bru->entity, (BRU_PAD_SOURCE+1));
+	ret = vsp2_entity_init(vsp2, &bru->entity, "bru",
+			       (BRU_PAD_SOURCE+1), &bru_ops);
 	if (ret < 0)
 		return ERR_PTR(ret);
-
-	/* Initialize the V4L2 subdev. */
-	subdev = &bru->entity.subdev;
-	v4l2_subdev_init(subdev, &bru_ops);
-
-	subdev->entity.ops = &vsp2->media_ops;
-	subdev->internal_ops = &vsp2_subdev_internal_ops;
-	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
-		 dev_name(vsp2->dev));
-	v4l2_set_subdevdata(subdev, bru);
-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	vsp2_entity_init_formats(subdev, NULL);
 
 	/* Initialize the control handler. */
 	v4l2_ctrl_handler_init(&bru->ctrls, 1);

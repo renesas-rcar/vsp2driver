@@ -108,7 +108,8 @@ static inline struct vsp2_entity *to_vsp2_entity(struct v4l2_subdev *subdev)
 }
 
 int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
-		     unsigned int num_pads);
+		     const char *name, unsigned int num_pads,
+		     const struct v4l2_subdev_ops *ops);
 void vsp2_entity_destroy(struct vsp2_entity *entity);
 
 extern const struct v4l2_subdev_internal_ops vsp2_subdev_internal_ops;
@@ -121,8 +122,6 @@ struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
 			   struct v4l2_subdev_pad_config *cfg,
 			   unsigned int pad, u32 which);
-void vsp2_entity_init_formats(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg);
 
 bool vsp2_entity_is_streaming(struct vsp2_entity *entity);
 int vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming);
