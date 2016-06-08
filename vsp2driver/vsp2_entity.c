@@ -335,7 +335,7 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	entity->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
 
 	/* Initialize the media entity. */
-	return media_entity_init(&entity->subdev.entity, num_pads,
+	return media_entity_pads_init(&entity->subdev.entity, num_pads,
 				 entity->pads);
 }
 
