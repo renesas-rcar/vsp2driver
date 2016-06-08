@@ -293,6 +293,53 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	return 0;
 }
 
+static bool vsp2_vspm_is_infmt_yvup(unsigned short format)
+{
+	if (((format & VI6_FMT_Y_U_V_420) == VI6_FMT_Y_U_V_420) ||
+	    ((format & VI6_FMT_Y_U_V_422) == VI6_FMT_Y_U_V_422) ||
+	    ((format & VI6_FMT_Y_U_V_444) == VI6_FMT_Y_U_V_444))
+		if (format & VI6_RPF_INFMT_SPUVS)
+			return true;
+
+	return false;
+}
+
+static bool vsp2_vspm_is_outfmt_yvup(unsigned short format)
+{
+	if (((format & VI6_FMT_Y_U_V_420) == VI6_FMT_Y_U_V_420) ||
+	    ((format & VI6_FMT_Y_U_V_422) == VI6_FMT_Y_U_V_422) ||
+	    ((format & VI6_FMT_Y_U_V_444) == VI6_FMT_Y_U_V_444))
+		if (format & VI6_WPF_OUTFMT_SPUVS)
+			return true;
+
+	return false;
+}
+
+static void vsp2_vspm_yvup_swap(struct vsp_start_t *vsp_par)
+{
+	int i;
+	void *tmp;
+
+	/* If format is YVU planar, change Cb Cr address. */
+
+	for (i = 0; i < vsp_par->rpf_num; i++) {
+		if (vsp2_vspm_is_infmt_yvup(vsp_par->src_par[i]->format)) {
+			tmp = vsp_par->src_par[i]->addr_c0;
+			vsp_par->src_par[i]->addr_c0 =
+				vsp_par->src_par[i]->addr_c1;
+			vsp_par->src_par[i]->addr_c1 = tmp;
+			vsp_par->src_par[i]->format ^= VI6_RPF_INFMT_SPUVS;
+		}
+	}
+
+	if (vsp2_vspm_is_outfmt_yvup(vsp_par->dst_par->format)) {
+		tmp = vsp_par->dst_par->addr_c0;
+		vsp_par->dst_par->addr_c0 = vsp_par->dst_par->addr_c1;
+		vsp_par->dst_par->addr_c1 = tmp;
+		vsp_par->dst_par->format ^= VI6_WPF_OUTFMT_SPUVS;
+	}
+}
+
 long vsp2_vspm_drv_init(struct vsp2_device *vsp2)
 {
 	long ret = R_VSPM_OK;
@@ -398,6 +445,8 @@ void vsp2_vspm_drv_entry_work(struct work_struct *work)
 		/* Not use BRU. Set RPF0 to parent layer. */
 		vsp_par->src_par[0]->pwd = VSP_LAYER_PARENT;
 	}
+
+	vsp2_vspm_yvup_swap(vsp_par);
 
 #ifdef VSP2_DEBUG
 	if (vsp2_debug_vspmDebug() == true)
