@@ -1013,7 +1013,7 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 	video->pipe.frame_end = vsp2_video_pipeline_frame_end;
 
 	/* Initialize the media entity... */
-	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
+	ret = media_entity_init(&video->video.entity, 1, &video->pad);
 	if (ret < 0)
 		return ERR_PTR(ret);
 
