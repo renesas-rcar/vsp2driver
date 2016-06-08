@@ -106,8 +106,7 @@ vsp2_video_remote_subdev(struct media_pad *local, u32 *pad)
 	struct media_pad *remote;
 
 	remote = media_entity_remote_pad(local);
-	if (remote == NULL ||
-	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
 		return NULL;
 
 	if (pad)
@@ -237,7 +236,7 @@ static int vsp2_video_pipeline_validate_branch(struct vsp2_pipeline *pipe,
 			return -EPIPE;
 
 		/* We've reached a video node, that shouldn't have happened. */
-		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+		if (!is_media_entity_v4l2_subdev(pad->entity))
 			return -EPIPE;
 
 		entity = to_vsp2_entity(
@@ -314,7 +313,7 @@ static int vsp2_video_pipeline_validate(struct vsp2_pipeline *pipe,
 		struct vsp2_rwpf *rwpf;
 		struct vsp2_entity *e;
 
-		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
+		if (!is_media_entity_v4l2_subdev(entity)) {
 			pipe->num_video++;
 			continue;
 		}

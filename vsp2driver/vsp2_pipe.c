@@ -325,7 +325,7 @@ void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
 	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
 
 	while (pad) {
-		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+		if (!is_media_entity_v4l2_subdev(pad->entity))
 			break;
 
 		entity = to_vsp2_entity(
