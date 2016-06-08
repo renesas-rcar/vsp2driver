@@ -151,7 +151,7 @@ static int vsp2_create_sink_links(struct vsp2_device *vsp2,
 			if (!(entity->pads[pad].flags & MEDIA_PAD_FL_SINK))
 				continue;
 
-			ret = media_entity_create_link(&source->subdev.entity,
+			ret = media_create_pad_link(&source->subdev.entity,
 						       source->source_pad,
 						       entity, pad, flags);
 			if (ret < 0)
@@ -185,7 +185,7 @@ static int vsp2_create_links(struct vsp2_device *vsp2)
 	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
 		struct vsp2_rwpf *rpf = vsp2->rpf[i];
 
-		ret = media_entity_create_link(&rpf->video->video.entity, 0,
+		ret = media_create_pad_link(&rpf->video->video.entity, 0,
 					       &rpf->entity.subdev.entity,
 					       RWPF_PAD_SINK,
 					       MEDIA_LNK_FL_ENABLED |
@@ -203,7 +203,7 @@ static int vsp2_create_links(struct vsp2_device *vsp2)
 
 		flags |= MEDIA_LNK_FL_IMMUTABLE;
 
-		ret = media_entity_create_link(&wpf->entity.subdev.entity,
+		ret = media_create_pad_link(&wpf->entity.subdev.entity,
 					       RWPF_PAD_SOURCE,
 					       &wpf->video->video.entity,
 					       0, flags);
