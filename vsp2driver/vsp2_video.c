@@ -312,7 +312,7 @@ static int vsp2_video_pipeline_validate(struct vsp2_pipeline *pipe,
 {
 	struct media_entity_graph graph;
 	struct media_entity *entity = &video->video.entity;
-	struct media_device *mdev = entity->parent;
+	struct media_device *mdev = entity->graph_obj.mdev;
 	unsigned int i;
 	int ret;
 
