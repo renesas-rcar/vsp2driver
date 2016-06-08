@@ -266,6 +266,7 @@ static void vsp2_destroy_entities(struct vsp2_device *vsp2)
 	}
 
 	media_device_unregister(&vsp2->media_dev);
+	media_device_cleanup(&vsp2->media_dev);
 }
 
 static int vsp2_create_entities(struct vsp2_device *vsp2)
@@ -280,12 +281,7 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	strlcpy(mdev->model, "VSP2", sizeof(mdev->model));
 	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
 		 dev_name(mdev->dev));
-	ret = media_device_register(mdev);
-	if (ret < 0) {
-		dev_err(vsp2->dev, "media device registration failed (%d)\n",
-			ret);
-		return ret;
-	}
+	media_device_init(mdev);
 
 	vsp2->media_ops.link_setup = vsp2_entity_link_setup;
 	/* Don't perform link validation when the userspace API is disabled as
@@ -442,6 +438,10 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	}
 
 	ret = v4l2_device_register_subdev_nodes(&vsp2->v4l2_dev);
+	if (ret < 0)
+		goto done;
+
+	ret = media_device_register(mdev);
 
 done:
 	if (ret < 0)
