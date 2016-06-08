@@ -339,7 +339,8 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 
 	clu->entity.type = VSP2_ENTITY_CLU;
 
-	ret = vsp2_entity_init(vsp2, &clu->entity, "clu", 2, &clu_ops);
+	ret = vsp2_entity_init(vsp2, &clu->entity, "clu", 2, &clu_ops,
+			       MEDIA_ENT_F_PROC_VIDEO_LUT);
 	if (ret < 0)
 		return ERR_PTR(ret);
 

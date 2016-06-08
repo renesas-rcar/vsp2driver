@@ -109,7 +109,7 @@ static inline struct vsp2_entity *to_vsp2_entity(struct v4l2_subdev *subdev)
 
 int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 		     const char *name, unsigned int num_pads,
-		     const struct v4l2_subdev_ops *ops);
+		     const struct v4l2_subdev_ops *ops, u32 function);
 void vsp2_entity_destroy(struct vsp2_entity *entity);
 
 extern const struct v4l2_subdev_internal_ops vsp2_subdev_internal_ops;

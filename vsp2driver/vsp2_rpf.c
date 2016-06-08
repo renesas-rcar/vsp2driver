@@ -377,7 +377,8 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 	rpf->entity.index = index;
 
 	sprintf(name, "rpf.%u", index);
-	ret = vsp2_entity_init(vsp2, &rpf->entity, name, 2, &rpf_ops);
+	ret = vsp2_entity_init(vsp2, &rpf->entity, name, 2, &rpf_ops,
+			       MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER);
 	if (ret < 0)
 		return ERR_PTR(ret);
 

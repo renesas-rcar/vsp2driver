@@ -194,7 +194,8 @@ struct vsp2_hgo *vsp2_hgo_create(struct vsp2_device *vsp2)
 
 	hgo->entity.type = VSP2_ENTITY_HGO;
 
-	ret = vsp2_entity_init(vsp2, &hgo->entity, "hgo", 2, &hgo_ops);
+	ret = vsp2_entity_init(vsp2, &hgo->entity, "hgo", 2, &hgo_ops,
+			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
 	if (ret < 0)
 		return ERR_PTR(ret);
 
