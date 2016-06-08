@@ -424,11 +424,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 		wpf->entity.sink = &video->video.entity;
 	}
 
-	/* Create links. */
-	ret = vsp2_create_links(vsp2);
-	if (ret < 0)
-		goto done;
-
 	/* Register all subdevs. */
 	list_for_each_entry(entity, &vsp2->entities, list_dev) {
 		ret = v4l2_device_register_subdev(&vsp2->v4l2_dev,
@@ -436,6 +431,11 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 		if (ret < 0)
 			goto done;
 	}
+
+	/* Create links. */
+	ret = vsp2_create_links(vsp2);
+	if (ret < 0)
+		goto done;
 
 	ret = v4l2_device_register_subdev_nodes(&vsp2->v4l2_dev);
 	if (ret < 0)
