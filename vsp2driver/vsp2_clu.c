@@ -292,6 +292,7 @@ static struct v4l2_subdev_video_ops clu_video_ops = {
 };
 
 static struct v4l2_subdev_pad_ops clu_pad_ops = {
+	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code     = clu_enum_mbus_code,
 	.enum_frame_size    = clu_enum_frame_size,
 	.get_fmt            = clu_get_format,

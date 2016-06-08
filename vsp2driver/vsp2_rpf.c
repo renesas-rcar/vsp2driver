@@ -297,6 +297,7 @@ static struct v4l2_subdev_video_ops rpf_video_ops = {
 };
 
 static struct v4l2_subdev_pad_ops rpf_pad_ops = {
+	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = vsp2_rwpf_enum_mbus_code,
 	.enum_frame_size = vsp2_rwpf_enum_frame_size,
 	.get_fmt = vsp2_rwpf_get_format,
