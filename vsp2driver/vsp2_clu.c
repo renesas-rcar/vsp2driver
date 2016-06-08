@@ -162,7 +162,6 @@ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
 		MEDIA_BUS_FMT_AYUV8_1X32,
 	};
 	struct vsp2_clu *clu = to_clu(subdev);
-	struct v4l2_mbus_framefmt *format;
 
 	if (code->pad == CLU_PAD_SINK) {
 
@@ -172,6 +171,8 @@ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
 		code->code = codes[code->index];
 
 	} else {
+		struct v4l2_subdev_pad_config *config;
+		struct v4l2_mbus_framefmt *format;
 
 		/* The CLU can't perform format conversion, the sink format is
 		 * always identical to the source format.
@@ -179,8 +180,13 @@ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
 		if (code->index)
 			return -EINVAL;
 
-		format = vsp2_entity_get_pad_format(&clu->entity, cfg,
-						    CLU_PAD_SINK, code->which);
+		config = vsp2_entity_get_pad_config(&clu->entity, cfg,
+						    code->which);
+		if (!config)
+			return -EINVAL;
+
+		format = vsp2_entity_get_pad_format(&clu->entity, config,
+						    CLU_PAD_SINK);
 		code->code  = format->code;
 	}
 
@@ -192,10 +198,14 @@ static int clu_enum_frame_size(struct v4l2_subdev *subdev,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vsp2_clu *clu = to_clu(subdev);
+	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
 
-	format = vsp2_entity_get_pad_format(&clu->entity, cfg,
-					    fse->pad, fse->which);
+	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fse->which);
+	if (!config)
+		return -EINVAL;
+
+	format = vsp2_entity_get_pad_format(&clu->entity, config, fse->pad);
 
 	if (fse->index || fse->code != format->code)
 		return -EINVAL;
@@ -226,9 +236,14 @@ static int clu_get_format(
 	struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_clu *clu = to_clu(subdev);
+	struct v4l2_subdev_pad_config *config;
 
-	fmt->format = *vsp2_entity_get_pad_format(&clu->entity, cfg, fmt->pad,
-						  fmt->which);
+	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+	if (!config)
+		return -EINVAL;
+
+	fmt->format = *vsp2_entity_get_pad_format(&clu->entity, config,
+						  fmt->pad);
 
 	return 0;
 }
@@ -238,16 +253,20 @@ static int clu_set_format(
 	struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_clu *clu = to_clu(subdev);
+	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
 
+
+	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+	if (!config)
+		return -EINVAL;
 
 	/* Default to YUV if the requested format is not supported. */
 	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
 	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
 		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
 
-	format = vsp2_entity_get_pad_format(&clu->entity, cfg, fmt->pad,
-					    fmt->which);
+	format = vsp2_entity_get_pad_format(&clu->entity, config, fmt->pad);
 
 	if (fmt->pad == CLU_PAD_SOURCE) {
 
@@ -272,8 +291,8 @@ static int clu_set_format(
 
 	/* Propagate the format to the source pad. */
 
-	format = vsp2_entity_get_pad_format(&clu->entity, cfg, CLU_PAD_SOURCE,
-					    fmt->which);
+	format = vsp2_entity_get_pad_format(&clu->entity, config,
+					    CLU_PAD_SOURCE);
 	*format = fmt->format;
 
 	return 0;

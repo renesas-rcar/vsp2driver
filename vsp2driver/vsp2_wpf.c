@@ -108,6 +108,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 {
 	struct vsp2_rwpf *wpf = to_rwpf(subdev);
 	struct v4l2_pix_format_mplane *format = &wpf->format;
+	const struct v4l2_mbus_framefmt *source_format;
+	const struct v4l2_mbus_framefmt *sink_format;
 	const struct v4l2_rect *crop = &wpf->crop;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
@@ -143,6 +145,13 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_out->y_coffset	= crop->top;
 
 	/* Format */
+	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
+						 wpf->entity.config,
+						 RWPF_PAD_SINK);
+	source_format = vsp2_entity_get_pad_format(&wpf->entity,
+						   wpf->entity.config,
+						   RWPF_PAD_SOURCE);
+
 	outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
 
 	if (fmtinfo->alpha)
@@ -154,8 +163,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 
 	vsp_out->swap		= fmtinfo->swap;
 
-	if (wpf->entity.formats[RWPF_PAD_SINK].code !=
-	    wpf->entity.formats[RWPF_PAD_SOURCE].code)
+	if (sink_format->code != source_format->code)
 		outfmt |= VI6_WPF_OUTFMT_CSC;
 
 	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;

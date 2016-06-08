@@ -182,19 +182,46 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
  * V4L2 Subdevice Operations
  */
 
+/**
+ * vsp2_entity_get_pad_config - Get the pad configuration for an entity
+ * @entity: the entity
+ * @cfg: the TRY pad configuration
+ * @which: configuration selector (ACTIVE or TRY)
+ *
+ * Return the pad configuration requested by the which argument. The TRY
+ * configuration is passed explicitly to the function through the cfg argument
+ * and simply returned when requested. The ACTIVE configuration comes from the
+ * entity structure.
+ */
+struct v4l2_subdev_pad_config *
+vsp2_entity_get_pad_config(struct vsp2_entity *entity,
+			   struct v4l2_subdev_pad_config *cfg,
+			   enum v4l2_subdev_format_whence which)
+{
+	switch (which) {
+	case V4L2_SUBDEV_FORMAT_ACTIVE:
+		return entity->config;
+	case V4L2_SUBDEV_FORMAT_TRY:
+	default:
+		return cfg;
+	}
+}
+
+/**
+ * vsp2_entity_get_pad_format - Get a pad format from storage for an entity
+ * @entity: the entity
+ * @cfg: the configuration storage
+ * @pad: the pad number
+ *
+ * Return the format stored in the given configuration for an entity's pad. The
+ * configuration can be an ACTIVE or TRY configuration.
+ */
 struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
 			   struct v4l2_subdev_pad_config *cfg,
-			   unsigned int pad, u32 which)
+			   unsigned int pad)
 {
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_TRY:
-		return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return &entity->formats[pad];
-	default:
-		return NULL;
-	}
+	return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
 }
 
 /*
@@ -308,19 +335,12 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	entity->vsp2 = vsp2;
 	entity->source_pad = num_pads - 1;
 
-	/* Allocate formats and pads. */
-	entity->formats = devm_kzalloc(vsp2->dev,
-				       num_pads * sizeof(*entity->formats),
-				       GFP_KERNEL);
-	if (entity->formats == NULL)
-		return -ENOMEM;
-
+	/* Allocate and initialize pads. */
 	entity->pads = devm_kzalloc(vsp2->dev, num_pads * sizeof(*entity->pads),
 				    GFP_KERNEL);
 	if (entity->pads == NULL)
 		return -ENOMEM;
 
-	/* Initialize pads. */
 	for (i = 0; i < num_pads - 1; ++i)
 		entity->pads[i].flags = MEDIA_PAD_FL_SINK;
 
@@ -344,6 +364,15 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 
 	vsp2_entity_init_cfg(subdev, NULL);
 
+	/* Allocate the pad configuration to store formats and selection
+	 * rectangles.
+	 */
+	entity->config = v4l2_subdev_alloc_pad_config(&entity->subdev);
+	if (entity->config == NULL) {
+		media_entity_cleanup(&entity->subdev.entity);
+		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -351,5 +380,6 @@ void vsp2_entity_destroy(struct vsp2_entity *entity)
 {
 	if (entity->subdev.ctrl_handler)
 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
+	v4l2_subdev_free_pad_config(entity->config);
 	media_entity_cleanup(&entity->subdev.entity);
 }

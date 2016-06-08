@@ -96,7 +96,7 @@ struct vsp2_entity {
 	unsigned int sink_pad;
 
 	struct v4l2_subdev subdev;
-	struct v4l2_mbus_framefmt *formats;
+	struct v4l2_subdev_pad_config *config;
 
 	spinlock_t lock;		/* Protects the streaming field */
 	bool streaming;
@@ -118,10 +118,14 @@ int vsp2_entity_link_setup(struct media_entity *entity,
 			   const struct media_pad *local,
 			   const struct media_pad *remote, u32 flags);
 
+struct v4l2_subdev_pad_config *
+vsp2_entity_get_pad_config(struct vsp2_entity *entity,
+			   struct v4l2_subdev_pad_config *cfg,
+			   enum v4l2_subdev_format_whence which);
 struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
 			   struct v4l2_subdev_pad_config *cfg,
-			   unsigned int pad, u32 which);
+			   unsigned int pad);
 int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
 			 struct v4l2_subdev_pad_config *cfg);
 

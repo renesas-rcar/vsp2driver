@@ -128,6 +128,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	struct vsp2_rwpf *rpf = to_rwpf(subdev);
 	const struct vsp2_format_info *fmtinfo = rpf->fmtinfo;
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
+	const struct v4l2_mbus_framefmt *source_format;
+	const struct v4l2_mbus_framefmt *sink_format;
 	const struct v4l2_rect *crop = &rpf->crop;
 	u32 infmt;
 	u32 alph_sel, laya;
@@ -193,6 +195,13 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_in->stride_c	= stride_c;
 
 	/* Format */
+	sink_format = vsp2_entity_get_pad_format(&rpf->entity,
+						 rpf->entity.config,
+						 RWPF_PAD_SINK);
+	source_format = vsp2_entity_get_pad_format(&rpf->entity,
+						   rpf->entity.config,
+						   RWPF_PAD_SOURCE);
+
 	infmt = VI6_RPF_INFMT_CIPM
 	      | (fmtinfo->hwfmt << VI6_RPF_INFMT_RDFMT_SHIFT);
 
@@ -201,8 +210,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	if (fmtinfo->swap_uv)
 		infmt |= VI6_RPF_INFMT_SPUVS;
 
-	if (rpf->entity.formats[RWPF_PAD_SINK].code !=
-	    rpf->entity.formats[RWPF_PAD_SOURCE].code)
+	if (sink_format->code != source_format->code)
 		infmt |= VI6_RPF_INFMT_CSC;
 
 	vspm_format = (unsigned short)(infmt & 0x007F);
@@ -271,8 +279,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_in->alpha->irop = NULL;
 	vsp_in->alpha->ckey = NULL;
 
-	if (rpf->entity.formats[RWPF_PAD_SOURCE].code ==
-	    MEDIA_BUS_FMT_AYUV8_1X32) {
+	if (source_format->code == MEDIA_BUS_FMT_AYUV8_1X32) {
 		vsp_in->alpha->mult->a_mmd = VSP_MULT_THROUGH;
 		vsp_in->alpha->mult->p_mmd = VSP_MULT_THROUGH;
 		vsp_in->alpha->mult->ratio = 0;
