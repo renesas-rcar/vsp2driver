@@ -151,6 +151,10 @@ Use the following value to sampling module in application.
 #define VSP_SMPPT_SHP				(46)
 */
 
+enum vsp2_ctrl_id {
+	VSP2_CID_COMPRESS = V4L2_CID_PRIVATE_BASE,
+};
+
 /*--------------------------------------------------------------------------
  * for debug
  *-------------------------------------------------------------------------*/

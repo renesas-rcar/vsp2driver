@@ -916,6 +916,96 @@ err_stop:
 	return ret;
 }
 
+static int vsp2_g_ext_ctrls(struct file *file, void *fh,
+		struct v4l2_ext_controls *ctrls)
+{
+	struct v4l2_fh *vfh = file->private_data;
+	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
+	struct v4l2_ext_control *ctrl;
+	unsigned int i;
+
+	/* wpf only */
+	if (video->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+		return -EINVAL;
+
+	/* Only one control ID to support at this stage */
+	if (ctrls->count != 1)
+		return -EINVAL;
+
+	for (i = 0; i < ctrls->count; i++) {
+		ctrl = ctrls->controls + i;
+		if (ctrl->id == VSP2_CID_COMPRESS) {
+			if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+				ctrl->value = FCP_FCNL_DEF_VALUE;
+			else
+				ctrl->value = video->rwpf->fcp_fcnl;
+		}
+	}
+	return 0;
+}
+
+static int vsp2_s_ext_ctrls(struct file *file, void *fh,
+		struct v4l2_ext_controls *ctrls)
+{
+	struct v4l2_fh *vfh = file->private_data;
+	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
+	struct v4l2_ext_control *ctrl;
+	unsigned int i;
+
+	/* Default value cannot be changed */
+	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+		return -EINVAL;
+
+	/* wpf only */
+	if (video->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+		return -EINVAL;
+
+	/* Only one control ID to support at this stage */
+	if (ctrls->count != 1)
+		return -EINVAL;
+
+	for (i = 0; i < ctrls->count; i++) {
+		ctrl = ctrls->controls + i;
+		if (ctrl->id == VSP2_CID_COMPRESS) {
+			if (ctrl->value != 0x00 && ctrl->value != 0x01)
+				return -EINVAL;
+			video->rwpf->fcp_fcnl = ctrl->value;
+		}
+	}
+	return 0;
+}
+
+static int vsp2_try_ext_ctrls(struct file *file, void *fh,
+		struct v4l2_ext_controls *ctrls)
+{
+	struct v4l2_fh *vfh = file->private_data;
+	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
+	struct v4l2_ext_control *ctrl;
+	unsigned int i;
+
+	/* wpf only */
+	if (video->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+		return -EINVAL;
+
+	/* Only one control ID to support at this stage */
+	if (ctrls->count != 1)
+		return -EINVAL;
+
+	for (i = 0; i < ctrls->count; i++) {
+		ctrl = ctrls->controls + i;
+		if (ctrl->id == VSP2_CID_COMPRESS) {
+			if (ctrl->value != 0x00 && ctrl->value != 0x01) {
+				ctrls->error_idx = i;
+				return -EINVAL;
+			}
+		} else {
+			ctrls->error_idx = i;
+			return -EINVAL;
+		}
+	}
+	return 0;
+}
+
 static const struct v4l2_ioctl_ops vsp2_video_ioctl_ops = {
 	.vidioc_querycap		= vsp2_video_querycap,
 	.vidioc_g_fmt_vid_cap_mplane	= vsp2_video_get_format,
@@ -933,6 +1023,9 @@ static const struct v4l2_ioctl_ops vsp2_video_ioctl_ops = {
 	.vidioc_expbuf			= vb2_ioctl_expbuf,
 	.vidioc_streamon		= vsp2_video_streamon,
 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+	.vidioc_g_ext_ctrls		= vsp2_g_ext_ctrls,
+	.vidioc_s_ext_ctrls		= vsp2_s_ext_ctrls,
+	.vidioc_try_ext_ctrls		= vsp2_try_ext_ctrls,
 };
 
 /* -----------------------------------------------------------------------------

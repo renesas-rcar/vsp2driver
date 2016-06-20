@@ -72,6 +72,8 @@
 #define RWPF_PAD_SINK				0
 #define RWPF_PAD_SOURCE				1
 
+#define FCP_FCNL_DEF_VALUE	(0x00)
+
 struct v4l2_ctrl;
 struct vsp2_rwpf;
 struct vsp2_video;
@@ -109,6 +111,8 @@ struct vsp2_rwpf {
 
 	unsigned int offsets[2];
 	dma_addr_t buf_addr[3];
+
+	unsigned char fcp_fcnl;
 };
 
 static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)

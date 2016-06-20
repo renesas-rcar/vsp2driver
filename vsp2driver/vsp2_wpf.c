@@ -196,6 +196,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_out->clmd		= VSP_CLMD_NO;
 	vsp_out->rotation	= 0;
 
+	if (wpf->fcp_fcnl) {
+		vsp_out->fcp->fcnl = FCP_FCNL_ENABLE;
+		vsp_out->swap = VSP_SWAP_LL;
+	} else
+		vsp_out->fcp->fcnl = FCP_FCNL_DISABLE;
+
 	return 0;
 }
 
@@ -314,6 +320,8 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 		ret = wpf->ctrls.error;
 		goto error;
 	}
+
+	wpf->fcp_fcnl = FCP_FCNL_DEF_VALUE;
 
 	return wpf;
 

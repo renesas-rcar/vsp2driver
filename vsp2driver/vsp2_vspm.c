@@ -96,7 +96,12 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 	}
 
 	/* Initialize struct vsp_dst_t. */
+	temp_vp = vsp_par->dst_par->fcp;
 	memset(vsp_par->dst_par, 0x00, sizeof(struct vsp_dst_t));
+	vsp_par->dst_par->fcp = temp_vp;
+
+	/* Initialize struct fcp_info_t. */
+	memset(vsp_par->dst_par->fcp, 0x00, sizeof(struct fcp_info_t));
 
 	/* Initialize struct vsp_uds_t. */
 	memset(vsp_par->ctrl_par->uds, 0x00, sizeof(struct vsp_uds_t));
@@ -245,6 +250,11 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	vsp_par->dst_par =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->dst_par), GFP_KERNEL);
 	if (vsp_par->dst_par == NULL)
+		return -ENOMEM;
+
+	vsp_par->dst_par->fcp =
+	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->dst_par->fcp), GFP_KERNEL);
+	if (vsp_par->dst_par->fcp == NULL)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par =
