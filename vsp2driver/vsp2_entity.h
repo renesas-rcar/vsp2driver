@@ -97,9 +97,6 @@ struct vsp2_entity {
 
 	struct v4l2_subdev subdev;
 	struct v4l2_subdev_pad_config *config;
-
-	spinlock_t lock;		/* Protects the streaming field */
-	bool streaming;
 };
 
 static inline struct vsp2_entity *to_vsp2_entity(struct v4l2_subdev *subdev)
@@ -128,9 +125,6 @@ vsp2_entity_get_pad_format(struct vsp2_entity *entity,
 			   unsigned int pad);
 int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
 			 struct v4l2_subdev_pad_config *cfg);
-
-bool vsp2_entity_is_streaming(struct vsp2_entity *entity);
-void vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming);
 
 void vsp2_entity_route_setup(struct vsp2_entity *source);
 

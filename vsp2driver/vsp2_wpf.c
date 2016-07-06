@@ -92,8 +92,6 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 	u16 vspm_format;
 
-	vsp2_entity_set_streaming(&wpf->entity, enable);
-
 	if (!enable)
 		return 0;
 

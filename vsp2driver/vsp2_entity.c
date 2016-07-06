@@ -70,27 +70,6 @@
 #include "vsp2_entity.h"
 #include "vsp2_vspm.h"
 
-bool vsp2_entity_is_streaming(struct vsp2_entity *entity)
-{
-	unsigned long flags;
-	bool streaming;
-
-	spin_lock_irqsave(&entity->lock, flags);
-	streaming = entity->streaming;
-	spin_unlock_irqrestore(&entity->lock, flags);
-
-	return streaming;
-}
-
-void vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&entity->lock, flags);
-	entity->streaming = streaming;
-	spin_unlock_irqrestore(&entity->lock, flags);
-}
-
 void vsp2_entity_route_setup(struct vsp2_entity *source)
 {
 	struct vsp2_entity *sink;
@@ -313,8 +292,6 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 
 	if (flag == false)
 		return -EINVAL;
-
-	spin_lock_init(&entity->lock);
 
 	entity->vsp2 = vsp2;
 	entity->source_pad = num_pads - 1;

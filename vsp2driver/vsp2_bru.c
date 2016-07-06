@@ -111,8 +111,6 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
 	struct vsp_bru_t *vsp_bru = vsp_par->ctrl_par->bru;
 	u32 inctrl;
 
-	vsp2_entity_set_streaming(&bru->entity, enable);
-
 	if (!enable)
 		return 0;
 
