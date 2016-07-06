@@ -70,6 +70,12 @@
 #include "vsp2_entity.h"
 #include "vsp2_vspm.h"
 
+static inline struct vsp2_entity *
+media_entity_to_vsp2_entity(struct media_entity *entity)
+{
+	return container_of(entity, struct vsp2_entity, subdev.entity);
+}
+
 void vsp2_entity_route_setup(struct vsp2_entity *source)
 {
 	struct vsp2_entity *sink;
@@ -79,7 +85,7 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
 	if (source->type == VSP2_ENTITY_WPF)
 		return;
 
-	sink = container_of(source->sink, struct vsp2_entity, subdev.entity);
+	sink = media_entity_to_vsp2_entity(source->sink);
 
 	switch (sink->type) {
 	case VSP2_ENTITY_WPF:
@@ -358,7 +364,7 @@ int vsp2_entity_link_setup(struct media_entity *entity,
 	if (!(local->flags & MEDIA_PAD_FL_SOURCE))
 		return 0;
 
-	source = container_of(local->entity, struct vsp2_entity, subdev.entity);
+	source = media_entity_to_vsp2_entity(local->entity);
 
 	if (flags & MEDIA_LNK_FL_ENABLED) {
 		if (source->sink)
