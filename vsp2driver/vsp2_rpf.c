@@ -135,25 +135,19 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	rpf->offsets[0] = crop->top * stride_y
 			+ crop->left * fmtinfo->bpp[0] / 8;
 
-	vsp_in->addr = (void *)((unsigned long)rpf->buf_addr[0]
-					     + rpf->offsets[0]);
-
 	if (format->num_planes > 1) {
 		rpf->offsets[1] = crop->top * stride_c / fmtinfo->vsub
 				+ crop->left * fmtinfo->bpp[1] / fmtinfo->hsub
 				/ 8;
-
-		vsp_in->addr_c0 = (void *)((unsigned long)rpf->buf_addr[1]
-							+ rpf->offsets[1]);
-
-		if (format->num_planes > 2)
-			vsp_in->addr_c1 =
-				(void *)((unsigned long)rpf->buf_addr[2]
-						      + rpf->offsets[1]);
+	} else {
+		rpf->offsets[1] = 0;
 	}
 
 	vsp_in->stride		= stride_y;
 	vsp_in->stride_c	= stride_c;
+
+	/* Now that the offsets have been computed program the DMA addresses. */
+	rpf->ops->set_memory(rpf);
 
 	/* Format */
 	sink_format = vsp2_entity_get_pad_format(&rpf->entity,
@@ -283,10 +277,9 @@ static struct v4l2_subdev_ops rpf_ops = {
  * Video Device Operations
  */
 
-static void rpf_set_memory(struct vsp2_rwpf *rpf, struct vsp2_rwpf_memory *mem)
+static void rpf_set_memory(struct vsp2_rwpf *rpf)
 {
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
-	unsigned int i;
 
 	if (vsp_in == NULL) {
 		dev_err(rpf->entity.vsp2->dev,
@@ -294,21 +287,12 @@ static void rpf_set_memory(struct vsp2_rwpf *rpf, struct vsp2_rwpf_memory *mem)
 		return;
 	}
 
-	for (i = 0; i < 3; ++i)
-		rpf->buf_addr[i] = mem->addr[i];
-
-	if (!vsp2_entity_is_streaming(&rpf->entity))
-		return;
-
-	vsp_in->addr = (void *)((unsigned long)mem->addr[0] + rpf->offsets[0]);
-	if (mem->num_planes > 1) {
-		vsp_in->addr_c0 =
-			(void *)((unsigned long)mem->addr[1] + rpf->offsets[1]);
-	}
-	if (mem->num_planes > 2) {
-		vsp_in->addr_c1 =
-			(void *)((unsigned long)mem->addr[2] + rpf->offsets[1]);
-	}
+	vsp_in->addr = (void *)((unsigned long)rpf->buf_addr[0]
+						+ rpf->offsets[0]);
+	vsp_in->addr_c0 = (void *)((unsigned long)rpf->buf_addr[1]
+						+ rpf->offsets[1]);
+	vsp_in->addr_c1 = (void *)((unsigned long)rpf->buf_addr[2]
+						+ rpf->offsets[1]);
 }
 
 static const struct vsp2_rwpf_operations rpf_vdev_ops = {

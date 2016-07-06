@@ -230,17 +230,15 @@ static struct v4l2_subdev_ops wpf_ops = {
  * Video Device Operations
  */
 
-static void wpf_set_memory(struct vsp2_rwpf *wpf, struct vsp2_rwpf_memory *mem)
+static void wpf_set_memory(struct vsp2_rwpf *wpf)
 {
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 
-	vsp_out->addr = (void *)((unsigned long)mem->addr[0]);
-	if (mem->num_planes > 1)
-		vsp_out->addr_c0 = (void *)((unsigned long)mem->addr[1]);
-	if (mem->num_planes > 2)
-		vsp_out->addr_c1 = (void *)((unsigned long)mem->addr[2]);
+	vsp_out->addr = (void *)((unsigned long)wpf->buf_addr[0]);
+	vsp_out->addr_c0 = (void *)((unsigned long)wpf->buf_addr[1]);
+	vsp_out->addr_c1 = (void *)((unsigned long)wpf->buf_addr[2]);
 }
 
 static const struct vsp2_rwpf_operations wpf_vdev_ops = {
