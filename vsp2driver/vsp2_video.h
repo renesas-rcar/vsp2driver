@@ -99,7 +99,6 @@ struct vsp2_video {
 	void *alloc_ctx;
 	spinlock_t irqlock;
 	struct list_head irqqueue;
-	unsigned int sequence;
 };
 
 static inline struct vsp2_video *to_vsp2_video(struct video_device *vdev)
