@@ -77,6 +77,7 @@
 
 struct device;
 
+struct vsp2_entity;
 struct vsp2_bru;
 struct vsp2_rwpf;
 struct vsp2_uds;

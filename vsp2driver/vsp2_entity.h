@@ -80,8 +80,22 @@ enum vsp2_entity_type {
 	VSP2_ENTITY_WPF,
 };
 
+/**
+ * struct vsp2_entity_operations - Entity operations
+ * @destroy:	Destroy the entity.
+ * @set_memory:	Setup memory buffer access. This operation applies the settings
+ *		stored in the rwpf mem field to the hardware. Valid for RPF and
+ *		WPF only.
+ */
+struct vsp2_entity_operations {
+	void (*destroy)(struct vsp2_entity *);
+	void (*set_memory)(struct vsp2_entity *);
+};
+
 struct vsp2_entity {
 	struct vsp2_device *vsp2;
+
+	const struct vsp2_entity_operations *ops;
 
 	enum vsp2_entity_type type;
 	unsigned int index;

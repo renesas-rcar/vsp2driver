@@ -269,11 +269,12 @@ static struct v4l2_subdev_ops rpf_ops = {
 };
 
 /* -----------------------------------------------------------------------------
- * Video Device Operations
+ * VSP2 Entity Operations
  */
 
-static void rpf_set_memory(struct vsp2_rwpf *rpf)
+static void rpf_set_memory(struct vsp2_entity *entity)
 {
+	struct vsp2_rwpf *rpf = entity_to_rwpf(entity);
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 
 	if (vsp_in == NULL) {
@@ -290,7 +291,7 @@ static void rpf_set_memory(struct vsp2_rwpf *rpf)
 						+ rpf->offsets[1]);
 }
 
-static const struct vsp2_rwpf_operations rpf_vdev_ops = {
+static const struct vsp2_entity_operations rpf_entity_ops = {
 	.set_memory = rpf_set_memory,
 };
 
@@ -308,11 +309,10 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 	if (rpf == NULL)
 		return ERR_PTR(-ENOMEM);
 
-	rpf->ops = &rpf_vdev_ops;
-
 	rpf->max_width = RPF_MAX_WIDTH;
 	rpf->max_height = RPF_MAX_HEIGHT;
 
+	rpf->entity.ops = &rpf_entity_ops;
 	rpf->entity.type = VSP2_ENTITY_RPF;
 	rpf->entity.index = index;
 

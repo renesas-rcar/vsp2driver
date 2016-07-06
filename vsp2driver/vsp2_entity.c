@@ -340,6 +340,8 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 
 void vsp2_entity_destroy(struct vsp2_entity *entity)
 {
+	if (entity->ops && entity->ops->destroy)
+		entity->ops->destroy(entity);
 	if (entity->subdev.ctrl_handler)
 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
 	v4l2_subdev_free_pad_config(entity->config);

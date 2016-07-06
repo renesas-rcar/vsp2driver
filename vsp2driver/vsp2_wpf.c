@@ -225,11 +225,17 @@ static struct v4l2_subdev_ops wpf_ops = {
 };
 
 /* -----------------------------------------------------------------------------
- * Video Device Operations
+ * VSP2 Entity Operations
  */
 
-static void wpf_set_memory(struct vsp2_rwpf *wpf)
+static void vsp2_wpf_destroy(struct vsp2_entity *entity)
 {
+}
+
+static void wpf_set_memory(struct vsp2_entity *entity)
+{
+	struct vsp2_rwpf *wpf = entity_to_rwpf(entity);
+
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
@@ -239,7 +245,8 @@ static void wpf_set_memory(struct vsp2_rwpf *wpf)
 	vsp_out->addr_c1 = (void *)((unsigned long)wpf->mem.addr[2]);
 }
 
-static const struct vsp2_rwpf_operations wpf_vdev_ops = {
+static const struct vsp2_entity_operations wpf_entity_ops = {
+	.destroy = vsp2_wpf_destroy,
 	.set_memory = wpf_set_memory,
 };
 
@@ -257,11 +264,10 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	if (wpf == NULL)
 		return ERR_PTR(-ENOMEM);
 
-	wpf->ops = &wpf_vdev_ops;
-
 	wpf->max_width = WPF_MAX_WIDTH;
 	wpf->max_height = WPF_MAX_HEIGHT;
 
+	wpf->entity.ops = &wpf_entity_ops;
 	wpf->entity.type = VSP2_ENTITY_WPF;
 	wpf->entity.index = index;
 

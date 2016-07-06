@@ -82,22 +82,11 @@ struct vsp2_rwpf_memory {
 	dma_addr_t addr[3];
 };
 
-/**
- * struct vsp2_rwpf_operations - RPF and WPF operations
- * @set_memory: Setup memory buffer access. This operation applies the settings
- *		stored in the rwpf mem field to the hardware.
- */
-struct vsp2_rwpf_operations {
-	void (*set_memory)(struct vsp2_rwpf *rwpf);
-};
-
 struct vsp2_rwpf {
 	struct vsp2_entity entity;
 	struct v4l2_ctrl_handler ctrls;
 
 	struct vsp2_video *video;
-
-	const struct vsp2_rwpf_operations *ops;
 
 	unsigned int max_width;
 	unsigned int max_height;
@@ -121,6 +110,11 @@ struct vsp2_rwpf {
 static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)
 {
 	return container_of(subdev, struct vsp2_rwpf, entity.subdev);
+}
+
+static inline struct vsp2_rwpf *entity_to_rwpf(struct vsp2_entity *entity)
+{
+	return container_of(entity, struct vsp2_rwpf, entity);
 }
 
 struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index);
@@ -155,7 +149,7 @@ int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
  */
 static inline void vsp2_rwpf_set_memory(struct vsp2_rwpf *rwpf)
 {
-	rwpf->ops->set_memory(rwpf);
+	rwpf->entity.ops->set_memory(&rwpf->entity);
 }
 
 #endif /* __VSP2_RWPF_H__ */
