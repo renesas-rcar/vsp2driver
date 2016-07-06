@@ -914,6 +914,9 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 	 *
 	 * Use the VSP2 pipeline object embedded in the first video object that
 	 * starts streaming.
+	 *
+	 * FIXME: This is racy, the ioctl is only protected by the video node
+	 * lock.
 	 */
 	pipe = video->video.entity.pipe
 	     ? to_vsp2_pipeline(&video->video.entity) : &video->pipe;
