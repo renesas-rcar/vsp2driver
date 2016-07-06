@@ -228,11 +228,11 @@ static void clu_configure(struct vsp2_entity *entity,
 					clu->config.tbl_num * 8))
 		VSP2_PRINT_ALERT("clu_configure() error<2>!!");
 
-	vsp_clu->clu.hard_addr  = (void *)clu->buff_h;
+	vsp_clu->clu.hard_addr  = (unsigned int)clu->buff_h;
 	vsp_clu->clu.virt_addr	= (void *)clu->buff_v;
 #else
 	vsp_clu->clu.hard_addr  =
-		(void *)vsp2_addr_uv2hd((unsigned long)clu->config.addr);
+		(unsigned int)vsp2_addr_uv2hd((unsigned long)clu->config.addr);
 
 	vsp_clu->clu.virt_addr  =
 		(void *)vsp2_addr_uv2kv((unsigned long)clu->config.addr);

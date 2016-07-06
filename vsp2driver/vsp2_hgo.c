@@ -145,7 +145,7 @@ static void hgo_configure(struct vsp2_entity *entity,
 		vsp_hgo->addr = (void *)hgo->buff_v;
 	#else
 		vsp_hgo->virt_addr = (void *)hgo->buff_v;
-		vsp_hgo->hard_addr = (void *)hgo->buff_h;
+		vsp_hgo->hard_addr = (unsigned int)hgo->buff_h;
 	#endif
 #else
 	#ifdef TYPE_GEN2
@@ -153,7 +153,7 @@ static void hgo_configure(struct vsp2_entity *entity,
 			(unsigned long)hgo->config.addr);
 	#else
 		vsp_hgo->virt_addr = NULL;
-		vsp_hgo->hard_addr = (void *)vsp2_addr_uv2hd(
+		vsp_hgo->hard_addr = (unsigned int)vsp2_addr_uv2hd(
 			(unsigned long)hgo->config.addr);
 	#endif
 #endif

@@ -221,11 +221,11 @@ static void lut_configure(struct vsp2_entity *entity,
 					lut->config.tbl_num * 8))
 		VSP2_PRINT_ALERT("lut_configure() error<2>!!");
 
-	vsp_lut->lut.hard_addr  = (void *)lut->buff_h;
+	vsp_lut->lut.hard_addr  = (unsigned int)lut->buff_h;
 	vsp_lut->lut.virt_addr  = (void *)lut->buff_v;
 #else
 	vsp_lut->lut.hard_addr  =
-		(void *)vsp2_addr_uv2hd((unsigned long)lut->config.addr);
+		(unsigned int)vsp2_addr_uv2hd((unsigned long)lut->config.addr);
 
 	vsp_lut->lut.virt_addr  =
 		(void *)vsp2_addr_uv2kv((unsigned long)lut->config.addr);

@@ -140,9 +140,9 @@ static void wpf_set_memory(struct vsp2_entity *entity)
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 
-	vsp_out->addr = (void *)((unsigned long)wpf->mem.addr[0]);
-	vsp_out->addr_c0 = (void *)((unsigned long)wpf->mem.addr[1]);
-	vsp_out->addr_c1 = (void *)((unsigned long)wpf->mem.addr[2]);
+	vsp_out->addr = (unsigned int)wpf->mem.addr[0];
+	vsp_out->addr_c0 = (unsigned int)wpf->mem.addr[1];
+	vsp_out->addr_c1 = (unsigned int)wpf->mem.addr[2];
 }
 
 static void wpf_configure(struct vsp2_entity *entity,

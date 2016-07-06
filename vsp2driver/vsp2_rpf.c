@@ -106,12 +106,9 @@ static void rpf_set_memory(struct vsp2_entity *entity)
 		return;
 	}
 
-	vsp_in->addr = (void *)((unsigned long)rpf->mem.addr[0]
-						+ rpf->offsets[0]);
-	vsp_in->addr_c0 = (void *)((unsigned long)rpf->mem.addr[1]
-						+ rpf->offsets[1]);
-	vsp_in->addr_c1 = (void *)((unsigned long)rpf->mem.addr[2]
-						+ rpf->offsets[1]);
+	vsp_in->addr = (unsigned int)rpf->mem.addr[0] + rpf->offsets[0];
+	vsp_in->addr_c0 = (unsigned int)rpf->mem.addr[1] + rpf->offsets[1];
+	vsp_in->addr_c1 = (unsigned int)rpf->mem.addr[2] + rpf->offsets[1];
 }
 
 static void rpf_configure(struct vsp2_entity *entity,
@@ -260,7 +257,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 	vsp_in->alpha->afix = laya;
 	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha);
 
-	vsp_in->alpha->addr_a = NULL;
+	vsp_in->alpha->addr_a = 0;
 	vsp_in->alpha->stride_a = 0;
 	vsp_in->alpha->swap = VSP_SWAP_NO;
 	vsp_in->alpha->asel = (alph_sel & (7 << 28)) >> 28;

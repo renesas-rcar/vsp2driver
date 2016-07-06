@@ -78,7 +78,7 @@ struct vsp2_vspm_entry_work {
 };
 
 struct vsp2_vspm {
-	unsigned long hdl;
+	void *hdl;
 	unsigned long job_id;
 	char job_pri;
 	struct vspm_job_t ip_par;

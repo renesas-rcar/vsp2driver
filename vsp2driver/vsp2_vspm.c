@@ -296,7 +296,7 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	if (virt_addr == NULL)
 		return -ENOMEM;
 
-	vsp_par->dl_par.hard_addr = (void *)(hard_addr);
+	vsp_par->dl_par.hard_addr = (unsigned int)(hard_addr);
 	vsp_par->dl_par.virt_addr = virt_addr;
 	vsp_par->dl_par.tbl_num = 128+2048;
 
@@ -328,7 +328,7 @@ static bool vsp2_vspm_is_outfmt_yvup(unsigned short format)
 static void vsp2_vspm_yvup_swap(struct vsp_start_t *vsp_par)
 {
 	int i;
-	void *tmp;
+	unsigned int tmp;
 
 	/* If format is YVU planar, change Cb Cr address. */
 
@@ -393,7 +393,7 @@ long vsp2_vspm_drv_quit(struct vsp2_device *vsp2)
 }
 
 static void vsp2_vspm_drv_entry_cb(unsigned long job_id, long result,
-				   unsigned long user_data)
+				   void *user_data)
 {
 	struct vsp2_device *vsp2;
 
@@ -465,7 +465,7 @@ void vsp2_vspm_drv_entry_work(struct work_struct *work)
 
 	ret = vspm_entry_job(vsp2->vspm->hdl, &vsp2->vspm->job_id,
 			     vsp2->vspm->job_pri, &vsp2->vspm->ip_par,
-			     (unsigned long)vsp2, vsp2_vspm_drv_entry_cb);
+			     vsp2, vsp2_vspm_drv_entry_cb);
 	if (ret != R_VSPM_OK) {
 		dev_err(vsp2->dev, "failed to vspm_entry_job : %ld\n", ret);
 
