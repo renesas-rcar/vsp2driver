@@ -68,13 +68,20 @@
 #define RWPF_MIN_WIDTH				1
 #define RWPF_MIN_HEIGHT				1
 
+struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
+				     struct v4l2_subdev_pad_config *config)
+{
+	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
+					RWPF_PAD_SINK);
+}
+
 /* -----------------------------------------------------------------------------
  * V4L2 Subdevice Pad Operations
  */
 
-int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-			     struct v4l2_subdev_pad_config *cfg,
-			     struct v4l2_subdev_mbus_code_enum *code)
+static int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+				    struct v4l2_subdev_pad_config *cfg,
+				    struct v4l2_subdev_mbus_code_enum *code)
 {
 	static const unsigned int codes[] = {
 		MEDIA_BUS_FMT_ARGB8888_1X32,
@@ -89,9 +96,9 @@ int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-int vsp2_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_frame_size_enum *fse)
+static int vsp2_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+				     struct v4l2_subdev_pad_config *cfg,
+				     struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -124,16 +131,9 @@ int vsp2_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config)
-{
-	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
-					RWPF_PAD_SINK);
-}
-
-int vsp2_rwpf_get_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-	struct v4l2_subdev_format *fmt)
+static int vsp2_rwpf_get_format(struct v4l2_subdev *subdev,
+				struct v4l2_subdev_pad_config *cfg,
+				struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -148,9 +148,9 @@ int vsp2_rwpf_get_format(
 	return 0;
 }
 
-int vsp2_rwpf_set_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-	struct v4l2_subdev_format *fmt)
+static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
+				struct v4l2_subdev_pad_config *cfg,
+				struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -202,9 +202,9 @@ int vsp2_rwpf_set_format(
 	return 0;
 }
 
-int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
-			    struct v4l2_subdev_pad_config *cfg,
-			    struct v4l2_subdev_selection *sel)
+static int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
+				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -239,9 +239,9 @@ int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
-			    struct v4l2_subdev_pad_config *cfg,
-			    struct v4l2_subdev_selection *sel)
+static int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
+				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -296,6 +296,16 @@ int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
 
 	return 0;
 }
+
+const struct v4l2_subdev_pad_ops vsp2_rwpf_pad_ops = {
+	.init_cfg = vsp2_entity_init_cfg,
+	.enum_mbus_code = vsp2_rwpf_enum_mbus_code,
+	.enum_frame_size = vsp2_rwpf_enum_frame_size,
+	.get_fmt = vsp2_rwpf_get_format,
+	.set_fmt = vsp2_rwpf_set_format,
+	.get_selection = vsp2_rwpf_get_selection,
+	.set_selection = vsp2_rwpf_set_selection,
+};
 
 /* -----------------------------------------------------------------------------
  * Controls

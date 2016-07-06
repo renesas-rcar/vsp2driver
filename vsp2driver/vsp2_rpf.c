@@ -86,18 +86,8 @@ static struct vsp_src_t *rpf_get_vsp_in(struct vsp2_rwpf *rpf)
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_pad_ops rpf_pad_ops = {
-	.init_cfg = vsp2_entity_init_cfg,
-	.enum_mbus_code = vsp2_rwpf_enum_mbus_code,
-	.enum_frame_size = vsp2_rwpf_enum_frame_size,
-	.get_fmt = vsp2_rwpf_get_format,
-	.set_fmt = vsp2_rwpf_set_format,
-	.get_selection = vsp2_rwpf_get_selection,
-	.set_selection = vsp2_rwpf_set_selection,
-};
-
 static struct v4l2_subdev_ops rpf_ops = {
-	.pad    = &rpf_pad_ops,
+	.pad    = &vsp2_rwpf_pad_ops,
 };
 
 /* -----------------------------------------------------------------------------
