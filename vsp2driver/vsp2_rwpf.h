@@ -79,15 +79,13 @@ struct vsp2_rwpf;
 struct vsp2_video;
 
 struct vsp2_rwpf_memory {
-	unsigned int num_planes;
 	dma_addr_t addr[3];
-	unsigned int length[3];
 };
 
 /**
  * struct vsp2_rwpf_operations - RPF and WPF operations
  * @set_memory: Setup memory buffer access. This operation applies the settings
- *		stored in the rwpf buf_addr field to the hardware.
+ *		stored in the rwpf mem field to the hardware.
  */
 struct vsp2_rwpf_operations {
 	void (*set_memory)(struct vsp2_rwpf *rwpf);
@@ -115,7 +113,7 @@ struct vsp2_rwpf {
 	unsigned int alpha;
 
 	unsigned int offsets[2];
-	dma_addr_t buf_addr[3];
+	struct vsp2_rwpf_memory mem;
 
 	unsigned char fcp_fcnl;
 };
@@ -149,7 +147,15 @@ int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
 	    struct v4l2_subdev_pad_config *cfg,
 	    struct v4l2_subdev_selection *sel);
 
-void vsp2_rwpf_set_memory(struct vsp2_rwpf *rwpf, struct vsp2_rwpf_memory *mem,
-			  bool apply);
+/**
+ * vsp2_rwpf_set_memory - Configure DMA addresses for a [RW]PF
+ * @rwpf: the [RW]PF instance
+ *
+ * This function applies the cached memory buffer address to the hardware.
+ */
+static inline void vsp2_rwpf_set_memory(struct vsp2_rwpf *rwpf)
+{
+	rwpf->ops->set_memory(rwpf);
+}
 
 #endif /* __VSP2_RWPF_H__ */

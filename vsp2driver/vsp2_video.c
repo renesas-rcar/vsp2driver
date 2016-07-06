@@ -461,7 +461,7 @@ vsp2_video_complete_buffer(struct vsp2_video *video)
 	done->buf.vb2_buf.timestamp = ktime_get_ns();
 	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
 		vb2_set_plane_payload(&done->buf.vb2_buf, i,
-				      done->mem.length[i]);
+				      vb2_plane_size(&done->buf.vb2_buf, i));
 	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
 
 	return next;
@@ -480,15 +480,34 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	vsp2_rwpf_set_memory(video->rwpf, &buf->mem, true);
+	video->rwpf->mem = buf->mem;
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
+static void vsp2_video_pipeline_run(struct vsp2_pipeline *pipe)
+{
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
+	unsigned int i;
+
+	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
+		struct vsp2_rwpf *rwpf = pipe->inputs[i];
+
+		if (rwpf)
+			vsp2_rwpf_set_memory(rwpf);
+	}
+
+	vsp2_rwpf_set_memory(pipe->output);
+
+	vsp2_pipeline_run(pipe);
+}
+
 static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 {
 	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
+	enum vsp2_pipeline_state state;
+	unsigned long flags;
 	unsigned int i;
 
 	/* Complete buffers on all video nodes. */
@@ -500,6 +519,21 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 	}
 
 	vsp2_video_frame_end(pipe, pipe->output);
+
+	spin_lock_irqsave(&pipe->irqlock, flags);
+
+	state = pipe->state;
+	pipe->state = VSP2_PIPELINE_STOPPED;
+
+	/* If a stop has been requested, mark the pipeline as stopped and
+	 * return. Otherwise restart the pipeline if ready.
+	 */
+	if (state == VSP2_PIPELINE_STOPPING)
+		wake_up(&pipe->wq);
+	else if (vsp2_pipeline_ready(pipe))
+		vsp2_video_pipeline_run(pipe);
+
+	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
 /* -----------------------------------------------------------------------------
@@ -548,20 +582,15 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 	if (vb->num_planes < format->num_planes)
 		return -EINVAL;
 
-	buf->mem.num_planes = vb->num_planes;
-
 	for (i = 0; i < vb->num_planes; ++i) {
 		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
-		buf->mem.length[i] = vb2_plane_size(vb, i);
 
-		if (buf->mem.length[i] < format->plane_fmt[i].sizeimage)
+		if (vb2_plane_size(vb, i) < format->plane_fmt[i].sizeimage)
 			return -EINVAL;
 	}
 
-	for ( ; i < 3; ++i) {
+	for ( ; i < 3; ++i)
 		buf->mem.addr[i] = 0;
-		buf->mem.length[i] = 0;
-	}
 
 	return 0;
 }
@@ -585,16 +614,15 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
-	vsp2_rwpf_set_memory(video->rwpf, &buf->mem, true);
+	video->rwpf->mem = buf->mem;
 	pipe->buffers_ready |= 1 << video->pipe_index;
 
 	if (vb2_is_streaming(&video->queue) &&
 	    vsp2_pipeline_ready(pipe))
-		vsp2_pipeline_run(pipe);
+		vsp2_video_pipeline_run(pipe);
 
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
-
 
 void vsp2_video_buffer_finish(struct vb2_buffer *vb)
 {
@@ -614,104 +642,102 @@ static struct vsp_start_t *to_vsp_par(struct vsp2_video	*video)
 	return video->vsp2->vspm->ip_par.par.vsp;
 }
 
+static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
+				     struct vsp2_video *video)
+{
+	struct vsp2_entity *entity;
+	int ret;
+	int max_index_rpf = -1;
+	struct vsp_start_t *vsp_start = to_vsp_par(video);
+
+	/* reset vspm use module */
+	vsp_start->use_module = 0;
+
+	if (pipe->uds) {
+		struct vsp2_uds *uds = to_uds(&pipe->uds->subdev);
+
+		/* If a BRU is present in the pipeline before the UDS, the alpha
+		 * component doesn't need to be scaled as the BRU output alpha
+		 * value is fixed to 255. Otherwise we need to scale the alpha
+		 * component only when available at the input RPF.
+		 */
+		if (pipe->uds_input->type == VSP2_ENTITY_BRU) {
+			uds->scale_alpha = false;
+		} else {
+			struct vsp2_rwpf *rpf =
+				to_rwpf(&pipe->uds_input->subdev);
+
+			uds->scale_alpha = rpf->fmtinfo->alpha;
+		}
+	}
+
+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+		vsp2_entity_route_setup(entity);
+
+		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
+		if (ret < 0)
+			goto error;
+
+		if (entity->type == VSP2_ENTITY_RPF) {
+
+			if ((int)entity->index > max_index_rpf)
+				max_index_rpf = entity->index;
+		}
+	}
+
+	/* check rpf setting */
+
+	if (vsp_start->rpf_num > 0 &&
+		vsp_start->rpf_num != (max_index_rpf + 1)) {
+
+		VSP2_PRINT_ALERT("rpf setting error !!");
+
+		ret = -EINVAL;
+		goto error;
+	}
+
+	/* control entity setup -> set vspm params */
+
+	/* - HGO */
+
+	entity = &video->vsp2->hgo->entity;
+	if (entity != NULL) {
+
+		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
+		if (ret < 0)
+			goto error;
+	}
+
+	/* - HGT */
+
+	entity = &video->vsp2->hgt->entity;
+	if (entity != NULL) {
+
+		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
+		if (ret < 0)
+			goto error;
+	}
+
+	return 0;
+
+error:
+	return ret;
+}
+
 static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 {
 	struct vsp2_video *video = vb2_get_drv_priv(vq);
 	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&video->video.entity);
-	struct vsp2_entity *entity;
 	unsigned long flags;
 	int ret;
-	int				max_index_rpf = -1;
 
 	mutex_lock(&pipe->lock);
 	if (pipe->stream_count == pipe->num_video - 1) {
-
-		/* reset vspm use module */
-
-		struct vsp_start_t *vsp_start = to_vsp_par(video);
-
-		vsp_start->use_module = 0;
-
-		/* revise alpha param */
-
-		if (pipe->uds) {
-			struct vsp2_uds *uds = to_uds(&pipe->uds->subdev);
-
-			/* If a BRU is present in the pipeline before the UDS,
-			 * the alpha component doesn't need to be scaled as the
-			 * BRU output alpha value is fixed to 255. Otherwise we
-			 * need to scale the alpha component only when available
-			 * at the input RPF.
-			 */
-			if (pipe->uds_input->type == VSP2_ENTITY_BRU) {
-				uds->scale_alpha = false;
-			} else {
-				struct vsp2_rwpf *rpf =
-					to_rwpf(&pipe->uds_input->subdev);
-
-				uds->scale_alpha = rpf->fmtinfo->alpha;
-			}
-		}
-
-		/* entity route setup -> set vspm params */
-
-		list_for_each_entry(entity, &pipe->entities, list_pipe) {
-			vsp2_entity_route_setup(entity);
-
-			ret = v4l2_subdev_call(&entity->subdev, video,
-					       s_stream, 1);
-			if (ret < 0) {
-				mutex_unlock(&pipe->lock);
-				goto error_end;
-			}
-			if (entity->type == VSP2_ENTITY_RPF) {
-
-				if ((int)entity->index > max_index_rpf)
-					max_index_rpf = entity->index;
-			}
-		}
-
-		/* check rpf setting */
-
-		if (vsp_start->rpf_num > 0 &&
-			vsp_start->rpf_num != (max_index_rpf + 1)) {
-
-			VSP2_PRINT_ALERT("rpf setting error !!");
-
-			ret = -EINVAL;
+		ret = vsp2_video_setup_pipeline(pipe, video);
+		if (ret < 0) {
 			mutex_unlock(&pipe->lock);
 			goto error_end;
 		}
-
-		/* control entity setup -> set vspm params */
-
-		/* - HGO */
-
-		entity = &video->vsp2->hgo->entity;
-		if (entity != NULL) {
-
-			ret = v4l2_subdev_call(
-					&entity->subdev, video, s_stream, 1);
-			if (ret < 0) {
-				mutex_unlock(&pipe->lock);
-				goto error_end;
-			}
-		}
-
-		/* - HGT */
-
-		entity = &video->vsp2->hgt->entity;
-		if (entity != NULL) {
-
-			ret = v4l2_subdev_call(
-					&entity->subdev, video, s_stream, 1);
-			if (ret < 0) {
-				mutex_unlock(&pipe->lock);
-				goto error_end;
-			}
-		}
-
-		/* add other control entity setup */
 	}
 
 	pipe->stream_count++;
@@ -719,7 +745,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 	if (vsp2_pipeline_ready(pipe))
-		vsp2_pipeline_run(pipe);
+		vsp2_video_pipeline_run(pipe);
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 
 	return 0;

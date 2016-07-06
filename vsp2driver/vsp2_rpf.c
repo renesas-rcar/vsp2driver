@@ -144,9 +144,6 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_in->stride		= stride_y;
 	vsp_in->stride_c	= stride_c;
 
-	/* Now that the offsets have been computed program the DMA addresses. */
-	rpf->ops->set_memory(rpf);
-
 	/* Format */
 	sink_format = vsp2_entity_get_pad_format(&rpf->entity,
 						 rpf->entity.config,
@@ -285,11 +282,11 @@ static void rpf_set_memory(struct vsp2_rwpf *rpf)
 		return;
 	}
 
-	vsp_in->addr = (void *)((unsigned long)rpf->buf_addr[0]
+	vsp_in->addr = (void *)((unsigned long)rpf->mem.addr[0]
 						+ rpf->offsets[0]);
-	vsp_in->addr_c0 = (void *)((unsigned long)rpf->buf_addr[1]
+	vsp_in->addr_c0 = (void *)((unsigned long)rpf->mem.addr[1]
 						+ rpf->offsets[1]);
-	vsp_in->addr_c1 = (void *)((unsigned long)rpf->buf_addr[2]
+	vsp_in->addr_c1 = (void *)((unsigned long)rpf->mem.addr[2]
 						+ rpf->offsets[1]);
 }
 

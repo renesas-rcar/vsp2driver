@@ -297,34 +297,11 @@ bool vsp2_pipeline_ready(struct vsp2_pipeline *pipe)
 
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe)
 {
-	enum vsp2_pipeline_state state;
-	unsigned long flags;
-
 	if (pipe == NULL)
 		return;
 
-	/* Signal frame end to the pipeline handler. */
-	pipe->frame_end(pipe);
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-
-	state = pipe->state;
-	pipe->state = VSP2_PIPELINE_STOPPED;
-
-	/* If a stop has been requested, mark the pipeline as stopped and
-	 * return.
-	 */
-	if (state == VSP2_PIPELINE_STOPPING) {
-		wake_up(&pipe->wq);
-		goto done;
-	}
-
-	/* Restart the pipeline if ready. */
-	if (vsp2_pipeline_ready(pipe))
-		vsp2_pipeline_run(pipe);
-
-done:
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
+	if (pipe->frame_end)
+		pipe->frame_end(pipe);
 }
 
 /*

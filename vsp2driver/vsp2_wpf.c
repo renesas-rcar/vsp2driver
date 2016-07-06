@@ -234,9 +234,9 @@ static void wpf_set_memory(struct vsp2_rwpf *wpf)
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 
-	vsp_out->addr = (void *)((unsigned long)wpf->buf_addr[0]);
-	vsp_out->addr_c0 = (void *)((unsigned long)wpf->buf_addr[1]);
-	vsp_out->addr_c1 = (void *)((unsigned long)wpf->buf_addr[2]);
+	vsp_out->addr = (void *)((unsigned long)wpf->mem.addr[0]);
+	vsp_out->addr_c0 = (void *)((unsigned long)wpf->mem.addr[1]);
+	vsp_out->addr_c1 = (void *)((unsigned long)wpf->mem.addr[2]);
 }
 
 static const struct vsp2_rwpf_operations wpf_vdev_ops = {
