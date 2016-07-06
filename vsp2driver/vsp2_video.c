@@ -227,9 +227,6 @@ static int vsp2_video_pipeline_validate_branch(struct vsp2_pipeline *pipe,
 	bool bru_found = false;
 	int ret;
 
-	input->location.left = 0;
-	input->location.top = 0;
-
 	ret = media_entity_enum_init(&ent_enum, &input->entity.vsp2->media_dev);
 	if (ret < 0)
 		return ret;
@@ -251,18 +248,14 @@ static int vsp2_video_pipeline_validate_branch(struct vsp2_pipeline *pipe,
 		entity = to_vsp2_entity(
 			media_entity_to_v4l2_subdev(pad->entity));
 
-		/* A BRU is present in the pipeline, store the compose rectangle
-		 * location in the input RPF for use when configuring the RPF.
+		/* A BRU is present in the pipeline, store the BRU input pad
+		 * number in the input RPF for use when configuring the RPF.
 		 */
 		if (entity->type == VSP2_ENTITY_BRU) {
 			struct vsp2_bru *bru = to_bru(&entity->subdev);
-			struct v4l2_rect *rect =
-				&bru->inputs[pad->index].compose;
 
 			bru->inputs[pad->index].rpf = input;
-
-			input->location.left = rect->left;
-			input->location.top = rect->top;
+			input->bru_input = pad->index;
 
 			bru_found = true;
 		}

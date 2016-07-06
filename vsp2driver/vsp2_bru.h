@@ -86,7 +86,6 @@ struct vsp2_bru {
 
 	struct {
 		struct vsp2_rwpf *rpf;
-		struct v4l2_rect compose;
 	} inputs[BRU_PAD_SOURCE];
 
 	u32 bgcolor;

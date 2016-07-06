@@ -93,11 +93,7 @@ struct vsp2_rwpf {
 
 	struct v4l2_pix_format_mplane format;
 	const struct vsp2_format_info *fmtinfo;
-	struct {
-		unsigned int left;
-		unsigned int top;
-	} location;
-	struct v4l2_rect crop;
+	unsigned int bru_input;
 
 	unsigned int alpha;
 
@@ -141,6 +137,8 @@ int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
 	    struct v4l2_subdev_pad_config *cfg,
 	    struct v4l2_subdev_selection *sel);
 
+struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
+				     struct v4l2_subdev_pad_config *config);
 /**
  * vsp2_rwpf_set_memory - Configure DMA addresses for a [RW]PF
  * @rwpf: the [RW]PF instance

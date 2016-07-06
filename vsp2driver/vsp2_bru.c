@@ -299,16 +299,9 @@ static int bru_enum_frame_size(struct v4l2_subdev *subdev,
 
 static struct v4l2_rect *bru_get_compose(struct vsp2_bru *bru,
 					 struct v4l2_subdev_pad_config *cfg,
-					 unsigned int pad, u32 which)
+					 unsigned int pad)
 {
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_TRY:
-		return v4l2_subdev_get_try_crop(&bru->entity.subdev, cfg, pad);
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return &bru->inputs[pad].compose;
-	default:
-		return NULL;
-	}
+	return v4l2_subdev_get_try_compose(&bru->entity.subdev, cfg, pad);
 }
 
 static int bru_get_format(
@@ -377,7 +370,7 @@ static int bru_set_format(
 	if (fmt->pad != BRU_PAD_SOURCE) {
 		struct v4l2_rect *compose;
 
-		compose = bru_get_compose(bru, cfg, fmt->pad, fmt->which);
+		compose = bru_get_compose(bru, config, fmt->pad);
 		compose->left = 0;
 		compose->top = 0;
 		compose->width = format->width;
@@ -403,6 +396,7 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
 			     struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_bru *bru = to_bru(subdev);
+	struct v4l2_subdev_pad_config *config;
 
 	if (sel->pad == BRU_PAD_SOURCE)
 		return -EINVAL;
@@ -416,7 +410,12 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
 		return 0;
 
 	case V4L2_SEL_TGT_COMPOSE:
-		sel->r = *bru_get_compose(bru, cfg, sel->pad, sel->which);
+		config = vsp2_entity_get_pad_config(&bru->entity, cfg,
+						    sel->which);
+		if (!config)
+			return -EINVAL;
+
+		sel->r = *bru_get_compose(bru, config, sel->pad);
 		return 0;
 
 	default:
@@ -458,7 +457,7 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
 	sel->r.width = format->width;
 	sel->r.height = format->height;
 
-	compose = bru_get_compose(bru, cfg, sel->pad, sel->which);
+	compose = bru_get_compose(bru, config, sel->pad);
 	*compose = sel->r;
 
 	return 0;

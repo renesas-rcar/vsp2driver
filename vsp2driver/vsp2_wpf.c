@@ -82,7 +82,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	struct v4l2_pix_format_mplane *format = &wpf->format;
 	const struct v4l2_mbus_framefmt *source_format;
 	const struct v4l2_mbus_framefmt *sink_format;
-	const struct v4l2_rect *crop = &wpf->crop;
+	const struct v4l2_rect *crop;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
 	u32 stride_y = 0;
@@ -103,6 +103,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	vsp_out->stride			= stride_y;
 	if (format->num_planes > 1)
 		vsp_out->stride_c	= stride_c;
+
+	crop = vsp2_rwpf_get_crop(wpf, wpf->entity.config);
 
 	vsp_out->width		= crop->width;
 	vsp_out->height		= crop->height;

@@ -137,6 +137,10 @@ struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
 			   struct v4l2_subdev_pad_config *cfg,
 			   unsigned int pad);
+struct v4l2_rect *
+vsp2_entity_get_pad_compose(struct vsp2_entity *entity,
+			    struct v4l2_subdev_pad_config *cfg,
+			    unsigned int pad);
 int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
 			 struct v4l2_subdev_pad_config *cfg);
 

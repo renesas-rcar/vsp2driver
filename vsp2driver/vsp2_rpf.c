@@ -94,7 +94,9 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
 	const struct v4l2_mbus_framefmt *source_format;
 	const struct v4l2_mbus_framefmt *sink_format;
-	const struct v4l2_rect *crop = &rpf->crop;
+	const struct v4l2_rect *crop;
+	unsigned int left = 0;
+	unsigned int top = 0;
 	u32 infmt;
 	u32 alph_sel, laya;
 	u32 stride_y = 0;
@@ -118,6 +120,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	 * left corner in the plane buffer. Only two offsets are needed, as
 	 * planes 2 and 3 always have identical strides.
 	 */
+	crop = vsp2_rwpf_get_crop(rpf, rpf->entity.config);
+
 	stride_y = format->plane_fmt[0].bytesperline;
 	height = crop->height;
 	if (format->num_planes > 1)
@@ -186,8 +190,19 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 
 	vsp_in->swap		= fmtinfo->swap;
 
-	vsp_in->x_position	= rpf->location.left;
-	vsp_in->y_position	= rpf->location.top;
+	/* Output location */
+	if (pipe->bru) {
+		const struct v4l2_rect *compose;
+
+		compose = vsp2_entity_get_pad_compose(pipe->bru,
+						      pipe->bru->config,
+						      rpf->bru_input);
+		left = compose->left;
+		top = compose->top;
+	}
+
+	vsp_in->x_position	= left;
+	vsp_in->y_position	= top;
 
 	vsp_in->pwd		= VSP_LAYER_CHILD;
 	vsp_in->vir		= VSP_NO_VIR;
