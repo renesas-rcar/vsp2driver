@@ -80,7 +80,7 @@
  * V4L2 Subdevice Core Operations
  */
 
-static void clu_configure(struct vsp2_clu *clu, struct vsp2_clu_config *config)
+static void clu_set_config(struct vsp2_clu *clu, struct vsp2_clu_config *config)
 {
 	memcpy(&clu->config, config, sizeof(struct vsp2_clu_config));
 }
@@ -91,61 +91,12 @@ static long clu_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
 
 	switch (cmd) {
 	case VIDIOC_VSP2_CLU_CONFIG:
-		clu_configure(clu, arg);
+		clu_set_config(clu, arg);
 		return 0;
 
 	default:
 		return -ENOIOCTLCMD;
 	}
-}
-
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Video Operations
- */
-
-static struct vsp_start_t *to_vsp_par(struct vsp2_entity *entity)
-{
-	return entity->vsp2->vspm->ip_par.par.vsp;
-}
-
-static int clu_s_stream(struct v4l2_subdev *subdev, int enable)
-{
-	struct vsp2_clu     *clu     = to_clu(subdev);
-	struct vsp_start_t  *vsp_par = to_vsp_par(&clu->entity);
-	struct vsp_clu_t    *vsp_clu = vsp_par->ctrl_par->clu;
-
-	if (!enable)
-		return 0;
-
-	/* VSPM parameter */
-
-	vsp_clu->mode           = clu->config.mode;
-
-#ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-
-	if (clu->buff_v == NULL) {
-		VSP2_PRINT_ALERT("clu_s_stream() error<1>!!");
-		return 0;
-	}
-	if (copy_from_user(clu->buff_v,
-					(void __user *)clu->config.addr,
-					clu->config.tbl_num * 8))
-		VSP2_PRINT_ALERT("clu_s_stream() error<2>!!");
-
-	vsp_clu->clu.hard_addr  = (void *)clu->buff_h;
-	vsp_clu->clu.virt_addr	= (void *)clu->buff_v;
-#else
-	vsp_clu->clu.hard_addr  =
-		(void *)vsp2_addr_uv2hd((unsigned long)clu->config.addr);
-
-	vsp_clu->clu.virt_addr  =
-		(void *)vsp2_addr_uv2kv((unsigned long)clu->config.addr);
-#endif
-	vsp_clu->clu.tbl_num    = clu->config.tbl_num;
-	vsp_clu->fxa            = clu->config.fxa;
-	/*vsp_clu->connect      = 0;  set by vsp2_entity_route_setup() */
-
-	return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -306,10 +257,6 @@ static struct v4l2_subdev_core_ops clu_core_ops = {
 	.ioctl = clu_ioctl,
 };
 
-static struct v4l2_subdev_video_ops clu_video_ops = {
-	.s_stream = clu_s_stream,
-};
-
 static struct v4l2_subdev_pad_ops clu_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code     = clu_enum_mbus_code,
@@ -320,8 +267,55 @@ static struct v4l2_subdev_pad_ops clu_pad_ops = {
 
 static struct v4l2_subdev_ops clu_ops = {
 	.core   = &clu_core_ops,
-	.video  = &clu_video_ops,
 	.pad    = &clu_pad_ops,
+};
+
+/* -----------------------------------------------------------------------------
+ * VSP2 Entity Operations
+ */
+
+static struct vsp_start_t *to_vsp_par(struct vsp2_entity *entity)
+{
+	return entity->vsp2->vspm->ip_par.par.vsp;
+}
+
+static void clu_configure(struct vsp2_entity *entity)
+{
+	struct vsp2_clu     *clu     = to_clu(&entity->subdev);
+	struct vsp_start_t  *vsp_par = to_vsp_par(&clu->entity);
+	struct vsp_clu_t    *vsp_clu = vsp_par->ctrl_par->clu;
+
+	/* VSPM parameter */
+
+	vsp_clu->mode           = clu->config.mode;
+
+#ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
+
+	if (clu->buff_v == NULL) {
+		VSP2_PRINT_ALERT("clu_configure() error<1>!!");
+		return;
+	}
+	if (copy_from_user(clu->buff_v,
+					(void __user *)clu->config.addr,
+					clu->config.tbl_num * 8))
+		VSP2_PRINT_ALERT("clu_configure() error<2>!!");
+
+	vsp_clu->clu.hard_addr  = (void *)clu->buff_h;
+	vsp_clu->clu.virt_addr	= (void *)clu->buff_v;
+#else
+	vsp_clu->clu.hard_addr  =
+		(void *)vsp2_addr_uv2hd((unsigned long)clu->config.addr);
+
+	vsp_clu->clu.virt_addr  =
+		(void *)vsp2_addr_uv2kv((unsigned long)clu->config.addr);
+#endif
+	vsp_clu->clu.tbl_num    = clu->config.tbl_num;
+	vsp_clu->fxa            = clu->config.fxa;
+	/*vsp_clu->connect      = 0;  set by vsp2_entity_route_setup() */
+}
+
+static const struct vsp2_entity_operations clu_entity_ops = {
+	.configure = clu_configure,
 };
 
 /* -----------------------------------------------------------------------------
@@ -337,6 +331,7 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 	if (clu == NULL)
 		return ERR_PTR(-ENOMEM);
 
+	clu->entity.ops = &clu_entity_ops;
 	clu->entity.type = VSP2_ENTITY_CLU;
 
 	ret = vsp2_entity_init(vsp2, &clu->entity, "clu", 2, &clu_ops,

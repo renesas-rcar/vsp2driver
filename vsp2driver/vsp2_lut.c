@@ -81,7 +81,7 @@
  * V4L2 Subdevice Core Operations
  */
 
-static void lut_configure(struct vsp2_lut *lut, struct vsp2_lut_config *config)
+static void lut_set_config(struct vsp2_lut *lut, struct vsp2_lut_config *config)
 {
 	memcpy(&lut->config, config, sizeof(struct vsp2_lut_config));
 }
@@ -92,59 +92,12 @@ static long lut_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
 
 	switch (cmd) {
 	case VIDIOC_VSP2_LUT_CONFIG:
-		lut_configure(lut, arg);
+		lut_set_config(lut, arg);
 		return 0;
 
 	default:
 		return -ENOIOCTLCMD;
 	}
-}
-
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Video Operations
- */
-static struct vsp_start_t *to_vsp_par(struct vsp2_entity *entity)
-{
-	return entity->vsp2->vspm->ip_par.par.vsp;
-}
-
-static int lut_s_stream(struct v4l2_subdev *subdev, int enable)
-{
-	struct vsp2_lut       *lut     = to_lut(subdev);
-	struct vsp_start_t    *vsp_par = to_vsp_par(&lut->entity);
-	struct vsp_lut_t      *vsp_lut = vsp_par->ctrl_par->lut;
-
-	if (!enable)
-		return 0;
-
-	/* VSPM parameter */
-
-#ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-
-	if (lut->buff_v == NULL) {
-		VSP2_PRINT_ALERT("lut_s_stream() error!!<1>");
-		return 0;
-	}
-	if (copy_from_user(lut->buff_v,
-					(void __user *)lut->config.addr,
-					lut->config.tbl_num * 8))
-		VSP2_PRINT_ALERT("lut_s_stream() error<2>!!");
-
-	vsp_lut->lut.hard_addr  = (void *)lut->buff_h;
-	vsp_lut->lut.virt_addr  = (void *)lut->buff_v;
-#else
-	vsp_lut->lut.hard_addr  =
-		(void *)vsp2_addr_uv2hd((unsigned long)lut->config.addr);
-
-	vsp_lut->lut.virt_addr  =
-		(void *)vsp2_addr_uv2kv((unsigned long)lut->config.addr);
-
-#endif
-	vsp_lut->lut.tbl_num    = lut->config.tbl_num;
-	vsp_lut->fxa            = lut->config.fxa;
-	/*vsp_lut->connect      = 0;    set by vsp2_entity_route_setup() */
-
-	return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -295,10 +248,6 @@ static struct v4l2_subdev_core_ops lut_core_ops = {
 	.ioctl = lut_ioctl,
 };
 
-static struct v4l2_subdev_video_ops lut_video_ops = {
-	.s_stream = lut_s_stream,
-};
-
 static struct v4l2_subdev_pad_ops lut_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = lut_enum_mbus_code,
@@ -309,8 +258,53 @@ static struct v4l2_subdev_pad_ops lut_pad_ops = {
 
 static struct v4l2_subdev_ops lut_ops = {
 	.core	= &lut_core_ops,
-	.video	= &lut_video_ops,
 	.pad    = &lut_pad_ops,
+};
+
+/* -----------------------------------------------------------------------------
+ * VSP2 Entity Operations
+ */
+static struct vsp_start_t *to_vsp_par(struct vsp2_entity *entity)
+{
+	return entity->vsp2->vspm->ip_par.par.vsp;
+}
+
+static void lut_configure(struct vsp2_entity *entity)
+{
+	struct vsp2_lut       *lut     = to_lut(&entity->subdev);
+	struct vsp_start_t    *vsp_par = to_vsp_par(&lut->entity);
+	struct vsp_lut_t      *vsp_lut = vsp_par->ctrl_par->lut;
+
+	/* VSPM parameter */
+
+#ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
+
+	if (lut->buff_v == NULL) {
+		VSP2_PRINT_ALERT("lut_configure() error!!<1>");
+		return;
+	}
+	if (copy_from_user(lut->buff_v,
+					(void __user *)lut->config.addr,
+					lut->config.tbl_num * 8))
+		VSP2_PRINT_ALERT("lut_configure() error<2>!!");
+
+	vsp_lut->lut.hard_addr  = (void *)lut->buff_h;
+	vsp_lut->lut.virt_addr  = (void *)lut->buff_v;
+#else
+	vsp_lut->lut.hard_addr  =
+		(void *)vsp2_addr_uv2hd((unsigned long)lut->config.addr);
+
+	vsp_lut->lut.virt_addr  =
+		(void *)vsp2_addr_uv2kv((unsigned long)lut->config.addr);
+
+#endif
+	vsp_lut->lut.tbl_num    = lut->config.tbl_num;
+	vsp_lut->fxa            = lut->config.fxa;
+	/*vsp_lut->connect      = 0;    set by vsp2_entity_route_setup() */
+}
+
+static const struct vsp2_entity_operations lut_entity_ops = {
+	.configure = lut_configure,
 };
 
 /* -----------------------------------------------------------------------------
@@ -326,6 +320,7 @@ struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 	if (lut == NULL)
 		return ERR_PTR(-ENOMEM);
 
+	lut->entity.ops = &lut_entity_ops;
 	lut->entity.type = VSP2_ENTITY_LUT;
 
 	ret = vsp2_entity_init(vsp2, &lut->entity, "lut", 2, &lut_ops,

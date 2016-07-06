@@ -265,7 +265,6 @@ bool vsp2_pipeline_stopped(struct vsp2_pipeline *pipe)
 
 int vsp2_pipeline_stop(struct vsp2_pipeline *pipe)
 {
-	struct vsp2_entity *entity;
 	unsigned long flags;
 	int ret;
 
@@ -278,9 +277,7 @@ int vsp2_pipeline_stop(struct vsp2_pipeline *pipe)
 				 msecs_to_jiffies(500));
 	ret = ret == 0 ? -ETIMEDOUT : 0;
 
-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
-	}
+	v4l2_subdev_call(&pipe->output->entity.subdev, video, s_stream, 0);
 
 	return ret;
 }

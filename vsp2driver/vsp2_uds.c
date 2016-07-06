@@ -133,24 +133,13 @@ static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
 	return input * 4096 / output;
 }
 
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Core Operations
- */
-
-static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
+int vsp2_uds_check_ratio(struct vsp2_entity *entity)
 {
-	struct vsp2_uds *uds = to_uds(subdev);
+	struct vsp2_uds *uds = to_uds(&entity->subdev);
 	const struct v4l2_mbus_framefmt *output;
 	const struct v4l2_mbus_framefmt *input;
 	unsigned int hscale;
 	unsigned int vscale;
-	bool multitap;
-	struct vsp_start_t *vsp_par =
-		uds->entity.vsp2->vspm->ip_par.par.vsp;
-	struct vsp_uds_t *vsp_uds = vsp_par->ctrl_par->uds;
-
-	if (!enable)
-		return 0;
 
 	input = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
 					   UDS_PAD_SINK);
@@ -163,27 +152,6 @@ static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
 		return -EINVAL;
 	if ((vscale < 0x100) || (vscale > 0xffff))
 		return -EINVAL;
-
-	dev_dbg(uds->entity.vsp2->dev, "hscale %u vscale %u\n", hscale, vscale);
-
-	/* Multi-tap scaling can't be enabled along with alpha scaling.
-	 */
-	if (uds->scale_alpha)
-		multitap = false;
-	else
-		multitap = true;
-
-	vsp_uds->amd = VSP_AMD;
-	vsp_uds->clip = VSP_CLIP_OFF;
-	vsp_uds->alpha = uds->scale_alpha ? VSP_ALPHA_ON : VSP_ALPHA_OFF;
-	vsp_uds->complement = multitap ? VSP_COMPLEMENT_BC : VSP_COMPLEMENT_BIL;
-
-	/* Set the scaling ratios and the output size. */
-	vsp_uds->x_ratio	= hscale;
-	vsp_uds->y_ratio	= vscale;
-
-	vsp_uds->athres0	= 0;
-	vsp_uds->athres1	= 0;
 
 	return 0;
 }
@@ -351,10 +319,6 @@ static int uds_set_format(
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_video_ops uds_video_ops = {
-	.s_stream = uds_s_stream,
-};
-
 static struct v4l2_subdev_pad_ops uds_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = uds_enum_mbus_code,
@@ -364,8 +328,57 @@ static struct v4l2_subdev_pad_ops uds_pad_ops = {
 };
 
 static struct v4l2_subdev_ops uds_ops = {
-	.video	= &uds_video_ops,
 	.pad    = &uds_pad_ops,
+};
+
+/* -----------------------------------------------------------------------------
+ * VSP2 Entity Operations
+ */
+
+static void uds_configure(struct vsp2_entity *entity)
+{
+	struct vsp2_uds *uds = to_uds(&entity->subdev);
+	const struct v4l2_mbus_framefmt *output;
+	const struct v4l2_mbus_framefmt *input;
+	unsigned int hscale;
+	unsigned int vscale;
+	bool multitap;
+	struct vsp_start_t *vsp_par =
+		uds->entity.vsp2->vspm->ip_par.par.vsp;
+	struct vsp_uds_t *vsp_uds = vsp_par->ctrl_par->uds;
+
+	input = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+					   UDS_PAD_SINK);
+	output = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+					    UDS_PAD_SOURCE);
+
+	hscale = uds_compute_ratio(input->width, output->width);
+	vscale = uds_compute_ratio(input->height, output->height);
+
+	dev_dbg(uds->entity.vsp2->dev, "hscale %u vscale %u\n", hscale, vscale);
+
+	/* Multi-tap scaling can't be enabled along with alpha scaling.
+	 */
+	if (uds->scale_alpha)
+		multitap = false;
+	else
+		multitap = true;
+
+	vsp_uds->amd = VSP_AMD;
+	vsp_uds->clip = VSP_CLIP_OFF;
+	vsp_uds->alpha = uds->scale_alpha ? VSP_ALPHA_ON : VSP_ALPHA_OFF;
+	vsp_uds->complement = multitap ? VSP_COMPLEMENT_BC : VSP_COMPLEMENT_BIL;
+
+	/* Set the scaling ratios and the output size. */
+	vsp_uds->x_ratio	= hscale;
+	vsp_uds->y_ratio	= vscale;
+
+	vsp_uds->athres0	= 0;
+	vsp_uds->athres1	= 0;
+}
+
+static const struct vsp2_entity_operations uds_entity_ops = {
+	.configure = uds_configure,
 };
 
 /* -----------------------------------------------------------------------------
@@ -382,6 +395,7 @@ struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index)
 	if (uds == NULL)
 		return ERR_PTR(-ENOMEM);
 
+	uds->entity.ops = &uds_entity_ops;
 	uds->entity.type = VSP2_ENTITY_UDS;
 	uds->entity.index = index;
 

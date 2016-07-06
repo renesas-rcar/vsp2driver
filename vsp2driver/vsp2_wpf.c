@@ -78,99 +78,6 @@
 
 static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 {
-	struct vsp2_rwpf *wpf = to_rwpf(subdev);
-	struct v4l2_pix_format_mplane *format = &wpf->format;
-	const struct v4l2_mbus_framefmt *source_format;
-	const struct v4l2_mbus_framefmt *sink_format;
-	const struct v4l2_rect *crop;
-	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
-	u32 outfmt = 0;
-	u32 stride_y = 0;
-	u32 stride_c = 0;
-	struct vsp_start_t *vsp_par =
-		wpf->entity.vsp2->vspm->ip_par.par.vsp;
-	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
-	u16 vspm_format;
-
-	if (!enable)
-		return 0;
-
-	/* Destination stride. */
-	stride_y = format->plane_fmt[0].bytesperline;
-	if (format->num_planes > 1)
-		stride_c = format->plane_fmt[1].bytesperline;
-
-	vsp_out->stride			= stride_y;
-	if (format->num_planes > 1)
-		vsp_out->stride_c	= stride_c;
-
-	crop = vsp2_rwpf_get_crop(wpf, wpf->entity.config);
-
-	vsp_out->width		= crop->width;
-	vsp_out->height		= crop->height;
-	vsp_out->x_offset	= 0;
-	vsp_out->y_offset	= 0;
-	vsp_out->x_coffset	= crop->left;
-	vsp_out->y_coffset	= crop->top;
-
-	/* Format */
-	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
-						 wpf->entity.config,
-						 RWPF_PAD_SINK);
-	source_format = vsp2_entity_get_pad_format(&wpf->entity,
-						   wpf->entity.config,
-						   RWPF_PAD_SOURCE);
-
-	outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
-
-	if (fmtinfo->alpha)
-		outfmt |= VI6_WPF_OUTFMT_PXA;
-	if (fmtinfo->swap_yc)
-		outfmt |= VI6_WPF_OUTFMT_SPYCS;
-	if (fmtinfo->swap_uv)
-		outfmt |= VI6_WPF_OUTFMT_SPUVS;
-
-	vsp_out->swap		= fmtinfo->swap;
-
-	if (sink_format->code != source_format->code)
-		outfmt |= VI6_WPF_OUTFMT_CSC;
-
-	outfmt |= wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT;
-
-	/* Take the control handler lock to ensure that the PDV value won't be
-	 * changed behind our back by a set control operation.
-	 */
-	vspm_format = (u16)(outfmt & 0x007F);
-	if (vspm_format < 0x0040) {
-		/* RGB format. */
-		/* Set bytes per pixel. */
-		vspm_format	|= (fmtinfo->bpp[0] / 8) << 8;
-	} else {
-		/* YUV format. */
-		/* Set SPYCS and SPUVS */
-		vspm_format	|= (outfmt & 0xC000);
-	}
-	vsp_out->format		= vspm_format;
-	vsp_out->csc		= (outfmt & (1 <<  8)) >>  8;
-	vsp_out->clrcng		= (outfmt & (1 <<  9)) >>  9;
-	vsp_out->iturbt		= (outfmt & (3 << 10)) >> 10;
-	vsp_out->dith		= (outfmt & (3 << 12)) >> 12;
-	vsp_out->pxa		= (outfmt & (1 << 23)) >> 23;
-
-	vsp_out->pad = (outfmt & (0xff << 24)) >> 24;
-
-	vsp_out->cbrm		= VSP_CSC_ROUND_DOWN;
-	vsp_out->abrm		= VSP_CONVERSION_ROUNDDOWN;
-	vsp_out->athres		= 0;
-	vsp_out->clmd		= VSP_CLMD_NO;
-	vsp_out->rotation	= 0;
-
-	if (wpf->fcp_fcnl) {
-		vsp_out->fcp->fcnl = FCP_FCNL_ENABLE;
-		vsp_out->swap = VSP_SWAP_LL;
-	} else
-		vsp_out->fcp->fcnl = FCP_FCNL_DISABLE;
-
 	return 0;
 }
 
@@ -247,9 +154,103 @@ static void wpf_set_memory(struct vsp2_entity *entity)
 	vsp_out->addr_c1 = (void *)((unsigned long)wpf->mem.addr[2]);
 }
 
+static void wpf_configure(struct vsp2_entity *entity)
+{
+	struct vsp2_rwpf *wpf = to_rwpf(&entity->subdev);
+	struct v4l2_pix_format_mplane *format = &wpf->format;
+	const struct v4l2_mbus_framefmt *source_format;
+	const struct v4l2_mbus_framefmt *sink_format;
+	const struct v4l2_rect *crop;
+	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
+	u32 outfmt = 0;
+	u32 stride_y = 0;
+	u32 stride_c = 0;
+	struct vsp_start_t *vsp_par =
+		wpf->entity.vsp2->vspm->ip_par.par.vsp;
+	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
+	u16 vspm_format;
+
+	/* Destination stride. */
+	stride_y = format->plane_fmt[0].bytesperline;
+	if (format->num_planes > 1)
+		stride_c = format->plane_fmt[1].bytesperline;
+
+	vsp_out->stride			= stride_y;
+	if (format->num_planes > 1)
+		vsp_out->stride_c	= stride_c;
+
+	crop = vsp2_rwpf_get_crop(wpf, wpf->entity.config);
+
+	vsp_out->width		= crop->width;
+	vsp_out->height		= crop->height;
+	vsp_out->x_offset	= 0;
+	vsp_out->y_offset	= 0;
+	vsp_out->x_coffset	= crop->left;
+	vsp_out->y_coffset	= crop->top;
+
+	/* Format */
+	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
+						 wpf->entity.config,
+						 RWPF_PAD_SINK);
+	source_format = vsp2_entity_get_pad_format(&wpf->entity,
+						   wpf->entity.config,
+						   RWPF_PAD_SOURCE);
+
+	outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
+
+	if (fmtinfo->alpha)
+		outfmt |= VI6_WPF_OUTFMT_PXA;
+	if (fmtinfo->swap_yc)
+		outfmt |= VI6_WPF_OUTFMT_SPYCS;
+	if (fmtinfo->swap_uv)
+		outfmt |= VI6_WPF_OUTFMT_SPUVS;
+
+	vsp_out->swap		= fmtinfo->swap;
+
+	if (sink_format->code != source_format->code)
+		outfmt |= VI6_WPF_OUTFMT_CSC;
+
+	outfmt |= wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT;
+
+	/* Take the control handler lock to ensure that the PDV value won't be
+	 * changed behind our back by a set control operation.
+	 */
+	vspm_format = (u16)(outfmt & 0x007F);
+	if (vspm_format < 0x0040) {
+		/* RGB format. */
+		/* Set bytes per pixel. */
+		vspm_format	|= (fmtinfo->bpp[0] / 8) << 8;
+	} else {
+		/* YUV format. */
+		/* Set SPYCS and SPUVS */
+		vspm_format	|= (outfmt & 0xC000);
+	}
+	vsp_out->format		= vspm_format;
+	vsp_out->csc		= (outfmt & (1 <<  8)) >>  8;
+	vsp_out->clrcng		= (outfmt & (1 <<  9)) >>  9;
+	vsp_out->iturbt		= (outfmt & (3 << 10)) >> 10;
+	vsp_out->dith		= (outfmt & (3 << 12)) >> 12;
+	vsp_out->pxa		= (outfmt & (1 << 23)) >> 23;
+
+	vsp_out->pad = (outfmt & (0xff << 24)) >> 24;
+
+	vsp_out->cbrm		= VSP_CSC_ROUND_DOWN;
+	vsp_out->abrm		= VSP_CONVERSION_ROUNDDOWN;
+	vsp_out->athres		= 0;
+	vsp_out->clmd		= VSP_CLMD_NO;
+	vsp_out->rotation	= 0;
+
+	if (wpf->fcp_fcnl) {
+		vsp_out->fcp->fcnl = FCP_FCNL_ENABLE;
+		vsp_out->swap = VSP_SWAP_LL;
+	} else
+		vsp_out->fcp->fcnl = FCP_FCNL_DISABLE;
+}
+
 static const struct vsp2_entity_operations wpf_entity_ops = {
 	.destroy = vsp2_wpf_destroy,
 	.set_memory = wpf_set_memory,
+	.configure = wpf_configure,
 };
 
 /* -----------------------------------------------------------------------------

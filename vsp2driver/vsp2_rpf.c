@@ -83,13 +83,50 @@ static struct vsp_src_t *rpf_get_vsp_in(struct vsp2_rwpf *rpf)
 }
 
 /* -----------------------------------------------------------------------------
- * V4L2 Subdevice Core Operations
+ * V4L2 Subdevice Operations
  */
 
-static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+static struct v4l2_subdev_pad_ops rpf_pad_ops = {
+	.init_cfg = vsp2_entity_init_cfg,
+	.enum_mbus_code = vsp2_rwpf_enum_mbus_code,
+	.enum_frame_size = vsp2_rwpf_enum_frame_size,
+	.get_fmt = vsp2_rwpf_get_format,
+	.set_fmt = vsp2_rwpf_set_format,
+	.get_selection = vsp2_rwpf_get_selection,
+	.set_selection = vsp2_rwpf_set_selection,
+};
+
+static struct v4l2_subdev_ops rpf_ops = {
+	.pad    = &rpf_pad_ops,
+};
+
+/* -----------------------------------------------------------------------------
+ * VSP2 Entity Operations
+ */
+
+static void rpf_set_memory(struct vsp2_entity *entity)
 {
-	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&subdev->entity);
-	struct vsp2_rwpf *rpf = to_rwpf(subdev);
+	struct vsp2_rwpf *rpf = entity_to_rwpf(entity);
+	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
+
+	if (vsp_in == NULL) {
+		dev_err(rpf->entity.vsp2->dev,
+			"failed to rpf queue. Invalid RPF index.\n");
+		return;
+	}
+
+	vsp_in->addr = (void *)((unsigned long)rpf->mem.addr[0]
+						+ rpf->offsets[0]);
+	vsp_in->addr_c0 = (void *)((unsigned long)rpf->mem.addr[1]
+						+ rpf->offsets[1]);
+	vsp_in->addr_c1 = (void *)((unsigned long)rpf->mem.addr[2]
+						+ rpf->offsets[1]);
+}
+
+static void rpf_configure(struct vsp2_entity *entity)
+{
+	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&entity->subdev.entity);
+	struct vsp2_rwpf *rpf = to_rwpf(&entity->subdev);
 	const struct vsp2_format_info *fmtinfo = rpf->fmtinfo;
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
 	const struct v4l2_mbus_framefmt *source_format;
@@ -108,11 +145,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	if (vsp_in == NULL) {
 		dev_err(rpf->entity.vsp2->dev,
 			"failed to rpf stream. Invalid RPF index.\n");
-		return -EINVAL;
+		return;
 	}
-
-	if (!enable)
-		return 0;
 
 	/* Source size, stride and crop offsets.
 	 *
@@ -256,58 +290,11 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 
 	/* Count rpf_num. */
 	rpf->entity.vsp2->vspm->ip_par.par.vsp->rpf_num++;
-
-	return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Operations
- */
-
-static struct v4l2_subdev_video_ops rpf_video_ops = {
-	.s_stream = rpf_s_stream,
-};
-
-static struct v4l2_subdev_pad_ops rpf_pad_ops = {
-	.init_cfg = vsp2_entity_init_cfg,
-	.enum_mbus_code = vsp2_rwpf_enum_mbus_code,
-	.enum_frame_size = vsp2_rwpf_enum_frame_size,
-	.get_fmt = vsp2_rwpf_get_format,
-	.set_fmt = vsp2_rwpf_set_format,
-	.get_selection = vsp2_rwpf_get_selection,
-	.set_selection = vsp2_rwpf_set_selection,
-};
-
-static struct v4l2_subdev_ops rpf_ops = {
-	.video	= &rpf_video_ops,
-	.pad    = &rpf_pad_ops,
-};
-
-/* -----------------------------------------------------------------------------
- * VSP2 Entity Operations
- */
-
-static void rpf_set_memory(struct vsp2_entity *entity)
-{
-	struct vsp2_rwpf *rpf = entity_to_rwpf(entity);
-	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
-
-	if (vsp_in == NULL) {
-		dev_err(rpf->entity.vsp2->dev,
-			"failed to rpf queue. Invalid RPF index.\n");
-		return;
-	}
-
-	vsp_in->addr = (void *)((unsigned long)rpf->mem.addr[0]
-						+ rpf->offsets[0]);
-	vsp_in->addr_c0 = (void *)((unsigned long)rpf->mem.addr[1]
-						+ rpf->offsets[1]);
-	vsp_in->addr_c1 = (void *)((unsigned long)rpf->mem.addr[2]
-						+ rpf->offsets[1]);
 }
 
 static const struct vsp2_entity_operations rpf_entity_ops = {
 	.set_memory = rpf_set_memory,
+	.configure = rpf_configure,
 };
 
 /* -----------------------------------------------------------------------------

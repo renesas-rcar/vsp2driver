@@ -86,10 +86,13 @@ enum vsp2_entity_type {
  * @set_memory:	Setup memory buffer access. This operation applies the settings
  *		stored in the rwpf mem field to the hardware. Valid for RPF and
  *		WPF only.
+ * @configure:	Setup the hardware based on the entity state (pipeline, formats,
+ *		selection rectangles, ...)
  */
 struct vsp2_entity_operations {
 	void (*destroy)(struct vsp2_entity *);
 	void (*set_memory)(struct vsp2_entity *);
+	void (*configure)(struct vsp2_entity *);
 };
 
 struct vsp2_entity {

@@ -79,7 +79,7 @@
  * V4L2 Subdevice Core Operations
  */
 
-static void hgt_configure(struct vsp2_hgt *hgt, struct vsp2_hgt_config *config)
+static void hgt_set_config(struct vsp2_hgt *hgt, struct vsp2_hgt_config *config)
 {
 	hgt->set_hgt = 1; /* set HGT parameter from user */
 
@@ -92,7 +92,7 @@ static long hgt_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
 
 	switch (cmd) {
 	case VIDIOC_VSP2_HGT_CONFIG:
-		hgt_configure(hgt, arg);
+		hgt_set_config(hgt, arg);
 		return 0;
 
 	default:
@@ -101,18 +101,34 @@ static long hgt_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
 }
 
 /* -----------------------------------------------------------------------------
- * V4L2 Subdevice Video Operations
+ * V4L2 Subdevice Pad Operations
  */
 
-static int hgt_s_stream(struct v4l2_subdev *subdev, int enable)
+	/* not implemented */
+
+/* -----------------------------------------------------------------------------
+ * V4L2 Subdevice Operations
+ */
+
+static struct v4l2_subdev_core_ops hgt_core_ops = {
+	.ioctl = hgt_ioctl,
+};
+
+static struct v4l2_subdev_ops hgt_ops = {
+	.core	= &hgt_core_ops,
+	.pad    = NULL,
+};
+
+/* -----------------------------------------------------------------------------
+ * VSP2 Entity Operations
+ */
+
+static void hgt_configure(struct vsp2_entity *entity)
 {
-	struct vsp2_hgt *hgt = to_hgt(subdev);
+	struct vsp2_hgt *hgt = to_hgt(&entity->subdev);
 	struct vsp_start_t *vsp_par =
 		hgt->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_hgt_t *vsp_hgt = vsp_par->ctrl_par->hgt;
-
-	if (!enable)
-		return 0;
 
 	if (hgt->set_hgt == 1) {
 
@@ -124,8 +140,8 @@ static int hgt_s_stream(struct v4l2_subdev *subdev, int enable)
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 		if (hgt->buff_v == NULL) {
-			VSP2_PRINT_ALERT("hgt_s_stream() error!!");
-			return 0;
+			VSP2_PRINT_ALERT("hgt_configure() error!!");
+			return;
 		}
 	#ifdef TYPE_GEN2
 		vsp_hgt->addr = (void *)hgt->buff_v;
@@ -157,32 +173,10 @@ static int hgt_s_stream(struct v4l2_subdev *subdev, int enable)
 		}
 		vsp_hgt->sampling	= hgt->config.sampling;
 	}
-
-	return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Pad Operations
- */
-
-	/* not implemented */
-
-/* -----------------------------------------------------------------------------
- * V4L2 Subdevice Operations
- */
-
-static struct v4l2_subdev_core_ops hgt_core_ops = {
-	.ioctl = hgt_ioctl,
-};
-
-static struct v4l2_subdev_video_ops hgt_video_ops = {
-	.s_stream = hgt_s_stream,
-};
-
-static struct v4l2_subdev_ops hgt_ops = {
-	.core	= &hgt_core_ops,
-	.video	= &hgt_video_ops,
-	.pad    = NULL,
+static const struct vsp2_entity_operations hgt_entity_ops = {
+	.configure = hgt_configure,
 };
 
 /* -----------------------------------------------------------------------------
@@ -198,6 +192,7 @@ struct vsp2_hgt *vsp2_hgt_create(struct vsp2_device *vsp2)
 	if (hgt == NULL)
 		return ERR_PTR(-ENOMEM);
 
+	hgt->entity.ops = &hgt_entity_ops;
 	hgt->entity.type = VSP2_ENTITY_HGT;
 
 	ret = vsp2_entity_init(vsp2, &hgt->entity, "hgt", 2, &hgt_ops,

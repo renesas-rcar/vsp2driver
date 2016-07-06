@@ -667,9 +667,14 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
 		vsp2_entity_route_setup(entity);
 
-		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
-		if (ret < 0)
-			goto error;
+		if (entity->type == VSP2_ENTITY_UDS) {
+			ret = vsp2_uds_check_ratio(entity);
+			if (ret < 0)
+				goto error;
+		}
+
+		if (entity->ops->configure)
+			entity->ops->configure(entity);
 
 		if (entity->type == VSP2_ENTITY_RPF) {
 
@@ -696,9 +701,8 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	entity = &video->vsp2->hgo->entity;
 	if (entity != NULL) {
 
-		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
-		if (ret < 0)
-			goto error;
+		if (entity->ops->configure)
+			entity->ops->configure(entity);
 	}
 
 	/* - HGT */
@@ -706,10 +710,12 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	entity = &video->vsp2->hgt->entity;
 	if (entity != NULL) {
 
-		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
-		if (ret < 0)
-			goto error;
+		if (entity->ops->configure)
+			entity->ops->configure(entity);
 	}
+
+	/* We know that the WPF s_stream operation never fails. */
+	v4l2_subdev_call(&pipe->output->entity.subdev, video, s_stream, 1);
 
 	return 0;
 
