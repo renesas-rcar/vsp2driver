@@ -121,38 +121,9 @@ static int clu_enum_frame_size(struct v4l2_subdev *subdev,
 			       struct v4l2_subdev_pad_config *cfg,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
-	struct vsp2_clu *clu = to_clu(subdev);
-	struct v4l2_subdev_pad_config *config;
-	struct v4l2_mbus_framefmt *format;
-
-	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fse->which);
-	if (!config)
-		return -EINVAL;
-
-	format = vsp2_entity_get_pad_format(&clu->entity, config, fse->pad);
-
-	if (fse->index || fse->code != format->code)
-		return -EINVAL;
-
-	if (fse->pad == CLU_PAD_SINK) {
-
-		fse->min_width  = CLU_MIN_SIZE;
-		fse->max_width  = CLU_MAX_SIZE;
-		fse->min_height = CLU_MIN_SIZE;
-		fse->max_height = CLU_MAX_SIZE;
-
-	} else {
-
-		/* The size on the source pad are fixed and always identical to
-		 * the size on the sink pad.
-		 */
-		fse->min_width  = format->width;
-		fse->max_width  = format->width;
-		fse->min_height = format->height;
-		fse->max_height = format->height;
-	}
-
-	return 0;
+	return vsp2_subdev_enum_frame_size(subdev, cfg, fse, CLU_MIN_SIZE,
+					   CLU_MIN_SIZE, CLU_MAX_SIZE,
+					   CLU_MAX_SIZE);
 }
 
 static int clu_set_format(
