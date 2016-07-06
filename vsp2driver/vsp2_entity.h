@@ -150,4 +150,8 @@ int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
 
 void vsp2_entity_route_setup(struct vsp2_entity *source);
 
+int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
+			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_format *fmt);
+
 #endif /* __VSP2_ENTITY_H__ */

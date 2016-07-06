@@ -182,23 +182,6 @@ static int clu_enum_frame_size(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-static int clu_get_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-	struct v4l2_subdev_format *fmt)
-{
-	struct vsp2_clu *clu = to_clu(subdev);
-	struct v4l2_subdev_pad_config *config;
-
-	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fmt->which);
-	if (!config)
-		return -EINVAL;
-
-	fmt->format = *vsp2_entity_get_pad_format(&clu->entity, config,
-						  fmt->pad);
-
-	return 0;
-}
-
 static int clu_set_format(
 	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
 	struct v4l2_subdev_format *fmt)
@@ -261,7 +244,7 @@ static struct v4l2_subdev_pad_ops clu_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code     = clu_enum_mbus_code,
 	.enum_frame_size    = clu_enum_frame_size,
-	.get_fmt            = clu_get_format,
+	.get_fmt = vsp2_subdev_get_pad_format,
 	.set_fmt            = clu_set_format,
 };
 

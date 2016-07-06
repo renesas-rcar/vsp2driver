@@ -178,23 +178,6 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
 	return 0;
 }
 
-static int lut_get_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-	 struct v4l2_subdev_format *fmt)
-{
-	struct vsp2_lut *lut = to_lut(subdev);
-	struct v4l2_subdev_pad_config *config;
-
-	config = vsp2_entity_get_pad_config(&lut->entity, cfg, fmt->which);
-	if (!config)
-		return -EINVAL;
-
-	fmt->format = *vsp2_entity_get_pad_format(&lut->entity, config,
-						  fmt->pad);
-
-	return 0;
-}
-
 static int lut_set_format(
 	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
 	struct v4l2_subdev_format *fmt)
@@ -252,7 +235,7 @@ static struct v4l2_subdev_pad_ops lut_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = lut_enum_mbus_code,
 	.enum_frame_size = lut_enum_frame_size,
-	.get_fmt = lut_get_format,
+	.get_fmt = vsp2_subdev_get_pad_format,
 	.set_fmt = lut_set_format,
 };
 
