@@ -335,7 +335,8 @@ static struct v4l2_subdev_ops uds_ops = {
  * VSP2 Entity Operations
  */
 
-static void uds_configure(struct vsp2_entity *entity)
+static void uds_configure(struct vsp2_entity *entity,
+			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_uds *uds = to_uds(&entity->subdev);
 	const struct v4l2_mbus_framefmt *output;

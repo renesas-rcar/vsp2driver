@@ -68,6 +68,7 @@
 #include <media/v4l2-subdev.h>
 
 struct vsp2_device;
+struct vsp2_pipeline;
 
 enum vsp2_entity_type {
 	VSP2_ENTITY_BRU,
@@ -92,7 +93,7 @@ enum vsp2_entity_type {
 struct vsp2_entity_operations {
 	void (*destroy)(struct vsp2_entity *);
 	void (*set_memory)(struct vsp2_entity *);
-	void (*configure)(struct vsp2_entity *);
+	void (*configure)(struct vsp2_entity *, struct vsp2_pipeline *);
 };
 
 struct vsp2_entity {

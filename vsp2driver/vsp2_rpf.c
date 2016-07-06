@@ -113,9 +113,9 @@ static void rpf_set_memory(struct vsp2_entity *entity)
 						+ rpf->offsets[1]);
 }
 
-static void rpf_configure(struct vsp2_entity *entity)
+static void rpf_configure(struct vsp2_entity *entity,
+			  struct vsp2_pipeline *pipe)
 {
-	struct vsp2_pipeline *pipe = to_vsp2_pipeline(&entity->subdev.entity);
 	struct vsp2_rwpf *rpf = to_rwpf(&entity->subdev);
 	const struct vsp2_format_info *fmtinfo = rpf->fmtinfo;
 	const struct v4l2_pix_format_mplane *format = &rpf->format;

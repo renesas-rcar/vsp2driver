@@ -674,7 +674,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 		}
 
 		if (entity->ops->configure)
-			entity->ops->configure(entity);
+			entity->ops->configure(entity, pipe);
 
 		if (entity->type == VSP2_ENTITY_RPF) {
 
@@ -702,7 +702,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	if (entity != NULL) {
 
 		if (entity->ops->configure)
-			entity->ops->configure(entity);
+			entity->ops->configure(entity, pipe);
 	}
 
 	/* - HGT */
@@ -711,7 +711,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	if (entity != NULL) {
 
 		if (entity->ops->configure)
-			entity->ops->configure(entity);
+			entity->ops->configure(entity, pipe);
 	}
 
 	/* We know that the WPF s_stream operation never fails. */

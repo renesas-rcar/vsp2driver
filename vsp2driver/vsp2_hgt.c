@@ -123,7 +123,8 @@ static struct v4l2_subdev_ops hgt_ops = {
  * VSP2 Entity Operations
  */
 
-static void hgt_configure(struct vsp2_entity *entity)
+static void hgt_configure(struct vsp2_entity *entity,
+			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_hgt *hgt = to_hgt(&entity->subdev);
 	struct vsp_start_t *vsp_par =

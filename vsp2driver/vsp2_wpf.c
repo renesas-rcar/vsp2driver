@@ -144,7 +144,8 @@ static void wpf_set_memory(struct vsp2_entity *entity)
 	vsp_out->addr_c1 = (void *)((unsigned long)wpf->mem.addr[2]);
 }
 
-static void wpf_configure(struct vsp2_entity *entity)
+static void wpf_configure(struct vsp2_entity *entity,
+			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_rwpf *wpf = to_rwpf(&entity->subdev);
 	struct v4l2_pix_format_mplane *format = &wpf->format;

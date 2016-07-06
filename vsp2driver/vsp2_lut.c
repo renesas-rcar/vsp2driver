@@ -269,7 +269,8 @@ static struct vsp_start_t *to_vsp_par(struct vsp2_entity *entity)
 	return entity->vsp2->vspm->ip_par.par.vsp;
 }
 
-static void lut_configure(struct vsp2_entity *entity)
+static void lut_configure(struct vsp2_entity *entity,
+			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_lut       *lut     = to_lut(&entity->subdev);
 	struct vsp_start_t    *vsp_par = to_vsp_par(&lut->entity);
