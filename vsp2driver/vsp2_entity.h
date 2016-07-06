@@ -153,5 +153,9 @@ void vsp2_entity_route_setup(struct vsp2_entity *source);
 int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
 			       struct v4l2_subdev_pad_config *cfg,
 			       struct v4l2_subdev_format *fmt);
+int vsp2_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
+			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_mbus_code_enum *code,
+			       const unsigned int *codes, unsigned int ncodes);
 
 #endif /* __VSP2_ENTITY_H__ */
