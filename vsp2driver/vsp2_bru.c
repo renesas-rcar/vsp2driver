@@ -81,17 +81,10 @@ static int bru_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct vsp2_bru *bru =
 		container_of(ctrl->handler, struct vsp2_bru, ctrls);
-	struct vsp_start_t *vsp_par =
-		bru->entity.vsp2->vspm->ip_par.par.vsp;
-	struct vsp_bru_t *vsp_bru = vsp_par->ctrl_par->bru;
-
-	if (!vsp2_entity_is_streaming(&bru->entity))
-		return 0;
 
 	switch (ctrl->id) {
 	case V4L2_CID_BG_COLOR:
-		vsp_bru->blend_virtual->color =
-			ctrl->val | (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT);
+		bru->bgcolor = ctrl->val;
 		break;
 	}
 
@@ -143,12 +136,16 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
 		 0 : VI6_BRU_INCTRL_NRM;
 	vsp_bru->adiv    = (inctrl & (1 << 28)) >> 28;
 
-	/* Set the background position to cover the whole output image. */
+	/* Set the background position to cover the whole output image and
+	 * configure its color.
+	 */
 	vsp_bru->blend_virtual->width		= format->width;
 	vsp_bru->blend_virtual->height		= format->height;
 	vsp_bru->blend_virtual->x_position	= 0;
 	vsp_bru->blend_virtual->y_position	= 0;
 	vsp_bru->blend_virtual->pwd		= VSP_LAYER_PARENT;
+	vsp_bru->blend_virtual->color =
+		bru->bgcolor | (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT);
 
 	/* Route BRU input 1 as SRC input to the ROP unit and configure the ROP
 	 * unit with a NOP operation to make BRU input 1 available as the
@@ -520,6 +517,8 @@ struct vsp2_bru *vsp2_bru_create(struct vsp2_device *vsp2)
 	v4l2_ctrl_handler_init(&bru->ctrls, 1);
 	v4l2_ctrl_new_std(&bru->ctrls, &bru_ctrl_ops, V4L2_CID_BG_COLOR,
 			  0, 0xffffff, 1, 0);
+
+	bru->bgcolor = 0;
 
 	bru->entity.subdev.ctrl_handler = &bru->ctrls;
 
