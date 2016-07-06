@@ -1164,17 +1164,10 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 		return ERR_PTR(ret);
 
 	/* ... and the format ... */
-	rwpf->fmtinfo = vsp2_get_format_info(VSP2_VIDEO_DEF_FORMAT);
-	rwpf->format.pixelformat = rwpf->fmtinfo->fourcc;
-	rwpf->format.colorspace = V4L2_COLORSPACE_SRGB;
-	rwpf->format.field = V4L2_FIELD_NONE;
+	rwpf->format.pixelformat = VSP2_VIDEO_DEF_FORMAT;
 	rwpf->format.width = VSP2_VIDEO_DEF_WIDTH;
 	rwpf->format.height = VSP2_VIDEO_DEF_HEIGHT;
-	rwpf->format.num_planes = 1;
-	rwpf->format.plane_fmt[0].bytesperline =
-		rwpf->format.width * rwpf->fmtinfo->bpp[0] / 8;
-	rwpf->format.plane_fmt[0].sizeimage =
-		rwpf->format.plane_fmt[0].bytesperline * rwpf->format.height;
+	__vsp2_video_try_format(video, &rwpf->format, &rwpf->fmtinfo);
 
 	/* ... and the video node... */
 	video->video.v4l2_dev = &video->vsp2->v4l2_dev;
