@@ -66,6 +66,7 @@
 
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
+#include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 #include "vsp2_video.h"
 #include "vsp2_vspm.h"

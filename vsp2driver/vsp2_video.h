@@ -67,7 +67,6 @@
 
 #include <media/videobuf2-v4l2.h>
 
-#include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 
 struct vsp2_vb2_buffer {
@@ -94,7 +93,6 @@ struct vsp2_video {
 
 	struct mutex lock;
 
-	struct vsp2_pipeline pipe;
 	unsigned int pipe_index;
 
 	struct vb2_queue queue;

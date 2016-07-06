@@ -428,14 +428,10 @@ static int vsp2_video_pipeline_build(struct vsp2_pipeline *pipe,
 	unsigned int i;
 	int ret;
 
-	mutex_lock(&mdev->graph_mutex);
-
 	/* Walk the graph to locate the entities and video nodes. */
 	ret = media_entity_graph_walk_init(&graph, mdev);
-	if (ret) {
-		mutex_unlock(&mdev->graph_mutex);
+	if (ret)
 		return ret;
-	}
 
 	media_entity_graph_walk_start(&graph, entity);
 
@@ -468,15 +464,11 @@ static int vsp2_video_pipeline_build(struct vsp2_pipeline *pipe,
 		}
 	}
 
-	mutex_unlock(&mdev->graph_mutex);
-
 	media_entity_graph_walk_cleanup(&graph);
 
 	/* We need one output and at least one input. */
-	if (pipe->num_inputs == 0 || !pipe->output) {
-		ret = -EPIPE;
-		goto error;
-	}
+	if (pipe->num_inputs == 0 || !pipe->output)
+		return -EPIPE;
 
 	/* Follow links downstream for each input and make sure the graph
 	 * contains no loop and that all branches end at the output WPF.
@@ -488,47 +480,66 @@ static int vsp2_video_pipeline_build(struct vsp2_pipeline *pipe,
 		ret = vsp2_video_pipeline_build_branch(pipe, pipe->inputs[i],
 						       pipe->output);
 		if (ret < 0)
-			goto error;
+			return ret;
 	}
 
 	return 0;
-
-error:
-	vsp2_pipeline_reset(pipe);
-	return ret;
 }
 
 static int vsp2_video_pipeline_init(struct vsp2_pipeline *pipe,
 				    struct vsp2_video *video)
 {
-	int ret;
+	vsp2_pipeline_init(pipe);
 
-	mutex_lock(&pipe->lock);
+	pipe->frame_end = vsp2_video_pipeline_frame_end;
 
-	/* If we're the first user build and validate the pipeline. */
-	if (pipe->use_count == 0) {
-		ret = vsp2_video_pipeline_build(pipe, video);
-		if (ret < 0)
-			goto done;
-	}
-
-	pipe->use_count++;
-	ret = 0;
-
-done:
-	mutex_unlock(&pipe->lock);
-	return ret;
+	return vsp2_video_pipeline_build(pipe, video);
 }
 
-static void vsp2_video_pipeline_cleanup(struct vsp2_pipeline *pipe)
+static struct vsp2_pipeline *vsp2_video_pipeline_get(struct vsp2_video *video)
 {
-	mutex_lock(&pipe->lock);
+	struct vsp2_pipeline *pipe;
+	int ret;
 
-	/* If we're the last user clean up the pipeline. */
-	if (--pipe->use_count == 0)
-		vsp2_pipeline_reset(pipe);
+	/* Get a pipeline object for the video node. If a pipeline has already
+	 * been allocated just increment its reference count and return it.
+	 * Otherwise allocate a new pipeline and initialize it, it will be freed
+	 * when the last reference is released.
+	 */
+	if (!video->rwpf->pipe) {
+		pipe = kzalloc(sizeof(*pipe), GFP_KERNEL);
+		if (!pipe)
+			return ERR_PTR(-ENOMEM);
 
-	mutex_unlock(&pipe->lock);
+		ret = vsp2_video_pipeline_init(pipe, video);
+		if (ret < 0) {
+			vsp2_pipeline_reset(pipe);
+			kfree(pipe);
+			return ERR_PTR(ret);
+		}
+	} else {
+		pipe = video->rwpf->pipe;
+		kref_get(&pipe->kref);
+	}
+
+	return pipe;
+}
+
+static void vsp2_video_pipeline_release(struct kref *kref)
+{
+	struct vsp2_pipeline *pipe = container_of(kref, typeof(*pipe), kref);
+
+	vsp2_pipeline_reset(pipe);
+	kfree(pipe);
+}
+
+static void vsp2_video_pipeline_put(struct vsp2_pipeline *pipe)
+{
+	struct media_device *mdev = &pipe->output->entity.vsp2->media_dev;
+
+	mutex_lock(&mdev->graph_mutex);
+	kref_put(&pipe->kref, vsp2_video_pipeline_release);
+	mutex_unlock(&mdev->graph_mutex);
 }
 
 /* -----------------------------------------------------------------------------
@@ -788,8 +799,8 @@ static void vsp2_video_stop_streaming(struct vb2_queue *vq)
 	}
 	mutex_unlock(&pipe->lock);
 
-	vsp2_video_pipeline_cleanup(pipe);
 	media_entity_pipeline_stop(&video->video.entity);
+	vsp2_video_pipeline_put(pipe);
 
 	/* Remove all buffers from the IRQ queue. */
 	spin_lock_irqsave(&video->irqlock, flags);
@@ -902,6 +913,7 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 {
 	struct v4l2_fh *vfh = file->private_data;
 	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
+	struct media_device *mdev = &video->vsp2->media_dev;
 	struct vsp2_pipeline *pipe;
 	int ret;
 
@@ -910,20 +922,25 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 
 	video->sequence = 0;
 
-	/* Start streaming on the pipeline. No link touching an entity in the
-	 * pipeline can be activated or deactivated once streaming is started.
-	 *
-	 * Use the VSP2 pipeline object embedded in the first video object that
-	 * starts streaming.
-	 *
-	 * FIXME: This is racy, the ioctl is only protected by the video node
-	 * lock.
+	/* Get a pipeline for the video node and start streaming on it. No link
+	 * touching an entity in the pipeline can be activated or deactivated
+	 * once streaming is started.
 	 */
-	pipe = video->rwpf->pipe ? video->rwpf->pipe : &video->pipe;
+	mutex_lock(&mdev->graph_mutex);
 
-	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
-	if (ret < 0)
-		return ret;
+	pipe = vsp2_video_pipeline_get(video);
+	if (IS_ERR(pipe)) {
+		mutex_unlock(&mdev->graph_mutex);
+		return PTR_ERR(pipe);
+	}
+
+	ret = __media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+	if (ret < 0) {
+		mutex_unlock(&mdev->graph_mutex);
+		goto err_pipe;
+	}
+
+	mutex_unlock(&mdev->graph_mutex);
 
 	/* Verify that the configured format matches the output of the connected
 	 * subdev.
@@ -932,21 +949,17 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 	if (ret < 0)
 		goto err_stop;
 
-	ret = vsp2_video_pipeline_init(pipe, video);
-	if (ret < 0)
-		goto err_stop;
-
 	/* Start the queue. */
 	ret = vb2_streamon(&video->queue, type);
 	if (ret < 0)
-		goto err_cleanup;
+		goto err_stop;
 
 	return 0;
 
-err_cleanup:
-	vsp2_video_pipeline_cleanup(pipe);
 err_stop:
 	media_entity_pipeline_stop(&video->video.entity);
+err_pipe:
+	vsp2_video_pipeline_put(pipe);
 	return ret;
 }
 
@@ -1155,9 +1168,6 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 	mutex_init(&video->lock);
 	spin_lock_init(&video->irqlock);
 	INIT_LIST_HEAD(&video->irqqueue);
-
-	vsp2_pipeline_init(&video->pipe);
-	video->pipe.frame_end = vsp2_video_pipeline_frame_end;
 
 	/* Initialize the media entity... */
 	ret = media_entity_pads_init(&video->video.entity, 1, &video->pad);

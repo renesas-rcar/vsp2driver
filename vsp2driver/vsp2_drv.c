@@ -73,6 +73,7 @@
 #include "vsp2_bru.h"
 #include "vsp2_lut.h"
 #include "vsp2_clu.h"
+#include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
 #include "vsp2_uds.h"
 #include "vsp2_video.h"
