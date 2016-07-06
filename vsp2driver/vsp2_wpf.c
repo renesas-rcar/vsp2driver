@@ -73,34 +73,6 @@
 #define WPF_MAX_HEIGHT				8190
 
 /* -----------------------------------------------------------------------------
- * Controls
- */
-
-static int wpf_s_ctrl(struct v4l2_ctrl *ctrl)
-{
-	struct vsp2_rwpf *wpf =
-		container_of(ctrl->handler, struct vsp2_rwpf, ctrls);
-	struct vsp_start_t *vsp_par =
-		wpf->entity.vsp2->vspm->ip_par.par.vsp;
-	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
-
-	if (!vsp2_entity_is_streaming(&wpf->entity))
-		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_ALPHA_COMPONENT:
-		vsp_out->pad = ctrl->val;
-		break;
-	}
-
-	return 0;
-}
-
-static const struct v4l2_ctrl_ops wpf_ctrl_ops = {
-	.s_ctrl = wpf_s_ctrl,
-};
-
-/* -----------------------------------------------------------------------------
  * V4L2 Subdevice Core Operations
  */
 
@@ -166,7 +138,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	if (sink_format->code != source_format->code)
 		outfmt |= VI6_WPF_OUTFMT_CSC;
 
-	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;
+	outfmt |= wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT;
 
 	/* Take the control handler lock to ensure that the PDV value won't be
 	 * changed behind our back by a set control operation.
@@ -307,14 +279,8 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 		return ERR_PTR(ret);
 
 	/* Initialize the control handler. */
-	v4l2_ctrl_handler_init(&wpf->ctrls, 1);
-	wpf->alpha = v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops,
-				       V4L2_CID_ALPHA_COMPONENT,
-				       0, 255, 1, 255);
-
-	wpf->entity.subdev.ctrl_handler = &wpf->ctrls;
-
-	if (wpf->ctrls.error) {
+	ret = vsp2_rwpf_init_ctrls(wpf);
+	if (ret < 0) {
 		dev_err(vsp2->dev, "wpf%u: failed to initialize controls\n",
 			index);
 		ret = wpf->ctrls.error;

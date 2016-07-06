@@ -83,42 +83,6 @@ static struct vsp_src_t *rpf_get_vsp_in(struct vsp2_rwpf *rpf)
 }
 
 /* -----------------------------------------------------------------------------
- * Controls
- */
-
-static int rpf_s_ctrl(struct v4l2_ctrl *ctrl)
-{
-	struct vsp2_rwpf *rpf =
-		container_of(ctrl->handler, struct vsp2_rwpf, ctrls);
-	struct vsp2_pipeline *pipe;
-	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
-
-	if (vsp_in == NULL) {
-		dev_err(rpf->entity.vsp2->dev,
-			"failed to rpf ctrl. Invalid RPF index.\n");
-		return -EINVAL;
-	}
-
-	if (!vsp2_entity_is_streaming(&rpf->entity))
-		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_ALPHA_COMPONENT:
-		vsp_in->alpha->afix = ctrl->val;
-
-		pipe = to_vsp2_pipeline(&rpf->entity.subdev.entity);
-		vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, ctrl->val);
-		break;
-	}
-
-	return 0;
-}
-
-static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
-	.s_ctrl = rpf_s_ctrl,
-};
-
-/* -----------------------------------------------------------------------------
  * V4L2 Subdevice Core Operations
  */
 
@@ -247,10 +211,10 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	case V4L2_PIX_FMT_ARGB555:
 		if (CONFIG_VIDEO_RENESAS_VSP_ALPHA_BIT_ARGB1555 == 1)
 			alph_sel = (2 << 28) | (1 << 18) |
-				   (0xFF << 8) | (rpf->alpha->cur.val & 0xFF);
+				   (0xFF << 8) | (rpf->alpha & 0xFF);
 		else
 			alph_sel = (2 << 28) | (1 << 18) |
-				   ((rpf->alpha->cur.val & 0xFF) << 8) | 0xFF;
+				   ((rpf->alpha & 0xFF) << 8) | 0xFF;
 		laya = 0;
 		break;
 	case V4L2_PIX_FMT_ABGR32:
@@ -262,12 +226,12 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 		break;
 	default:
 		alph_sel = (4 << 28) | (1 << 18);
-		laya = rpf->alpha->cur.val;
+		laya = rpf->alpha;
 		break;
 	}
 
 	vsp_in->alpha->afix = laya;
-	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
+	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha);
 
 	vsp_in->alpha->addr_a = NULL;
 	vsp_in->alpha->stride_a = 0;
@@ -286,7 +250,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	} else {
 		vsp_in->alpha->mult->a_mmd = VSP_MULT_RATIO;
 		vsp_in->alpha->mult->p_mmd = VSP_MULT_THROUGH;
-		vsp_in->alpha->mult->ratio = rpf->alpha->cur.val;
+		vsp_in->alpha->mult->ratio = rpf->alpha;
 	}
 
 	/* Count rpf_num. */
@@ -383,17 +347,10 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 		return ERR_PTR(ret);
 
 	/* Initialize the control handler. */
-	v4l2_ctrl_handler_init(&rpf->ctrls, 1);
-	rpf->alpha = v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops,
-				       V4L2_CID_ALPHA_COMPONENT,
-				       0, 255, 1, 255);
-
-	rpf->entity.subdev.ctrl_handler = &rpf->ctrls;
-
-	if (rpf->ctrls.error) {
+	ret = vsp2_rwpf_init_ctrls(rpf);
+	if (ret < 0) {
 		dev_err(vsp2->dev, "rpf%u: failed to initialize controls\n",
 			index);
-		ret = rpf->ctrls.error;
 		goto error;
 	}
 

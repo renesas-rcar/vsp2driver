@@ -92,7 +92,6 @@ struct vsp2_rwpf_operations {
 struct vsp2_rwpf {
 	struct vsp2_entity entity;
 	struct v4l2_ctrl_handler ctrls;
-	struct v4l2_ctrl *alpha;
 
 	struct vsp2_video *video;
 
@@ -109,6 +108,8 @@ struct vsp2_rwpf {
 	} location;
 	struct v4l2_rect crop;
 
+	unsigned int alpha;
+
 	unsigned int offsets[2];
 	dma_addr_t buf_addr[3];
 
@@ -122,6 +123,8 @@ static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)
 
 struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index);
 struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index);
+
+int vsp2_rwpf_init_ctrls(struct vsp2_rwpf *rwpf);
 
 int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
 		 struct v4l2_subdev_pad_config *cfg,
