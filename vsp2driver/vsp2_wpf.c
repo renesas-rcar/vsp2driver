@@ -85,7 +85,6 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	const struct v4l2_rect *crop = &wpf->crop;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
-	int ret;
 	u32 stride_y = 0;
 	u32 stride_c = 0;
 	struct vsp_start_t *vsp_par =
@@ -93,9 +92,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 	u16 vspm_format;
 
-	ret = vsp2_entity_set_streaming(&wpf->entity, enable);
-	if (ret < 0)
-		return ret;
+	vsp2_entity_set_streaming(&wpf->entity, enable);
 
 	if (!enable)
 		return 0;

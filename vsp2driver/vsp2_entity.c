@@ -82,29 +82,13 @@ bool vsp2_entity_is_streaming(struct vsp2_entity *entity)
 	return streaming;
 }
 
-int vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming)
+void vsp2_entity_set_streaming(struct vsp2_entity *entity, bool streaming)
 {
 	unsigned long flags;
-	int ret;
 
 	spin_lock_irqsave(&entity->lock, flags);
 	entity->streaming = streaming;
 	spin_unlock_irqrestore(&entity->lock, flags);
-
-	if (!streaming)
-		return 0;
-
-	if (!entity->subdev.ctrl_handler)
-		return 0;
-
-	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
-	if (ret < 0) {
-		spin_lock_irqsave(&entity->lock, flags);
-		entity->streaming = false;
-		spin_unlock_irqrestore(&entity->lock, flags);
-	}
-
-	return ret;
 }
 
 void vsp2_entity_route_setup(struct vsp2_entity *source)

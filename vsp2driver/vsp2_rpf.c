@@ -97,7 +97,6 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 	const struct v4l2_rect *crop = &rpf->crop;
 	u32 infmt;
 	u32 alph_sel, laya;
-	int ret;
 	u32 stride_y = 0;
 	u32 stride_c = 0;
 	u32 height = 0;
@@ -110,9 +109,7 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
 		return -EINVAL;
 	}
 
-	ret = vsp2_entity_set_streaming(&rpf->entity, enable);
-	if (ret < 0)
-		return ret;
+	vsp2_entity_set_streaming(&rpf->entity, enable);
 
 	if (!enable)
 		return 0;
