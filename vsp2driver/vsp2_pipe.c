@@ -218,15 +218,21 @@ void vsp2_pipeline_reset(struct vsp2_pipeline *pipe)
 			bru->inputs[i].rpf = NULL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
-		pipe->inputs[i] = NULL;
+	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
+		if (pipe->inputs[i]) {
+			pipe->inputs[i]->pipe = NULL;
+			pipe->inputs[i] = NULL;
+		}
+	}
+
+	pipe->output->pipe = NULL;
+	pipe->output = NULL;
 
 	INIT_LIST_HEAD(&pipe->entities);
 	pipe->state = VSP2_PIPELINE_STOPPED;
 	pipe->buffers_ready = 0;
 	pipe->num_video = 0;
 	pipe->num_inputs = 0;
-	pipe->output = NULL;
 	pipe->bru = NULL;
 	pipe->uds = NULL;
 }
@@ -363,7 +369,7 @@ void vsp2_pipelines_suspend(struct vsp2_device *vsp2)
 		if (wpf == NULL)
 			continue;
 
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
+		pipe = wpf->pipe;
 		if (pipe == NULL)
 			continue;
 
@@ -380,7 +386,7 @@ void vsp2_pipelines_suspend(struct vsp2_device *vsp2)
 		if (wpf == NULL)
 			continue;
 
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
+		pipe = wpf->pipe;
 		if (pipe == NULL)
 			continue;
 
@@ -404,7 +410,7 @@ void vsp2_pipelines_resume(struct vsp2_device *vsp2)
 		if (wpf == NULL)
 			continue;
 
-		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
+		pipe = wpf->pipe;
 		if (pipe == NULL)
 			continue;
 

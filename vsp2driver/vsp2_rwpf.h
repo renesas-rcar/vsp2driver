@@ -75,6 +75,7 @@
 #define FCP_FCNL_DEF_VALUE	(0x00)
 
 struct v4l2_ctrl;
+struct vsp2_pipeline;
 struct vsp2_rwpf;
 struct vsp2_video;
 
@@ -86,6 +87,7 @@ struct vsp2_rwpf {
 	struct vsp2_entity entity;
 	struct v4l2_ctrl_handler ctrls;
 
+	struct vsp2_pipeline *pipe;
 	struct vsp2_video *video;
 
 	unsigned int max_width;
