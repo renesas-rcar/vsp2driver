@@ -217,6 +217,125 @@ static int __vsp2_video_try_format(struct vsp2_video *video,
  * Pipeline Management
  */
 
+/*
+ * vsp2_video_complete_buffer - Complete the current buffer
+ * @video: the video node
+ *
+ * This function completes the current buffer by filling its sequence number,
+ * time stamp and payload size, and hands it back to the videobuf core.
+ *
+ * When operating in DU output mode (deep pipeline to the DU through the LIF),
+ * the VSP2 needs to constantly supply frames to the display. In that case, if
+ * no other buffer is queued, reuse the one that has just been processed instead
+ * of handing it back to the videobuf core.
+ *
+ * Return the next queued buffer or NULL if the queue is empty.
+ */
+static struct vsp2_vb2_buffer *
+vsp2_video_complete_buffer(struct vsp2_video *video)
+{
+	struct vsp2_vb2_buffer *next = NULL;
+	struct vsp2_vb2_buffer *done;
+	unsigned long flags;
+	unsigned int i;
+
+	spin_lock_irqsave(&video->irqlock, flags);
+
+	if (list_empty(&video->irqqueue)) {
+		spin_unlock_irqrestore(&video->irqlock, flags);
+		return NULL;
+	}
+
+	done = list_first_entry(&video->irqqueue,
+				struct vsp2_vb2_buffer, queue);
+
+	list_del(&done->queue);
+
+	if (!list_empty(&video->irqqueue))
+		next = list_first_entry(&video->irqqueue,
+					struct vsp2_vb2_buffer, queue);
+
+	spin_unlock_irqrestore(&video->irqlock, flags);
+
+	done->buf.sequence = video->sequence++;
+	done->buf.vb2_buf.timestamp = ktime_get_ns();
+	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
+		vb2_set_plane_payload(&done->buf.vb2_buf, i,
+				      vb2_plane_size(&done->buf.vb2_buf, i));
+	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
+
+	return next;
+}
+
+static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
+				 struct vsp2_rwpf *rwpf)
+{
+	struct vsp2_video *video = rwpf->video;
+	struct vsp2_vb2_buffer *buf;
+	unsigned long flags;
+
+	buf = vsp2_video_complete_buffer(video);
+	if (buf == NULL)
+		return;
+
+	spin_lock_irqsave(&pipe->irqlock, flags);
+
+	video->rwpf->mem = buf->mem;
+	pipe->buffers_ready |= 1 << video->pipe_index;
+
+	spin_unlock_irqrestore(&pipe->irqlock, flags);
+}
+
+static void vsp2_video_pipeline_run(struct vsp2_pipeline *pipe)
+{
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
+	unsigned int i;
+
+	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
+		struct vsp2_rwpf *rwpf = pipe->inputs[i];
+
+		if (rwpf)
+			vsp2_rwpf_set_memory(rwpf);
+	}
+
+	vsp2_rwpf_set_memory(pipe->output);
+
+	vsp2_pipeline_run(pipe);
+}
+
+static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
+{
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
+	enum vsp2_pipeline_state state;
+	unsigned long flags;
+	unsigned int i;
+
+	/* Complete buffers on all video nodes. */
+	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
+		if (!pipe->inputs[i])
+			continue;
+
+		vsp2_video_frame_end(pipe, pipe->inputs[i]);
+	}
+
+	vsp2_video_frame_end(pipe, pipe->output);
+
+	spin_lock_irqsave(&pipe->irqlock, flags);
+
+	state = pipe->state;
+	pipe->state = VSP2_PIPELINE_STOPPED;
+
+	/* If a stop has been requested, mark the pipeline as stopped and
+	 * return. Otherwise restart the pipeline if ready.
+	 */
+	if (state == VSP2_PIPELINE_STOPPING)
+		wake_up(&pipe->wq);
+	else if (vsp2_pipeline_ready(pipe))
+		vsp2_video_pipeline_run(pipe);
+
+	spin_unlock_irqrestore(&pipe->irqlock, flags);
+}
+
 static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 					    struct vsp2_rwpf *input,
 					    struct vsp2_rwpf *output)
@@ -410,125 +529,6 @@ static void vsp2_video_pipeline_cleanup(struct vsp2_pipeline *pipe)
 		vsp2_pipeline_reset(pipe);
 
 	mutex_unlock(&pipe->lock);
-}
-
-/*
- * vsp2_video_complete_buffer - Complete the current buffer
- * @video: the video node
- *
- * This function completes the current buffer by filling its sequence number,
- * time stamp and payload size, and hands it back to the videobuf core.
- *
- * When operating in DU output mode (deep pipeline to the DU through the LIF),
- * the VSP2 needs to constantly supply frames to the display. In that case, if
- * no other buffer is queued, reuse the one that has just been processed instead
- * of handing it back to the videobuf core.
- *
- * Return the next queued buffer or NULL if the queue is empty.
- */
-static struct vsp2_vb2_buffer *
-vsp2_video_complete_buffer(struct vsp2_video *video)
-{
-	struct vsp2_vb2_buffer *next = NULL;
-	struct vsp2_vb2_buffer *done;
-	unsigned long flags;
-	unsigned int i;
-
-	spin_lock_irqsave(&video->irqlock, flags);
-
-	if (list_empty(&video->irqqueue)) {
-		spin_unlock_irqrestore(&video->irqlock, flags);
-		return NULL;
-	}
-
-	done = list_first_entry(&video->irqqueue,
-				struct vsp2_vb2_buffer, queue);
-
-	list_del(&done->queue);
-
-	if (!list_empty(&video->irqqueue))
-		next = list_first_entry(&video->irqqueue,
-					struct vsp2_vb2_buffer, queue);
-
-	spin_unlock_irqrestore(&video->irqlock, flags);
-
-	done->buf.sequence = video->sequence++;
-	done->buf.vb2_buf.timestamp = ktime_get_ns();
-	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
-		vb2_set_plane_payload(&done->buf.vb2_buf, i,
-				      vb2_plane_size(&done->buf.vb2_buf, i));
-	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
-
-	return next;
-}
-
-static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
-				 struct vsp2_rwpf *rwpf)
-{
-	struct vsp2_video *video = rwpf->video;
-	struct vsp2_vb2_buffer *buf;
-	unsigned long flags;
-
-	buf = vsp2_video_complete_buffer(video);
-	if (buf == NULL)
-		return;
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-
-	video->rwpf->mem = buf->mem;
-	pipe->buffers_ready |= 1 << video->pipe_index;
-
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
-}
-
-static void vsp2_video_pipeline_run(struct vsp2_pipeline *pipe)
-{
-	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
-	unsigned int i;
-
-	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
-		struct vsp2_rwpf *rwpf = pipe->inputs[i];
-
-		if (rwpf)
-			vsp2_rwpf_set_memory(rwpf);
-	}
-
-	vsp2_rwpf_set_memory(pipe->output);
-
-	vsp2_pipeline_run(pipe);
-}
-
-static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
-{
-	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
-	enum vsp2_pipeline_state state;
-	unsigned long flags;
-	unsigned int i;
-
-	/* Complete buffers on all video nodes. */
-	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
-		if (!pipe->inputs[i])
-			continue;
-
-		vsp2_video_frame_end(pipe, pipe->inputs[i]);
-	}
-
-	vsp2_video_frame_end(pipe, pipe->output);
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-
-	state = pipe->state;
-	pipe->state = VSP2_PIPELINE_STOPPED;
-
-	/* If a stop has been requested, mark the pipeline as stopped and
-	 * return. Otherwise restart the pipeline if ready.
-	 */
-	if (state == VSP2_PIPELINE_STOPPING)
-		wake_up(&pipe->wq);
-	else if (vsp2_pipeline_ready(pipe))
-		vsp2_video_pipeline_run(pipe);
-
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
 /* -----------------------------------------------------------------------------
