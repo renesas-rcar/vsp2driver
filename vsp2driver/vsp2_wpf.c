@@ -277,7 +277,6 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	if (ret < 0) {
 		dev_err(vsp2->dev, "wpf%u: failed to initialize controls\n",
 			index);
-		ret = wpf->ctrls.error;
 		goto error;
 	}
 
