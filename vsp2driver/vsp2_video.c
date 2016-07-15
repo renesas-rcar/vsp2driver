@@ -393,8 +393,10 @@ static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 
 		/* UDS can't be chained. */
 		if (entity->type == VSP2_ENTITY_UDS) {
-			if (pipe->uds)
-				return -EPIPE;
+			if (pipe->uds) {
+				ret = -EPIPE;
+				goto out;
+			}
 
 			pipe->uds = entity;
 			pipe->uds_input = bru_found ? pipe->bru
