@@ -90,6 +90,7 @@ void vsp2_vspm_exit(struct vsp2_device *vsp2);
 void vsp2_vspm_param_init(struct vspm_job_t *par);
 
 long vsp2_vspm_drv_init(struct vsp2_device *vsp2);
+long vsp2_vspm_drv_resume_init(struct vsp2_device *vsp2);
 long vsp2_vspm_drv_quit(struct vsp2_device *vsp2);
 void vsp2_vspm_drv_entry(struct vsp2_device *vsp2);
 

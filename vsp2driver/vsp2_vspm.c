@@ -350,7 +350,7 @@ static void vsp2_vspm_yvup_swap(struct vsp_start_t *vsp_par)
 	}
 }
 
-long vsp2_vspm_drv_init(struct vsp2_device *vsp2)
+long vsp2_vspm_drv_resume_init(struct vsp2_device *vsp2)
 {
 	long ret = R_VSPM_OK;
 	struct vspm_init_t init_par;
@@ -372,6 +372,17 @@ long vsp2_vspm_drv_init(struct vsp2_device *vsp2)
 			ret);
 		return ret;
 	}
+
+	return ret;
+}
+
+long vsp2_vspm_drv_init(struct vsp2_device *vsp2)
+{
+	long ret = R_VSPM_OK;
+
+	ret = vsp2_vspm_drv_resume_init(vsp2);
+	if (ret != R_VSPM_OK)
+		return ret;
 
 	vsp2_vspm_param_init(&vsp2->vspm->ip_par);
 

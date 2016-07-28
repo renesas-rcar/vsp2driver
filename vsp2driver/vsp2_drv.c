@@ -550,20 +550,13 @@ static int vsp2_pm_suspend(struct device *dev)
 static int vsp2_pm_resume(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
-	long vspm_ret;
 
 	WARN_ON(mutex_is_locked(&vsp2->lock));
 
 	if (vsp2->ref_count == 0)
 		return 0;
 
-	vspm_ret = vsp2_device_init(vsp2);
-	if (vspm_ret != R_VSPM_OK) {
-		dev_err(vsp2->dev,
-			"failed to initialize the VSPM driver : %ld\n",
-			vspm_ret);
-		return -EFAULT;
-	}
+	vsp2->pm_resume_on = 1;
 
 	vsp2_pipelines_resume(vsp2);
 
@@ -660,6 +653,7 @@ static int vsp2_probe(struct platform_device *pdev)
 
 	vsp2->dev = &pdev->dev;
 	mutex_init(&vsp2->lock);
+	vsp2->pm_resume_on = 0;
 	INIT_LIST_HEAD(&vsp2->entities);
 	INIT_LIST_HEAD(&vsp2->videos);
 

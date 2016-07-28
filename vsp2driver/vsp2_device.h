@@ -132,6 +132,7 @@ struct vsp2_device {
 
 	struct mutex		lock;
 	int					ref_count;
+	int pm_resume_on;
 
 	struct vsp2_bru		*bru;
 	struct vsp2_lut		*lut;

@@ -304,6 +304,13 @@ static void vsp2_video_pipeline_run(struct vsp2_pipeline *pipe)
 	vsp2_pipeline_run(pipe);
 }
 
+static void vsp2_video_vspm_resume_init(struct vsp2_pipeline *pipe)
+{
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
+
+	vsp2_vspm_drv_resume_init(vsp2);
+}
+
 static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 {
 	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
@@ -320,6 +327,13 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 	}
 
 	vsp2_video_frame_end(pipe, pipe->output);
+
+	if (vsp2->pm_resume_on) {
+		if (vsp2_pipeline_ready(pipe)) {
+			vsp2_video_vspm_resume_init(pipe);
+			vsp2->pm_resume_on = 0;
+		}
+	}
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
@@ -609,6 +623,7 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
 	struct vsp2_pipeline *pipe = video->rwpf->pipe;
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
 	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vbuf);
 	unsigned long flags;
 	bool empty;
@@ -620,6 +635,13 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 
 	if (!empty)
 		return;
+
+	if (vsp2->pm_resume_on) {
+		if (vsp2_pipeline_ready(pipe)) {
+			vsp2_video_vspm_resume_init(pipe);
+			vsp2->pm_resume_on = 0;
+		}
+	}
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 
@@ -743,6 +765,7 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 {
 	struct vsp2_video *video = vb2_get_drv_priv(vq);
 	struct vsp2_pipeline *pipe = video->rwpf->pipe;
+	struct vsp2_device *vsp2 = pipe->output->entity.vsp2;
 	unsigned long flags;
 	int ret;
 
@@ -757,6 +780,13 @@ static int vsp2_video_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 	pipe->stream_count++;
 	mutex_unlock(&pipe->lock);
+
+	if (vsp2->pm_resume_on) {
+		if (vsp2_pipeline_ready(pipe)) {
+			vsp2_video_vspm_resume_init(pipe);
+			vsp2->pm_resume_on = 0;
+		}
+	}
 
 	spin_lock_irqsave(&pipe->irqlock, flags);
 	if (vsp2_pipeline_ready(pipe))
