@@ -273,7 +273,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 		vsp_in->alpha->mult->ratio = 0;
 	} else {
 		vsp_in->alpha->mult->a_mmd = VSP_MULT_RATIO;
-		vsp_in->alpha->mult->p_mmd = VSP_MULT_THROUGH;
+		vsp_in->alpha->mult->p_mmd = VSP_MULT_RATIO_ALPHA;
 		vsp_in->alpha->mult->ratio = rpf->alpha;
 	}
 
