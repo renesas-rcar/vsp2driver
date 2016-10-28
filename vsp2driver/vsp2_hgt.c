@@ -155,9 +155,9 @@ static void hgt_configure(struct vsp2_entity *entity,
 		vsp_hgt->addr = (void *)vsp2_addr_uv2hd(
 			(unsigned long)hgt->config.addr);
 	#else
-		vsp_hgo->virt_addr = NULL;
-		vsp_hgo->hard_addr = (unsigned int)vsp2_addr_uv2hd(
-			(unsigned long)hgo->config.addr);
+		vsp_hgt->virt_addr = NULL;
+		vsp_hgt->hard_addr = (unsigned int)vsp2_addr_uv2hd(
+			(unsigned long)hgt->config.addr);
 	#endif
 #endif
 		vsp_hgt->width		= hgt->config.width;
