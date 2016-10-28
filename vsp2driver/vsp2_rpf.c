@@ -126,7 +126,6 @@ static void rpf_configure(struct vsp2_entity *entity,
 	u32 alph_sel, laya;
 	u32 stride_y = 0;
 	u32 stride_c = 0;
-	u32 height = 0;
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 	u16 vspm_format;
 
@@ -145,7 +144,6 @@ static void rpf_configure(struct vsp2_entity *entity,
 	crop = vsp2_rwpf_get_crop(rpf, rpf->entity.config);
 
 	stride_y = format->plane_fmt[0].bytesperline;
-	height = crop->height;
 	if (format->num_planes > 1)
 		stride_c = format->plane_fmt[1].bytesperline;
 
