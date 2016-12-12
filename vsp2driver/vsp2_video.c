@@ -273,18 +273,13 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 {
 	struct vsp2_video *video = rwpf->video;
 	struct vsp2_vb2_buffer *buf;
-	unsigned long flags;
 
 	buf = vsp2_video_complete_buffer(video);
 	if (buf == NULL)
 		return;
 
-	spin_lock_irqsave(&pipe->irqlock, flags);
-
 	video->rwpf->mem = buf->mem;
 	pipe->buffers_ready |= 1 << video->pipe_index;
-
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
 static void vsp2_video_pipeline_run(struct vsp2_pipeline *pipe)
@@ -311,6 +306,8 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 	unsigned long flags;
 	unsigned int i;
 
+	spin_lock_irqsave(&pipe->irqlock, flags);
+
 	/* Complete buffers on all video nodes. */
 	for (i = 0; i < vsp2->pdata.rpf_count; ++i) {
 		if (!pipe->inputs[i])
@@ -320,8 +317,6 @@ static void vsp2_video_pipeline_frame_end(struct vsp2_pipeline *pipe)
 	}
 
 	vsp2_video_frame_end(pipe, pipe->output);
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
 
 	state = pipe->state;
 	pipe->state = VSP2_PIPELINE_STOPPED;
