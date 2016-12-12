@@ -181,6 +181,7 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
 	struct vsp2_uds *uds = to_uds(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	int ret = 0;
 
 	config = vsp2_entity_get_pad_config(&uds->entity, cfg, fse->which);
 	if (!config)
@@ -189,8 +190,12 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
 	format = vsp2_entity_get_pad_format(&uds->entity, config,
 					    UDS_PAD_SINK);
 
-	if (fse->index || fse->code != format->code)
-		return -EINVAL;
+	mutex_lock(&uds->entity.lock);
+
+	if (fse->index || fse->code != format->code) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	if (fse->pad == UDS_PAD_SINK) {
 		fse->min_width = UDS_IN_MIN_SIZE;
@@ -204,7 +209,9 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
 				  &fse->max_height);
 	}
 
-	return 0;
+done:
+	mutex_unlock(&uds->entity.lock);
+	return ret;
 }
 
 static void uds_try_format(struct vsp2_uds *uds,
@@ -252,10 +259,15 @@ static int uds_set_format(
 	struct vsp2_uds *uds = to_uds(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	int ret = 0;
+
+	mutex_lock(&uds->entity.lock);
 
 	config = vsp2_entity_get_pad_config(&uds->entity, cfg, fmt->which);
-	if (!config)
-		return -EINVAL;
+	if (!config) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	uds_try_format(uds, config, fmt->pad, &fmt->format);
 
@@ -271,7 +283,9 @@ static int uds_set_format(
 		uds_try_format(uds, config, UDS_PAD_SOURCE, format);
 	}
 
-	return 0;
+done:
+	mutex_unlock(&uds->entity.lock);
+	return ret;
 }
 
 /* -----------------------------------------------------------------------------

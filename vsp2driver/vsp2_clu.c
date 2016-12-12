@@ -133,11 +133,15 @@ static int clu_set_format(
 	struct vsp2_clu *clu = to_clu(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	int ret = 0;
 
+	mutex_lock(&clu->entity.lock);
 
 	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fmt->which);
-	if (!config)
-		return -EINVAL;
+	if (!config) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	/* Default to YUV if the requested format is not supported. */
 	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
@@ -153,7 +157,7 @@ static int clu_set_format(
 		format->code    = fmt->format.code;
 		fmt->format     = *format;
 
-		return 0;
+		goto done;
 	}
 
 	format->code = fmt->format.code;
@@ -173,7 +177,9 @@ static int clu_set_format(
 					    CLU_PAD_SOURCE);
 	*format = fmt->format;
 
-	return 0;
+done:
+	mutex_unlock(&clu->entity.lock);
+	return ret;
 }
 
 /* -----------------------------------------------------------------------------

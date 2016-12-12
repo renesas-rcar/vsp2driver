@@ -157,6 +157,9 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
  * @cfg: the TRY pad configuration
  * @which: configuration selector (ACTIVE or TRY)
  *
+ * When called with which set to V4L2_SUBDEV_FORMAT_ACTIVE the caller must hold
+ * the entity lock to access the returned configuration.
+ *
  * Return the pad configuration requested by the which argument. The TRY
  * configuration is passed explicitly to the function through the cfg argument
  * and simply returned when requested. The ACTIVE configuration comes from the
@@ -266,7 +269,9 @@ int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
 	if (!config)
 		return -EINVAL;
 
+	mutex_lock(&entity->lock);
 	fmt->format = *vsp2_entity_get_pad_format(entity, config, fmt->pad);
+	mutex_unlock(&entity->lock);
 
 	return 0;
 }
@@ -310,8 +315,10 @@ int vsp2_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
 		if (!config)
 			return -EINVAL;
 
+		mutex_lock(&entity->lock);
 		format = vsp2_entity_get_pad_format(entity, config, 0);
 		code->code = format->code;
+		mutex_unlock(&entity->lock);
 	}
 
 	return 0;
@@ -341,6 +348,7 @@ int vsp2_subdev_enum_frame_size(struct v4l2_subdev *subdev,
 	struct vsp2_entity *entity = to_vsp2_entity(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	int ret = 0;
 
 	config = vsp2_entity_get_pad_config(entity, cfg, fse->which);
 	if (!config)
@@ -348,8 +356,11 @@ int vsp2_subdev_enum_frame_size(struct v4l2_subdev *subdev,
 
 	format = vsp2_entity_get_pad_format(entity, config, fse->pad);
 
-	if (fse->index || fse->code != format->code)
-		return -EINVAL;
+	mutex_lock(&entity->lock);
+	if (fse->index || fse->code != format->code) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	if (fse->pad == 0) {
 		fse->min_width = min_width;
@@ -366,7 +377,9 @@ int vsp2_subdev_enum_frame_size(struct v4l2_subdev *subdev,
 		fse->max_height = format->height;
 	}
 
-	return 0;
+done:
+	mutex_unlock(&entity->lock);
+	return ret;
 }
 
 /* -----------------------------------------------------------------------------
@@ -447,6 +460,8 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 
 	if (flag == false)
 		return -EINVAL;
+
+	mutex_init(&entity->lock);
 
 	entity->vsp2 = vsp2;
 	entity->source_pad = num_pads - 1;

@@ -180,10 +180,15 @@ static int bru_set_format(
 	struct vsp2_bru *bru = to_bru(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	int ret = 0;
+
+	mutex_lock(&bru->entity.lock);
 
 	config = vsp2_entity_get_pad_config(&bru->entity, cfg, fmt->which);
-	if (!config)
-		return -EINVAL;
+	if (!config) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	bru_try_format(bru, config, fmt->pad, &fmt->format);
 
@@ -212,7 +217,9 @@ static int bru_set_format(
 		}
 	}
 
-	return 0;
+done:
+	mutex_unlock(&bru->entity.lock);
+	return ret;
 }
 
 static int bru_get_selection(struct v4l2_subdev *subdev,
@@ -239,7 +246,9 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
 		if (!config)
 			return -EINVAL;
 
+		mutex_lock(&bru->entity.lock);
 		sel->r = *bru_get_compose(bru, config, sel->pad);
+		mutex_unlock(&bru->entity.lock);
 		return 0;
 
 	default:
@@ -255,6 +264,7 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
 	struct v4l2_rect *compose;
+	int ret = 0;
 
 	if (sel->pad == BRU_PAD_SOURCE)
 		return -EINVAL;
@@ -262,9 +272,13 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
 	if (sel->target != V4L2_SEL_TGT_COMPOSE)
 		return -EINVAL;
 
+	mutex_lock(&bru->entity.lock);
+
 	config = vsp2_entity_get_pad_config(&bru->entity, cfg, sel->which);
-	if (!config)
-		return -EINVAL;
+	if (!config) {
+		ret = -EINVAL;
+		goto done;
+	}
 
 	/* The compose rectangle top left corner must be inside the output
 	 * frame.
@@ -284,7 +298,9 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
 	compose = bru_get_compose(bru, config, sel->pad);
 	*compose = sel->r;
 
-	return 0;
+done:
+	mutex_unlock(&bru->entity.lock);
+	return ret;
 }
 
 /* -----------------------------------------------------------------------------
