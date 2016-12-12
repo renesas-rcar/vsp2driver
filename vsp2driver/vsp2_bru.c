@@ -292,7 +292,7 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
  */
 
 
-static struct v4l2_subdev_pad_ops bru_pad_ops = {
+static const struct v4l2_subdev_pad_ops bru_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = bru_enum_mbus_code,
 	.enum_frame_size = bru_enum_frame_size,
@@ -302,7 +302,7 @@ static struct v4l2_subdev_pad_ops bru_pad_ops = {
 	.set_selection = bru_set_selection,
 };
 
-static struct v4l2_subdev_ops bru_ops = {
+static const struct v4l2_subdev_ops bru_ops = {
 	.pad    = &bru_pad_ops,
 };
 

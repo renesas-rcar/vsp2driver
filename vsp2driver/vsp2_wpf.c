@@ -103,7 +103,7 @@ static long vsp2_debug_ioctl(
 	}
 }
 
-static struct v4l2_subdev_core_ops vsp2_debug_ops = {
+static const struct v4l2_subdev_core_ops vsp2_debug_ops = {
 	.ioctl = vsp2_debug_ioctl,
 };
 #endif
@@ -112,11 +112,11 @@ static struct v4l2_subdev_core_ops vsp2_debug_ops = {
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_video_ops wpf_video_ops = {
+static const struct v4l2_subdev_video_ops wpf_video_ops = {
 	.s_stream = wpf_s_stream,
 };
 
-static struct v4l2_subdev_ops wpf_ops = {
+static const struct v4l2_subdev_ops wpf_ops = {
 #ifdef VSP2_DEBUG
 	.core	= &vsp2_debug_ops,
 #endif

@@ -87,7 +87,7 @@ static struct vsp_src_t *rpf_get_vsp_in(struct vsp2_rwpf *rpf)
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_ops rpf_ops = {
+static const struct v4l2_subdev_ops rpf_ops = {
 	.pad    = &vsp2_rwpf_pad_ops,
 };
 

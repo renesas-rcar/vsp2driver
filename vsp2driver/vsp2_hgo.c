@@ -109,11 +109,11 @@ static long hgo_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_core_ops hgo_core_ops = {
+static const struct v4l2_subdev_core_ops hgo_core_ops = {
 	.ioctl = hgo_ioctl,
 };
 
-static struct v4l2_subdev_ops hgo_ops = {
+static const struct v4l2_subdev_ops hgo_ops = {
 	.core	= &hgo_core_ops,
 	.pad    = NULL,
 };

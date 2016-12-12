@@ -180,11 +180,11 @@ static int clu_set_format(
  * V4L2 Subdevice Operations
  */
 
-static struct v4l2_subdev_core_ops clu_core_ops = {
+static const struct v4l2_subdev_core_ops clu_core_ops = {
 	.ioctl = clu_ioctl,
 };
 
-static struct v4l2_subdev_pad_ops clu_pad_ops = {
+static const struct v4l2_subdev_pad_ops clu_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code     = clu_enum_mbus_code,
 	.enum_frame_size    = clu_enum_frame_size,
@@ -192,7 +192,7 @@ static struct v4l2_subdev_pad_ops clu_pad_ops = {
 	.set_fmt            = clu_set_format,
 };
 
-static struct v4l2_subdev_ops clu_ops = {
+static const struct v4l2_subdev_ops clu_ops = {
 	.core   = &clu_core_ops,
 	.pad    = &clu_pad_ops,
 };
