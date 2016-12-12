@@ -225,8 +225,10 @@ void vsp2_pipeline_reset(struct vsp2_pipeline *pipe)
 		}
 	}
 
-	pipe->output->pipe = NULL;
-	pipe->output = NULL;
+	if (pipe->output) {
+		pipe->output->pipe = NULL;
+		pipe->output = NULL;
+	}
 
 	INIT_LIST_HEAD(&pipe->entities);
 	pipe->state = VSP2_PIPELINE_STOPPED;
