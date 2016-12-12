@@ -525,8 +525,7 @@ void vsp2_device_put(struct vsp2_device *vsp2)
  * Power Management
  */
 
-#ifdef CONFIG_PM_SLEEP
-static int vsp2_pm_suspend(struct device *dev)
+static int __maybe_unused vsp2_pm_suspend(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
 	long vspm_ret;
@@ -547,7 +546,7 @@ static int vsp2_pm_suspend(struct device *dev)
 	return 0;
 }
 
-static int vsp2_pm_resume(struct device *dev)
+static int __maybe_unused vsp2_pm_resume(struct device *dev)
 {
 	struct vsp2_device *vsp2 = dev_get_drvdata(dev);
 	long vspm_ret;
@@ -569,7 +568,6 @@ static int vsp2_pm_resume(struct device *dev)
 
 	return 0;
 }
-#endif
 
 static const struct dev_pm_ops vsp2_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(vsp2_pm_suspend, vsp2_pm_resume)
