@@ -152,7 +152,6 @@ static void wpf_configure(struct vsp2_entity *entity,
 	struct v4l2_pix_format_mplane *format = &wpf->format;
 	const struct v4l2_mbus_framefmt *source_format;
 	const struct v4l2_mbus_framefmt *sink_format;
-	const struct v4l2_rect *crop;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	u32 outfmt = 0;
 	u32 stride_y = 0;
@@ -171,15 +170,6 @@ static void wpf_configure(struct vsp2_entity *entity,
 	if (format->num_planes > 1)
 		vsp_out->stride_c	= stride_c;
 
-	crop = vsp2_rwpf_get_crop(wpf, wpf->entity.config);
-
-	vsp_out->width		= crop->width;
-	vsp_out->height		= crop->height;
-	vsp_out->x_offset	= 0;
-	vsp_out->y_offset	= 0;
-	vsp_out->x_coffset	= crop->left;
-	vsp_out->y_coffset	= crop->top;
-
 	/* Format */
 	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
 						 wpf->entity.config,
@@ -187,6 +177,13 @@ static void wpf_configure(struct vsp2_entity *entity,
 	source_format = vsp2_entity_get_pad_format(&wpf->entity,
 						   wpf->entity.config,
 						   RWPF_PAD_SOURCE);
+
+	vsp_out->width		= source_format->width;
+	vsp_out->height		= source_format->height;
+	vsp_out->x_offset	= 0;
+	vsp_out->y_offset	= 0;
+	vsp_out->x_coffset	= 0;
+	vsp_out->y_coffset	= 0;
 
 	outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
 
