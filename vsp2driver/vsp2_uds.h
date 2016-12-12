@@ -84,7 +84,7 @@ static inline struct vsp2_uds *to_uds(struct v4l2_subdev *subdev)
 
 struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index);
 
-void vsp2_uds_set_alpha(struct vsp2_uds *uds, unsigned int alpha);
+void vsp2_uds_set_alpha(struct vsp2_entity *uds, unsigned int alpha);
 
 int vsp2_uds_check_ratio(struct vsp2_entity *entity);
 

@@ -170,7 +170,6 @@ bool vsp2_pipeline_ready(struct vsp2_pipeline *pipe);
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe);
 
 void vsp2_pipeline_propagate_alpha(struct vsp2_pipeline *pipe,
-				   struct vsp2_entity *input,
 				   unsigned int alpha);
 
 void vsp2_pipelines_suspend(struct vsp2_device *vsp2);

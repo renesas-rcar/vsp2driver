@@ -253,7 +253,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 	}
 
 	vsp_in->alpha->afix = laya;
-	vsp2_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha);
+	vsp2_pipeline_propagate_alpha(pipe, rpf->alpha);
 
 	vsp_in->alpha->addr_a = 0;
 	vsp_in->alpha->stride_a = 0;

@@ -80,8 +80,9 @@
  * Scaling Computation
  */
 
-void vsp2_uds_set_alpha(struct vsp2_uds *uds, unsigned int alpha)
+void vsp2_uds_set_alpha(struct vsp2_entity *entity, unsigned int alpha)
 {
+	struct vsp2_uds *uds = to_uds(&entity->subdev);
 	struct vsp_start_t *vsp_par =
 		uds->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_uds_t *vsp_uds = vsp_par->ctrl_par->uds;
