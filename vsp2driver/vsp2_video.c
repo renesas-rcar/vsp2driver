@@ -59,9 +59,11 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */ /*************************************************************************/
 
+#include <linux/fence.h>
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
+#include <linux/reservation.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/v4l2-mediabus.h>
@@ -573,14 +575,32 @@ vsp2_video_queue_setup(struct vb2_queue *vq,
 
 static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 {
+	struct vb2_queue *vq = vb->vb2_queue;
 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
+	struct vsp2_video *video = vb2_get_drv_priv(vq);
 	struct vsp2_vb2_buffer *buf = to_vsp2_vb2_buffer(vbuf);
 	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
 	unsigned int i;
 
 	if (vb->num_planes < format->num_planes)
 		return -EINVAL;
+
+	if (vq->memory == VB2_MEMORY_DMABUF &&
+	    vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+		struct reservation_object *resv = vb->planes[0].dbuf->resv;
+
+		if (resv) {
+			struct fence *fence;
+
+			fence = reservation_object_get_excl_rcu(resv);
+			if (fence) {
+				int ret = fence_wait(fence, true);
+				if (ret)
+					return ret;
+				fence_put(fence);
+			}
+		}
+	}
 
 	for (i = 0; i < vb->num_planes; ++i) {
 		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
