@@ -109,7 +109,7 @@ struct vsp2_clu_config {
 };
 
 struct vsp2_hgo_config {
-	void		*addr;	/* Allocate memory size is 1088 bytes. */
+	void __user	*addr;	/* Allocate memory size is 1088 bytes. */
 	unsigned short	width;	/* horizontal size */
 	unsigned short	height;	/* vertical size */
 	unsigned short	x_offset;
@@ -126,7 +126,7 @@ struct vsp2_hue_area {
 };
 
 struct vsp2_hgt_config {
-	void		*addr;	/* Allocate memory size is 800 bytes. */
+	void __user	*addr;	/* Allocate memory size is 800 bytes. */
 	unsigned short	width;	/* horizontal size */
 	unsigned short	height;	/* vertical size */
 	struct vsp2_hue_area area[6];
