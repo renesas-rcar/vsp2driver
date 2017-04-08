@@ -417,7 +417,7 @@ static void vsp2_vspm_drv_entry_cb(unsigned long job_id, long result,
 	vsp2_frame_end(vsp2);
 }
 
-void vsp2_vspm_drv_entry_work(struct work_struct *work)
+static void vsp2_vspm_drv_entry_work(struct work_struct *work)
 {
 	long ret = R_VSPM_OK;
 

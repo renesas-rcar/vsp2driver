@@ -644,7 +644,7 @@ static void vsp2_video_buffer_queue(struct vb2_buffer *vb)
 	spin_unlock_irqrestore(&pipe->irqlock, flags);
 }
 
-void vsp2_video_buffer_finish(struct vb2_buffer *vb)
+static void vsp2_video_buffer_finish(struct vb2_buffer *vb)
 {
 	struct vsp2_video *video = vb2_get_drv_priv(vb->vb2_queue);
 
