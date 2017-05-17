@@ -63,6 +63,8 @@
 #include "vsp2_device.h"
 #include "vsp2_vspm.h"
 #include "vsp2_debug.h"
+#include "vsp2_pipe.h"
+#include "vsp2_rwpf.h"
 
 void vsp2_vspm_param_init(struct vspm_job_t *par)
 {
@@ -303,50 +305,39 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	return 0;
 }
 
-static bool vsp2_vspm_is_infmt_yvup(unsigned short format)
+static bool vsp2_vspm_is_yvup(const struct vsp2_format_info *format)
 {
-	if (((format & VI6_FMT_Y_U_V_420) == VI6_FMT_Y_U_V_420) ||
-	    ((format & VI6_FMT_Y_U_V_422) == VI6_FMT_Y_U_V_422) ||
-	    ((format & VI6_FMT_Y_U_V_444) == VI6_FMT_Y_U_V_444))
-		if (format & VI6_RPF_INFMT_SPUVS)
+	if (((format->hwfmt & VI6_FMT_Y_U_V_420) == VI6_FMT_Y_U_V_420) ||
+	    ((format->hwfmt & VI6_FMT_Y_U_V_422) == VI6_FMT_Y_U_V_422) ||
+	    ((format->hwfmt & VI6_FMT_Y_U_V_444) == VI6_FMT_Y_U_V_444))
+		if (format->swap_uv)
 			return true;
-
 	return false;
 }
 
-static bool vsp2_vspm_is_outfmt_yvup(unsigned short format)
-{
-	if (((format & VI6_FMT_Y_U_V_420) == VI6_FMT_Y_U_V_420) ||
-	    ((format & VI6_FMT_Y_U_V_422) == VI6_FMT_Y_U_V_422) ||
-	    ((format & VI6_FMT_Y_U_V_444) == VI6_FMT_Y_U_V_444))
-		if (format & VI6_WPF_OUTFMT_SPUVS)
-			return true;
-
-	return false;
-}
-
-static void vsp2_vspm_yvup_swap(struct vsp_start_t *vsp_par)
+static void vsp2_vspm_yvup_swap(struct vsp2_device *vsp2)
 {
 	int i;
 	unsigned int tmp;
+	struct vsp_start_t *vsp_par = vsp2->vspm->ip_par.par.vsp;
 
 	/* If format is YVU planar, change Cb Cr address. */
 
 	for (i = 0; i < vsp_par->rpf_num; i++) {
-		if (vsp2_vspm_is_infmt_yvup(vsp_par->src_par[i]->format)) {
+		if (vsp2->rpf[i] && vsp2_vspm_is_yvup(vsp2->rpf[i]->fmtinfo)) {
 			tmp = vsp_par->src_par[i]->addr_c0;
 			vsp_par->src_par[i]->addr_c0 =
 				vsp_par->src_par[i]->addr_c1;
 			vsp_par->src_par[i]->addr_c1 = tmp;
-			vsp_par->src_par[i]->format ^= VI6_RPF_INFMT_SPUVS;
+			vsp_par->src_par[i]->format &= ~VI6_RPF_INFMT_SPUVS;
 		}
 	}
 
-	if (vsp2_vspm_is_outfmt_yvup(vsp_par->dst_par->format)) {
+	if (vsp2->wpf[0] && vsp2_vspm_is_yvup(vsp2->wpf[0]->fmtinfo)) {
 		tmp = vsp_par->dst_par->addr_c0;
 		vsp_par->dst_par->addr_c0 = vsp_par->dst_par->addr_c1;
 		vsp_par->dst_par->addr_c1 = tmp;
-		vsp_par->dst_par->format ^= VI6_WPF_OUTFMT_SPUVS;
+		vsp_par->dst_par->format &= ~VI6_WPF_OUTFMT_SPUVS;
 	}
 }
 
@@ -456,7 +447,7 @@ static void vsp2_vspm_drv_entry_work(struct work_struct *work)
 		vsp_par->src_par[0]->pwd = VSP_LAYER_PARENT;
 	}
 
-	vsp2_vspm_yvup_swap(vsp_par);
+	vsp2_vspm_yvup_swap(vsp2);
 
 #ifdef VSP2_DEBUG
 	if (vsp2_debug_vspmDebug() == true)
