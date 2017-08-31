@@ -1,7 +1,7 @@
 CFILES := vsp2_drv.c vsp2_entity.c vsp2_pipe.c
 CFILES += vsp2_video.c
 CFILES += vsp2_rpf.c vsp2_rwpf.c vsp2_wpf.c
-CFILES += vsp2_bru.c vsp2_uds.c
+CFILES += vsp2_bru.c vsp2_brs.c vsp2_uds.c
 CFILES += vsp2_lut.c
 CFILES += vsp2_clu.c
 CFILES += vsp2_hgo.c

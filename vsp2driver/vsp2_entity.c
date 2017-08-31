@@ -99,6 +99,10 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
 		vsp_start->use_module |= VSP_BRU_USE;
 		connect = VSP_BRU_USE;
 		break;
+	case VSP2_ENTITY_BRS:
+		vsp_start->use_module |= VSP_BRS_USE;
+		connect = VSP_BRS_USE;
+		break;
 	case VSP2_ENTITY_LUT:
 		vsp_start->use_module |= VSP_LUT_USE;
 		connect = VSP_LUT_USE;
@@ -137,6 +141,9 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
 		break;
 	case VSP2_ENTITY_BRU:
 		vsp_start->ctrl_par->bru->connect = connect;
+		break;
+	case VSP2_ENTITY_BRS:
+		vsp_start->ctrl_par->brs->connect = connect;
 		break;
 	default:
 		dev_err(source->vsp2->dev,
@@ -437,6 +444,7 @@ static const struct vsp2_route vsp2_routes[] = {
 	{ VSP2_ENTITY_RPF, 4 },
 #endif
 	{ VSP2_ENTITY_UDS, 0 },
+	{ VSP2_ENTITY_BRS, 0 },
 	{ VSP2_ENTITY_WPF, 0 },
 };
 

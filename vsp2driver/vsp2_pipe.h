@@ -121,6 +121,7 @@ enum vsp2_pipeline_state {
  * @inputs: array of RPFs in the pipeline (indexed by RPF index)
  * @output: WPF at the output of the pipeline
  * @bru: BRU entity, if present
+ * @brs: BRS entity, if present
  * @uds: UDS entity, if present
  * @uds_input: entity at the input of the UDS, if the UDS is present
  * @entities: list of entities in the pipeline
@@ -145,6 +146,7 @@ struct vsp2_pipeline {
 	struct vsp2_rwpf *inputs[VSP2_COUNT_RPF];
 	struct vsp2_rwpf *output;
 	struct vsp2_entity *bru;
+	struct vsp2_entity *brs;
 	struct vsp2_entity *uds;
 	struct vsp2_entity *uds_input;
 

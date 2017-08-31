@@ -154,6 +154,27 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 		/* Initialize struct vsp_bld_ctrl_t. */
 		memset(vsp_blend_ctrl, 0x00, sizeof(struct vsp_bld_ctrl_t));
 	}
+
+	/* Initialize struct vsp_brs_t. */
+	vsp_par->ctrl_par->brs->lay_order	= 0;
+	vsp_par->ctrl_par->brs->adiv		= 0;
+	memset(vsp_par->ctrl_par->brs->dither_unit,
+		0x00,
+		sizeof(vsp_par->ctrl_par->brs->dither_unit));
+	vsp_par->ctrl_par->brs->connect		= 0;
+
+	/* Initialize struct vsp_bld_vir_t. */
+	memset(vsp_par->ctrl_par->brs->blend_virtual,
+		0x00,
+		sizeof(struct vsp_bld_vir_t));
+
+	memset(vsp_par->ctrl_par->brs->blend_unit_a,
+		0x00,
+		sizeof(struct vsp_bld_ctrl_t));
+
+	memset(vsp_par->ctrl_par->brs->blend_unit_b,
+		0x00,
+		sizeof(struct vsp_bld_ctrl_t));
 }
 
 static int vsp2_vspm_alloc_vsp_in(struct device *dev, struct vsp_src_t **in)
@@ -222,6 +243,35 @@ static int vsp2_vspm_alloc_vsp_bru(struct device *dev, struct vsp_bru_t **bru)
 	return 0;
 }
 
+static int vsp2_vspm_alloc_vsp_brs(struct device *dev, struct vsp_brs_t **brs)
+{
+	struct vsp_brs_t *vsp_brs = NULL;
+
+	vsp_brs = devm_kzalloc(dev, sizeof(*vsp_brs), GFP_KERNEL);
+	if (vsp_brs == NULL) {
+		*brs = NULL;
+		return -ENOMEM;
+	}
+
+	*brs = vsp_brs;
+
+	vsp_brs->blend_virtual =
+	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_virtual), GFP_KERNEL);
+	if (vsp_brs->blend_virtual == NULL)
+		return -ENOMEM;
+
+	vsp_brs->blend_unit_a =
+	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_unit_a), GFP_KERNEL);
+	if (vsp_brs->blend_unit_a == NULL)
+		return -ENOMEM;
+	vsp_brs->blend_unit_b =
+	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_unit_b), GFP_KERNEL);
+	if (vsp_brs->blend_unit_b == NULL)
+		return -ENOMEM;
+
+	return 0;
+}
+
 static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 {
 	struct vsp_start_t *vsp_par = NULL;
@@ -265,6 +315,10 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 		return -ENOMEM;
 
 	ret = vsp2_vspm_alloc_vsp_bru(vsp2->dev, &vsp_par->ctrl_par->bru);
+	if (ret != 0)
+		return -ENOMEM;
+
+	ret = vsp2_vspm_alloc_vsp_brs(vsp2->dev, &vsp_par->ctrl_par->brs);
 	if (ret != 0)
 		return -ENOMEM;
 
@@ -442,8 +496,18 @@ static void vsp2_vspm_drv_entry_work(struct work_struct *work)
 			vsp_par->ctrl_par->bru->lay_order |= (VSP_LAY_5 << 20);
 #endif
 
+	} else if (vsp_par->use_module & VSP_BRS_USE) {
+		/* Set lay_order of BRS. */
+		vsp_par->ctrl_par->brs->lay_order = VSP_LAY_VIRTUAL;
+
+		if (vsp_par->rpf_num >= 1)
+			vsp_par->ctrl_par->brs->lay_order |= (VSP_LAY_1 << 4);
+
+		if (vsp_par->rpf_num >= 2)
+			vsp_par->ctrl_par->brs->lay_order |= (VSP_LAY_2 << 8);
+
 	} else {
-		/* Not use BRU. Set RPF0 to parent layer. */
+		/* Not use BRU and BRS. Set RPF0 to parent layer. */
 		vsp_par->src_par[0]->pwd = VSP_LAYER_PARENT;
 	}
 

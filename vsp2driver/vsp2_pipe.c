@@ -67,6 +67,7 @@
 
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
+#include "vsp2_brs.h"
 #include "vsp2_entity.h"
 #include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
@@ -218,6 +219,13 @@ void vsp2_pipeline_reset(struct vsp2_pipeline *pipe)
 			bru->inputs[i].rpf = NULL;
 	}
 
+	if (pipe->brs) {
+		struct vsp2_brs *brs = to_brs(&pipe->brs->subdev);
+
+		for (i = 0; i < ARRAY_SIZE(brs->inputs); ++i)
+			brs->inputs[i].rpf = NULL;
+	}
+
 	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
 		if (pipe->inputs[i]) {
 			pipe->inputs[i]->pipe = NULL;
@@ -236,6 +244,7 @@ void vsp2_pipeline_reset(struct vsp2_pipeline *pipe)
 	pipe->num_video = 0;
 	pipe->num_inputs = 0;
 	pipe->bru = NULL;
+	pipe->brs = NULL;
 	pipe->uds = NULL;
 }
 

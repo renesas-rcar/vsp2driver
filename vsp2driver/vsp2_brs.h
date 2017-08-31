@@ -59,81 +59,39 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */ /*************************************************************************/
 
-#ifndef __VSP2_RWPF_H__
-#define __VSP2_RWPF_H__
+#ifndef __VSP2_BRS_H__
+#define __VSP2_BRS_H__
 
 #include <media/media-entity.h>
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-subdev.h>
 
-#include "vsp2_device.h"
 #include "vsp2_entity.h"
 
-#define RWPF_PAD_SINK				0
-#define RWPF_PAD_SOURCE				1
-
-#define FCP_FCNL_DEF_VALUE	(0x00)
-
-struct v4l2_ctrl;
-struct vsp2_pipeline;
+struct vsp2_device;
 struct vsp2_rwpf;
-struct vsp2_video;
 
-struct vsp2_rwpf_memory {
-	dma_addr_t addr[3];
-};
+#define BRS_PAD_SINK(n)				(n)
 
-struct vsp2_rwpf {
+#define BRS_PAD_SOURCE		(2)
+
+struct vsp2_brs {
 	struct vsp2_entity entity;
+
 	struct v4l2_ctrl_handler ctrls;
 
-	struct vsp2_pipeline *pipe;
-	struct vsp2_video *video;
+	struct {
+		struct vsp2_rwpf *rpf;
+	} inputs[BRS_PAD_SOURCE];
 
-	unsigned int max_width;
-	unsigned int max_height;
-
-	struct v4l2_pix_format_mplane format;
-	const struct vsp2_format_info *fmtinfo;
-	unsigned int bru_input;
-	unsigned int brs_input;
-
-	unsigned int alpha;
-
-	unsigned int offsets[2];
-	struct vsp2_rwpf_memory mem;
-
-	unsigned char fcp_fcnl;
+	u32 bgcolor;
 };
 
-static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)
+static inline struct vsp2_brs *to_brs(struct v4l2_subdev *subdev)
 {
-	return container_of(subdev, struct vsp2_rwpf, entity.subdev);
+	return container_of(subdev, struct vsp2_brs, entity.subdev);
 }
 
-static inline struct vsp2_rwpf *entity_to_rwpf(struct vsp2_entity *entity)
-{
-	return container_of(entity, struct vsp2_rwpf, entity);
-}
+struct vsp2_brs *vsp2_brs_create(struct vsp2_device *vsp2);
 
-struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index);
-struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index);
-
-int vsp2_rwpf_init_ctrls(struct vsp2_rwpf *rwpf);
-
-extern const struct v4l2_subdev_pad_ops vsp2_rwpf_pad_ops;
-
-struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config);
-/**
- * vsp2_rwpf_set_memory - Configure DMA addresses for a [RW]PF
- * @rwpf: the [RW]PF instance
- *
- * This function applies the cached memory buffer address to the hardware.
- */
-static inline void vsp2_rwpf_set_memory(struct vsp2_rwpf *rwpf)
-{
-	rwpf->entity.ops->set_memory(&rwpf->entity);
-}
-
-#endif /* __VSP2_RWPF_H__ */
+#endif /* __VSP2_BRS_H__ */

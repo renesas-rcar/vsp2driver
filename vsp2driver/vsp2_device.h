@@ -85,6 +85,7 @@ struct vsp2_lut;
 struct vsp2_hgo;
 struct vsp2_hgt;
 struct vsp2_vspm;
+struct vsp2_brs;
 
 #define DEVNAME			"vsp2"
 #define DRVNAME			DEVNAME
@@ -115,6 +116,7 @@ struct vsp2_vspm;
 #define VSP2_HAS_CLU		(1 << 2)
 #define VSP2_HAS_HGO		(1 << 3)
 #define VSP2_HAS_HGT		(1 << 4)
+#define VSP2_HAS_BRS		(1 << 5)
 
 #endif
 
@@ -138,6 +140,7 @@ struct vsp2_device {
 	struct vsp2_clu		*clu;
 	struct vsp2_hgo		*hgo;
 	struct vsp2_hgt		*hgt;
+	struct vsp2_brs		*brs;
 	struct vsp2_rwpf	*rpf[VSP2_COUNT_RPF];
 	struct vsp2_uds		*uds[VSP2_COUNT_UDS];
 	struct vsp2_rwpf	*wpf[VSP2_COUNT_WPF];

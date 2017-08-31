@@ -71,6 +71,7 @@
 
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
+#include "vsp2_brs.h"
 #include "vsp2_lut.h"
 #include "vsp2_clu.h"
 #include "vsp2_pipe.h"
@@ -311,6 +312,18 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 			goto done;
 		}
 		list_add_tail(&vsp2->bru->entity.list_dev, &vsp2->entities);
+	}
+
+	/* - BRS */
+
+	if (vsp2->pdata.features & VSP2_HAS_BRS) {
+
+		vsp2->brs = vsp2_brs_create(vsp2);
+		if (IS_ERR(vsp2->brs)) {
+			ret = PTR_ERR(vsp2->brs);
+			goto done;
+		}
+		list_add_tail(&vsp2->brs->entity.list_dev, &vsp2->entities);
 	}
 
 	/* - LUT */
@@ -569,6 +582,9 @@ static int vsp2_parse_dt(struct vsp2_device *vsp2)
 
 	if (of_property_read_bool(np, "renesas,has-bru"))
 		pdata->features |= VSP2_HAS_BRU;
+
+	if (of_property_read_bool(np, "renesas,has-brs"))
+		pdata->features |= VSP2_HAS_BRS;
 
 	if (of_property_read_bool(np, "renesas,has-lut"))
 		pdata->features |= VSP2_HAS_LUT;

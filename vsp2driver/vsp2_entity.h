@@ -79,6 +79,7 @@ enum vsp2_entity_type {
 	VSP2_ENTITY_HGO,
 	VSP2_ENTITY_HGT,
 	VSP2_ENTITY_WPF,
+	VSP2_ENTITY_BRS,
 };
 
 /**

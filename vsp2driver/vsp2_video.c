@@ -79,6 +79,7 @@
 
 #include "vsp2_device.h"
 #include "vsp2_bru.h"
+#include "vsp2_brs.h"
 #include "vsp2_entity.h"
 #include "vsp2_pipe.h"
 #include "vsp2_rwpf.h"
@@ -377,6 +378,13 @@ static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 			bru_found = true;
 		}
 
+		if (entity->type == VSP2_ENTITY_BRS) {
+			struct vsp2_brs *brs = to_brs(&entity->subdev);
+
+			brs->inputs[pad->index].rpf = input;
+			input->brs_input = pad->index;
+		}
+
 		/* We've reached the WPF, we're done. */
 		if (entity->type == VSP2_ENTITY_WPF)
 			break;
@@ -461,6 +469,8 @@ static int vsp2_video_pipeline_build(struct vsp2_pipeline *pipe,
 			rwpf->pipe = pipe;
 		} else if (e->type == VSP2_ENTITY_BRU) {
 			pipe->bru = e;
+		} else if (e->type == VSP2_ENTITY_BRS) {
+			pipe->brs = e;
 		}
 	}
 
@@ -681,7 +691,8 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 		 * value is fixed to 255. Otherwise we need to scale the alpha
 		 * component only when available at the input RPF.
 		 */
-		if (pipe->uds_input->type == VSP2_ENTITY_BRU) {
+		if ((pipe->uds_input->type == VSP2_ENTITY_BRU) ||
+		    (pipe->uds_input->type == VSP2_ENTITY_BRS)) {
 			uds->scale_alpha = false;
 		} else {
 			struct vsp2_rwpf *rpf =

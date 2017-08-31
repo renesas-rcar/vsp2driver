@@ -650,6 +650,17 @@
 #define VI6_HGT_REGRST			0x37fc
 
 /* -----------------------------------------------------------------------------
+ * BRS Control Registers
+ */
+#define VI6_BRS_INCTRL_NRM		(1 << 28)
+#define VI6_BRS_VIRRPF_COL_A_SHIFT	24
+#define VI6_BRS_CTRL_RBC		(1 << 31)
+#define VI6_BRS_CTRL_DSTSEL_VRPF	(4 << 20)
+#define VI6_BRS_CTRL_SRCSEL_BRSIN(n)	((n) << 16)
+#define VI6_BRS_CTRL_CROP(rop)		((rop) << 4)
+#define VI6_BRS_CTRL_AROP(rop)		((rop) << 0)
+
+/* -----------------------------------------------------------------------------
  * LIF Control Registers
  */
 
