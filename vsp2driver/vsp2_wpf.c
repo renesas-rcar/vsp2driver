@@ -135,14 +135,39 @@ static void vsp2_wpf_destroy(struct vsp2_entity *entity)
 static void wpf_set_memory(struct vsp2_entity *entity)
 {
 	struct vsp2_rwpf *wpf = entity_to_rwpf(entity);
+	struct v4l2_pix_format_mplane *format = &wpf->format;
+	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
+	const struct v4l2_rect *compose;
 
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 
-	vsp_out->addr = (unsigned int)wpf->mem.addr[0];
+	compose = vsp2_entity_get_pad_selection(&wpf->entity,
+						wpf->entity.config,
+						RWPF_PAD_SOURCE,
+						V4L2_SEL_TGT_COMPOSE);
+	vsp_out->addr = ((unsigned int)wpf->mem.addr[0])
+			+ (format->plane_fmt[0].bytesperline * compose->top)
+			+ compose->left * (fmtinfo->bpp[0] / 8);
+
 	vsp_out->addr_c0 = (unsigned int)wpf->mem.addr[1];
 	vsp_out->addr_c1 = (unsigned int)wpf->mem.addr[2];
+
+	if (vsp_out->addr_c0) {
+		vsp_out->addr_c0 +=
+			(format->plane_fmt[1].bytesperline * compose->top
+			 / fmtinfo->vsub)
+			+ (compose->left * (fmtinfo->bpp[1] / 8)
+			   / fmtinfo->hsub);
+	}
+	if (vsp_out->addr_c1) {
+		vsp_out->addr_c1 +=
+			(format->plane_fmt[2].bytesperline * compose->top
+			 / fmtinfo->vsub)
+			+ (compose->left * (fmtinfo->bpp[2] / 8)
+			   / fmtinfo->hsub);
+	}
 }
 
 static void wpf_configure(struct vsp2_entity *entity,
@@ -159,6 +184,7 @@ static void wpf_configure(struct vsp2_entity *entity,
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
+	const struct v4l2_rect *compose;
 	u16 vspm_format;
 
 	/* Destination stride. */
@@ -178,8 +204,12 @@ static void wpf_configure(struct vsp2_entity *entity,
 						   wpf->entity.config,
 						   RWPF_PAD_SOURCE);
 
-	vsp_out->width		= source_format->width;
-	vsp_out->height		= source_format->height;
+	compose = vsp2_entity_get_pad_selection(&wpf->entity,
+						wpf->entity.config,
+						RWPF_PAD_SOURCE,
+						V4L2_SEL_TGT_COMPOSE);
+	vsp_out->width		= compose->width;
+	vsp_out->height		= compose->height;
 	vsp_out->x_offset	= 0;
 	vsp_out->y_offset	= 0;
 	vsp_out->x_coffset	= 0;

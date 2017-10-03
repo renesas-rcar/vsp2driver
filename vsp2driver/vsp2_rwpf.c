@@ -75,6 +75,37 @@ struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
 					RWPF_PAD_SINK);
 }
 
+struct v4l2_rect *vsp2_rwpf_get_compose(struct vsp2_rwpf *rwpf,
+				     struct v4l2_subdev_pad_config *config)
+{
+	return v4l2_subdev_get_try_compose(&rwpf->entity.subdev, config,
+					   RWPF_PAD_SOURCE);
+}
+
+int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity)
+{
+	const struct v4l2_mbus_framefmt *format;
+	const struct v4l2_rect *compose;
+	int ret = 0;
+
+	if (entity->type != VSP2_ENTITY_WPF)
+		return 0;
+
+	format = vsp2_entity_get_pad_format(entity, entity->config,
+					    RWPF_PAD_SINK);
+
+	compose = vsp2_entity_get_pad_selection(entity,
+						entity->config,
+						RWPF_PAD_SOURCE,
+						V4L2_SEL_TGT_COMPOSE);
+
+	if (format->width != compose->width ||
+	    format->height != compose->height)
+		ret = -EINVAL;
+
+	return ret;
+}
+
 /* -----------------------------------------------------------------------------
  * V4L2 Subdevice Pad Operations
  */
@@ -132,8 +163,25 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	format = vsp2_entity_get_pad_format(&rwpf->entity, config, fmt->pad);
 
 	if (fmt->pad == RWPF_PAD_SOURCE) {
-		/* The RWPF performs format conversion but can't scale, only the
-		 * format code can be changed on the source pad.
+		/* for WPF compose */
+		if (rwpf->entity.type == VSP2_ENTITY_WPF) {
+			struct v4l2_rect *compose;
+
+			format->width =
+				clamp_t(unsigned int, fmt->format.width,
+					RWPF_MIN_WIDTH, rwpf->max_width);
+			format->height =
+				clamp_t(unsigned int, fmt->format.height,
+					RWPF_MIN_HEIGHT, rwpf->max_height);
+			compose = vsp2_rwpf_get_compose(rwpf, config);
+			compose->left = 0;
+			compose->top = 0;
+			compose->width = format->width;
+			compose->height = format->height;
+		}
+		/* The RWPF performs format conversion, the format code can be
+		 * changed on the source pad.
+		 * Can't scale except compose in WPF
 		 */
 		format->code = fmt->format.code;
 		fmt->format = *format;
@@ -182,9 +230,22 @@ static int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
 
 	/* Cropping is only supported on the RPF and is implemented on the sink
 	 * pad.
+	 * Composing is only supported on the WPF and is implemented on the
+	 * source pad.
 	 */
-	if (rwpf->entity.type == VSP2_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
-		return -EINVAL;
+	if (rwpf->entity.type == VSP2_ENTITY_WPF) {
+		if (sel->pad != RWPF_PAD_SOURCE)
+			return -EINVAL;
+		if (sel->target != V4L2_SEL_TGT_COMPOSE &&
+		    sel->target != V4L2_SEL_TGT_COMPOSE_BOUNDS)
+			return -EINVAL;
+	} else {
+		if (sel->pad != RWPF_PAD_SINK)
+			return -EINVAL;
+		if (sel->target != V4L2_SEL_TGT_CROP &&
+		    sel->target != V4L2_SEL_TGT_CROP_BOUNDS)
+			return -EINVAL;
+	}
 
 	mutex_lock(&rwpf->entity.lock);
 
@@ -202,6 +263,19 @@ static int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
 	case V4L2_SEL_TGT_CROP_BOUNDS:
 		format = vsp2_entity_get_pad_format(&rwpf->entity, config,
 						    RWPF_PAD_SINK);
+		sel->r.left = 0;
+		sel->r.top = 0;
+		sel->r.width = format->width;
+		sel->r.height = format->height;
+		break;
+
+	case V4L2_SEL_TGT_COMPOSE:
+		sel->r = *vsp2_rwpf_get_compose(rwpf, config);
+		break;
+
+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+		format = vsp2_entity_get_pad_format(&rwpf->entity, config,
+						    RWPF_PAD_SOURCE);
 		sel->r.left = 0;
 		sel->r.top = 0;
 		sel->r.width = format->width;
@@ -230,18 +304,46 @@ static int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
 
 	/* Cropping is only supported on the RPF and is implemented on the sink
 	 * pad.
+	 * Composing is only supported on the WPF and is implemented on the
+	 * source pad.
 	 */
-	if (rwpf->entity.type == VSP2_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
-		return -EINVAL;
-
-	if (sel->target != V4L2_SEL_TGT_CROP)
-		return -EINVAL;
+	if (rwpf->entity.type == VSP2_ENTITY_WPF) {
+		if (sel->pad != RWPF_PAD_SOURCE)
+			return -EINVAL;
+		if (sel->target != V4L2_SEL_TGT_COMPOSE)
+			return -EINVAL;
+	} else {
+		if (sel->pad != RWPF_PAD_SINK)
+			return -EINVAL;
+		if (sel->target != V4L2_SEL_TGT_CROP)
+			return -EINVAL;
+	}
 
 	mutex_lock(&rwpf->entity.lock);
 
 	config = vsp2_entity_get_pad_config(&rwpf->entity, cfg, sel->which);
 	if (!config) {
 		ret = -EINVAL;
+		goto done;
+	}
+
+	if (sel->target == V4L2_SEL_TGT_COMPOSE) {
+		/* WPF compose */
+		struct v4l2_rect *compose;
+
+		/* check size, not adjust size */
+		format = vsp2_entity_get_pad_format(&rwpf->entity, config,
+						    RWPF_PAD_SOURCE);
+		if (sel->r.left + sel->r.width > format->width) {
+			ret = -EINVAL;
+			goto done;
+		}
+		if (sel->r.top + sel->r.height > format->height) {
+			ret = -EINVAL;
+			goto done;
+		}
+		compose = vsp2_rwpf_get_compose(rwpf, config);
+		*compose = sel->r;
 		goto done;
 	}
 

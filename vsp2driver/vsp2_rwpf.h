@@ -125,6 +125,7 @@ extern const struct v4l2_subdev_pad_ops vsp2_rwpf_pad_ops;
 
 struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
 				     struct v4l2_subdev_pad_config *config);
+int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity);
 /**
  * vsp2_rwpf_set_memory - Configure DMA addresses for a [RW]PF
  * @rwpf: the [RW]PF instance

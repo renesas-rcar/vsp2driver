@@ -710,6 +710,11 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 			if (ret < 0)
 				goto error;
 		}
+		if (entity->type == VSP2_ENTITY_WPF) {
+			ret = vsp2_rwpf_check_compose_size(entity);
+			if (ret < 0)
+				goto error;
+		}
 
 		if (entity->ops->configure)
 			entity->ops->configure(entity, pipe);
