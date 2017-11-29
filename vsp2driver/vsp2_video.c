@@ -59,7 +59,7 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */ /*************************************************************************/
 
-#include <linux/fence.h>
+#include <linux/dma-fence.h>
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
@@ -600,14 +600,14 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 		struct reservation_object *resv = vb->planes[0].dbuf->resv;
 
 		if (resv) {
-			struct fence *fence;
+			struct dma_fence *fence;
 
 			fence = reservation_object_get_excl_rcu(resv);
 			if (fence) {
-				int ret = fence_wait(fence, true);
+				int ret = dma_fence_wait(fence, true);
 				if (ret)
 					return ret;
-				fence_put(fence);
+				dma_fence_put(fence);
 			}
 		}
 	}
