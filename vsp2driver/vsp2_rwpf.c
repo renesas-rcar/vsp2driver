@@ -145,6 +145,7 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 	struct v4l2_subdev_pad_config *config;
 	struct v4l2_mbus_framefmt *format;
+	struct v4l2_rect *compose;
 	int ret = 0;
 
 	mutex_lock(&rwpf->entity.lock);
@@ -165,8 +166,6 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	if (fmt->pad == RWPF_PAD_SOURCE) {
 		/* for WPF compose */
 		if (rwpf->entity.type == VSP2_ENTITY_WPF) {
-			struct v4l2_rect *compose;
-
 			format->width =
 				clamp_t(unsigned int, fmt->format.width,
 					RWPF_MIN_WIDTH, rwpf->max_width);
@@ -213,6 +212,14 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	format = vsp2_entity_get_pad_format(&rwpf->entity, config,
 					    RWPF_PAD_SOURCE);
 	*format = fmt->format;
+	if (rwpf->entity.type == VSP2_ENTITY_WPF) {
+		/* Propagate the format to the compose size. */
+		compose = vsp2_rwpf_get_compose(rwpf, config);
+		compose->left = 0;
+		compose->top = 0;
+		compose->width = format->width;
+		compose->height = format->height;
+	}
 
 done:
 	mutex_unlock(&rwpf->entity.lock);
