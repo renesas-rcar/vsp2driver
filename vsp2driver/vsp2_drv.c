@@ -435,7 +435,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 		}
 
 		list_add_tail(&video->list, &vsp2->videos);
-		wpf->entity.sink = &video->video.entity;
 	}
 
 	/* Register all subdevs. */
