@@ -104,6 +104,13 @@ struct vsp2_rwpf {
 	struct vsp2_rwpf_memory mem;
 
 	unsigned char fcp_fcnl;
+	struct {
+		struct v4l2_ctrl *rotangle;
+		struct v4l2_ctrl *hflip;
+		struct v4l2_ctrl *vflip;
+		unsigned char rotation;
+		bool swap_sizes;
+	} rotinfo;
 };
 
 static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)

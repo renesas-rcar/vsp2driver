@@ -124,6 +124,35 @@ static const struct v4l2_subdev_ops wpf_ops = {
 	.pad    = &vsp2_rwpf_pad_ops,
 };
 
+struct v4l2tovspm_rotation {
+	s32 rotangle;
+	bool hflip;
+	bool vflip;
+	unsigned char vspm_rotation;
+};
+
+static struct v4l2tovspm_rotation v4l2tovspm[16] = {
+	{ 0, 0, 0,		VSP_ROT_OFF },
+	{ 90, 0, 0,		VSP_ROT_90 },
+	{ 180, 0, 0,		VSP_ROT_180 },
+	{ 270, 0, 0,		VSP_ROT_270 },
+
+	{ 0, 1, 0,		VSP_ROT_H_FLIP },
+	{ 90, 1, 0,		VSP_ROT_90_H_FLIP },
+	{ 180, 1, 0,		VSP_ROT_V_FLIP },
+	{ 270, 1, 0,		VSP_ROT_90_V_FLIP },
+
+	{ 0, 1, 1,		VSP_ROT_180 },
+	{ 90, 1, 1,		VSP_ROT_270 },
+	{ 180, 1, 1,		VSP_ROT_OFF },
+	{ 270, 1, 1,		VSP_ROT_90 },
+
+	{ 0, 0, 1,		VSP_ROT_V_FLIP },
+	{ 90, 0, 1,		VSP_ROT_90_V_FLIP },
+	{ 180, 0, 1,		VSP_ROT_H_FLIP },
+	{ 270, 0, 1,		VSP_ROT_90_H_FLIP },
+};
+
 /* -----------------------------------------------------------------------------
  * VSP2 Entity Operations
  */
@@ -257,13 +286,106 @@ static void wpf_configure(struct vsp2_entity *entity,
 	vsp_out->abrm		= VSP_CONVERSION_ROUNDDOWN;
 	vsp_out->athres		= 0;
 	vsp_out->clmd		= VSP_CLMD_NO;
-	vsp_out->rotation	= 0;
-
+	vsp_out->rotation	= wpf->rotinfo.rotation;
 	if (wpf->fcp_fcnl) {
 		vsp_out->fcp->fcnl = FCP_FCNL_ENABLE;
 		vsp_out->swap = VSP_SWAP_LL;
 	} else
 		vsp_out->fcp->fcnl = FCP_FCNL_DISABLE;
+}
+
+static void set_rotation(struct vsp2_rwpf *wpf, bool hflip,
+			 bool vflip, s32 rotangle)
+{
+	struct v4l2_mbus_framefmt *sink_format;
+	struct v4l2_mbus_framefmt *source_format;
+	struct v4l2_rect *compose;
+	bool swap_work;
+	int i = 0;
+
+	wpf->rotinfo.rotation = VSP_ROT_OFF;
+	for (i = 0; i  < ARRAY_SIZE(v4l2tovspm); i++) {
+		if (v4l2tovspm[i].hflip == hflip &&
+		    v4l2tovspm[i].vflip == vflip &&
+		    v4l2tovspm[i].rotangle == rotangle) {
+			wpf->rotinfo.rotation = v4l2tovspm[i].vspm_rotation;
+		}
+	}
+
+	swap_work = wpf->rotinfo.swap_sizes;
+	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
+						 wpf->entity.config,
+						 RWPF_PAD_SINK);
+	source_format = vsp2_entity_get_pad_format(&wpf->entity,
+						   wpf->entity.config,
+						   RWPF_PAD_SOURCE);
+	switch (wpf->rotinfo.rotation) {
+	case VSP_ROT_90:
+	case VSP_ROT_90_V_FLIP:
+	case VSP_ROT_90_H_FLIP:
+	case VSP_ROT_270:
+		wpf->rotinfo.swap_sizes = true;
+		break;
+	default:
+		wpf->rotinfo.swap_sizes = false;
+		break;
+	}
+	/*
+	 * If different sizes are set for sink pad and source pad, do not auto
+	 * size swap.
+	 */
+	if (swap_work) {
+		if (sink_format->width != source_format->height ||
+		    sink_format->height != source_format->width)
+			return;
+	} else {
+		if (sink_format->width != source_format->width ||
+		    sink_format->height != source_format->height)
+			return;
+	}
+
+	mutex_lock(&wpf->entity.lock);
+	compose = vsp2_entity_get_pad_selection(&wpf->entity,
+						wpf->entity.config,
+						RWPF_PAD_SOURCE,
+						V4L2_SEL_TGT_COMPOSE);
+	if (wpf->rotinfo.swap_sizes) {
+		source_format->width = sink_format->height;
+		source_format->height = sink_format->width;
+	} else {
+		source_format->width = sink_format->width;
+		source_format->height = sink_format->height;
+	}
+	compose->width = source_format->width;
+	compose->height = source_format->height;
+	mutex_unlock(&wpf->entity.lock);
+}
+
+static int vsp2_wpf_s_ctrl(struct v4l2_ctrl *ctrl)
+{
+	struct vsp2_rwpf *wpf = container_of(ctrl->handler,
+					     struct vsp2_rwpf, ctrls);
+	struct vsp2_video *video = wpf->video;
+	int ret = 0;
+
+	switch (ctrl->id) {
+	case V4L2_CID_HFLIP:
+	case V4L2_CID_VFLIP:
+	case V4L2_CID_ROTATE:
+		mutex_lock(&video->lock);
+		if (vb2_is_busy(&video->queue))
+			ret = -EBUSY;
+		else
+			set_rotation(wpf, wpf->rotinfo.hflip->val,
+				     wpf->rotinfo.vflip->val,
+				     wpf->rotinfo.rotangle->val);
+		mutex_unlock(&video->lock);
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
 }
 
 static const struct vsp2_entity_operations wpf_entity_ops = {
@@ -272,6 +394,9 @@ static const struct vsp2_entity_operations wpf_entity_ops = {
 	.configure = wpf_configure,
 };
 
+static const struct v4l2_ctrl_ops vsp2_wpf_ctrl_ops = {
+	.s_ctrl = vsp2_wpf_s_ctrl,
+};
 /* -----------------------------------------------------------------------------
  * Initialization and Cleanup
  */
@@ -306,7 +431,19 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 			index);
 		goto error;
 	}
-
+	wpf->rotinfo.vflip = v4l2_ctrl_new_std(&wpf->ctrls,
+					&vsp2_wpf_ctrl_ops,
+					V4L2_CID_VFLIP, 0, 1, 1, 0);
+	wpf->rotinfo.hflip = v4l2_ctrl_new_std(&wpf->ctrls,
+					&vsp2_wpf_ctrl_ops,
+					V4L2_CID_HFLIP, 0, 1, 1, 0);
+	wpf->rotinfo.rotangle = v4l2_ctrl_new_std(&wpf->ctrls,
+					&vsp2_wpf_ctrl_ops,
+					V4L2_CID_ROTATE, 0, 270, 90, 0);
+	if (wpf->ctrls.error) {
+		ret = wpf->ctrls.error;
+		goto error;
+	}
 	wpf->fcp_fcnl = FCP_FCNL_DEF_VALUE;
 
 	return wpf;

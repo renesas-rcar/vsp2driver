@@ -84,6 +84,7 @@ struct v4l2_rect *vsp2_rwpf_get_compose(struct vsp2_rwpf *rwpf,
 
 int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity)
 {
+	struct vsp2_rwpf *wpf = entity_to_rwpf(entity);
 	const struct v4l2_mbus_framefmt *format;
 	const struct v4l2_rect *compose;
 	int ret = 0;
@@ -99,9 +100,15 @@ int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity)
 						RWPF_PAD_SOURCE,
 						V4L2_SEL_TGT_COMPOSE);
 
-	if (format->width != compose->width ||
-	    format->height != compose->height)
-		ret = -EINVAL;
+	if (!wpf->rotinfo.swap_sizes) {
+		if (format->width != compose->width ||
+		    format->height != compose->height)
+			ret = -EINVAL;
+	} else {
+		if (format->width != compose->height ||
+		    format->height != compose->width)
+			ret = -EINVAL;
+	}
 
 	return ret;
 }
@@ -166,12 +173,37 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	if (fmt->pad == RWPF_PAD_SOURCE) {
 		/* for WPF compose */
 		if (rwpf->entity.type == VSP2_ENTITY_WPF) {
-			format->width =
-				clamp_t(unsigned int, fmt->format.width,
+			struct v4l2_mbus_framefmt *sink;
+			unsigned int width;
+			unsigned int height;
+
+			width = clamp_t(unsigned int, fmt->format.width,
 					RWPF_MIN_WIDTH, rwpf->max_width);
-			format->height =
-				clamp_t(unsigned int, fmt->format.height,
+			height = clamp_t(unsigned int, fmt->format.height,
 					RWPF_MIN_HEIGHT, rwpf->max_height);
+			sink = vsp2_entity_get_pad_format(&rwpf->entity,
+						config, RWPF_PAD_SINK);
+			if (width == sink->width && height == sink->height) {
+				/*
+				 * If same sizes are set for sink pad and source
+				 * pad, width and height are depend on rotaion
+				 * angle.
+				 */
+				if (rwpf->rotinfo.swap_sizes) {
+					format->width = height;
+					format->height = width;
+				} else {
+					format->width = width;
+					format->height = height;
+				}
+			} else {
+				/*
+				 * If different sizes are set for sink pad and
+				 * source pad, do not auto size swap.
+				 */
+				format->width = width;
+				format->height = height;
+			}
 			compose = vsp2_rwpf_get_compose(rwpf, config);
 			compose->left = 0;
 			compose->top = 0;
@@ -212,6 +244,10 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 	format = vsp2_entity_get_pad_format(&rwpf->entity, config,
 					    RWPF_PAD_SOURCE);
 	*format = fmt->format;
+	if (rwpf->rotinfo.swap_sizes) {
+		format->width = fmt->format.height;
+		format->height = fmt->format.width;
+	}
 	if (rwpf->entity.type == VSP2_ENTITY_WPF) {
 		/* Propagate the format to the compose size. */
 		compose = vsp2_rwpf_get_compose(rwpf, config);
