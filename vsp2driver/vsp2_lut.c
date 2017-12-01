@@ -220,13 +220,13 @@ static void lut_configure(struct vsp2_entity *entity,
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 
 	if (lut->buff_v == NULL) {
-		VSP2_PRINT_ALERT("lut_configure() error!!<1>");
+		VSP2_PRINT_ALERT("%s() error!!<1>", __func__);
 		return;
 	}
 	if (copy_from_user(lut->buff_v,
 					(void __user *)lut->config.addr,
 					lut->config.tbl_num * 8))
-		VSP2_PRINT_ALERT("lut_configure() error<2>!!");
+		VSP2_PRINT_ALERT("%s() error<2>!!", __func__);
 
 	vsp_lut->lut.hard_addr  = (unsigned int)lut->buff_h;
 	vsp_lut->lut.virt_addr  = (void *)lut->buff_v;

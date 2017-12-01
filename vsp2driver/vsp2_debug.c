@@ -875,7 +875,7 @@ void vsp2_debug(struct vsp2_device *vsp2, void *args)
 		break;
 
 	default:
-		DEBMSG("## ERROR!! / vsp2_debug() unknown command...\n");
+		DEBMSG("## ERROR!! / %s() unknown command...\n", __func__);
 		DEBMSG("comamnd = %d\n", pdeb->command);
 		DEBMSG("param1  = %d\n", pdeb->param1);
 		DEBMSG("param2  = %d\n", pdeb->param2);

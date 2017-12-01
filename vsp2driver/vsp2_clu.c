@@ -226,13 +226,13 @@ static void clu_configure(struct vsp2_entity *entity,
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 
 	if (clu->buff_v == NULL) {
-		VSP2_PRINT_ALERT("clu_configure() error<1>!!");
+		VSP2_PRINT_ALERT("%s() error<1>!!", __func__);
 		return;
 	}
 	if (copy_from_user(clu->buff_v,
 					(void __user *)clu->config.addr,
 					clu->config.tbl_num * 8))
-		VSP2_PRINT_ALERT("clu_configure() error<2>!!");
+		VSP2_PRINT_ALERT("%s() error<2>!!", __func__);
 
 	vsp_clu->clu.hard_addr  = (unsigned int)clu->buff_h;
 	vsp_clu->clu.virt_addr	= (void *)clu->buff_v;

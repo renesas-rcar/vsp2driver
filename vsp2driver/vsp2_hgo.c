@@ -138,7 +138,7 @@ static void hgo_configure(struct vsp2_entity *entity,
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 		if (hgo->buff_v == NULL) {
-			VSP2_PRINT_ALERT("hgo_configure() error!!");
+			VSP2_PRINT_ALERT("%s() error!!", __func__);
 			return;
 		}
 	#ifdef TYPE_GEN2
