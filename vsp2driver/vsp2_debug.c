@@ -1,63 +1,63 @@
 /*************************************************************************/ /*
- VSP2
-
- Copyright (C) 2015-2016 Renesas Electronics Corporation
-
- License        Dual MIT/GPLv2
-
- The contents of this file are subject to the MIT license as set out below.
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- Alternatively, the contents of this file may be used under the terms of
- the GNU General Public License Version 2 ("GPL") in which case the provisions
- of GPL are applicable instead of those above.
-
- If you wish to allow use of your version of this file only under the terms of
- GPL, and not to allow others to use your version of this file under the terms
- of the MIT license, indicate your decision by deleting the provisions above
- and replace them with the notice and other provisions required by GPL as set
- out in the file called "GPL-COPYING" included in this distribution. If you do
- not delete the provisions above, a recipient may use your version of this file
- under the terms of either the MIT license or GPL.
-
- This License is also included in this distribution in the file called
- "MIT-COPYING".
-
- EXCEPT AS OTHERWISE STATED IN A NEGOTIATED AGREEMENT: (A) THE SOFTWARE IS
- PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- PURPOSE AND NONINFRINGEMENT; AND (B) IN NO EVENT SHALL THE AUTHORS OR
- COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
- GPLv2:
- If you wish to use this file under the terms of GPL, following terms are
- effective.
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; version 2 of the License.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/ /*************************************************************************/
+ * VSP2
+ *
+ * Copyright (C) 2015-2017 Renesas Electronics Corporation
+ *
+ * License        Dual MIT/GPLv2
+ *
+ * The contents of this file are subject to the MIT license as set out below.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * the GNU General Public License Version 2 ("GPL") in which case the provisions
+ * of GPL are applicable instead of those above.
+ *
+ * If you wish to allow use of your version of this file only under the terms of
+ * GPL, and not to allow others to use your version of this file under the terms
+ * of the MIT license, indicate your decision by deleting the provisions above
+ * and replace them with the notice and other provisions required by GPL as set
+ * out in the file called "GPL-COPYING" included in this distribution. If you do
+ * not delete the provisions above, a recipient may use your version of this
+ * file under the terms of either the MIT license or GPL.
+ *
+ * This License is also included in this distribution in the file called
+ * "MIT-COPYING".
+ *
+ * EXCEPT AS OTHERWISE STATED IN A NEGOTIATED AGREEMENT: (A) THE SOFTWARE IS
+ * PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE AND NONINFRINGEMENT; AND (B) IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+ * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *
+ * GPLv2:
+ * If you wish to use this file under the terms of GPL, following terms are
+ * effective.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */ /*************************************************************************/
 
 #ifdef VSP2_DEBUG
 
@@ -72,13 +72,15 @@
 
 /*-----------------------------------------------------------------------------
  * MACRO
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 
 #define DEBMSG	printk
 
 /*-----------------------------------------------------------------------------
  * Get Entity Name
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 const char *vsp2_debug_getEntityName(struct vsp2_entity *pentity)
 {
 	/* table */
@@ -122,12 +124,14 @@ const char *vsp2_debug_getEntityName(struct vsp2_entity *pentity)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static int s_tabCount;
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_tabs(void)
 {
 	const char	*ptabs = "";
@@ -181,7 +185,8 @@ static void print_tabs(void)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void inc_tab(const char *pname)
 {
 	s_tabCount++;
@@ -194,7 +199,8 @@ static void inc_tab(const char *pname)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void dec_tab(void)
 {
 	if (s_tabCount > 0)
@@ -203,7 +209,8 @@ static void dec_tab(void)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_uc(const char *pname, unsigned char value)
 {
 	print_tabs();
@@ -212,7 +219,8 @@ static void print_uc(const char *pname, unsigned char value)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_us(const char *pname, unsigned short value)
 {
 	print_tabs();
@@ -221,7 +229,8 @@ static void print_us(const char *pname, unsigned short value)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 #if 0
 static void print_ui(const char *pname, unsigned int value)
 {
@@ -231,7 +240,8 @@ static void print_ui(const char *pname, unsigned int value)
 #endif
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_ul(const char *pname, unsigned long value)
 {
 	print_tabs();
@@ -240,7 +250,8 @@ static void print_ul(const char *pname, unsigned long value)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 #if 0
 static void print_ull(const char *pname, unsigned long long value)
 {
@@ -253,7 +264,8 @@ static void print_ull(const char *pname, unsigned long long value)
 #endif
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 #if 0
 static void print_null(const char *pname)
 {
@@ -263,7 +275,8 @@ static void print_null(const char *pname)
 #endif
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_addr(const char *pname, void *ptr)
 {
 	print_tabs();
@@ -283,7 +296,8 @@ static void print_addr(const char *pname, void *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 #if 0
 static void print_vsp_xxx_t(const char *pname, struct vsp_xxx_t *ptr)
 {
@@ -297,7 +311,8 @@ static void print_vsp_xxx_t(const char *pname, struct vsp_xxx_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_irop_unit_t(
 	const char *pname, struct vsp_irop_unit_t *ptr)
 {
@@ -319,7 +334,8 @@ static void print_vsp_irop_unit_t(
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_ckey_unit_t(
 	const char *pname, struct vsp_ckey_unit_t *ptr)
 {
@@ -338,7 +354,8 @@ static void print_vsp_ckey_unit_t(
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_mult_unit_t(
 	const char *pname, struct vsp_mult_unit_t *ptr)
 {
@@ -356,7 +373,8 @@ static void print_vsp_mult_unit_t(
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_dl_t(const char *pname, struct vsp_dl_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -375,7 +393,8 @@ static void print_vsp_dl_t(const char *pname, struct vsp_dl_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_alpha_unit_t(
 	const char *pname, struct vsp_alpha_unit_t *ptr)
 {
@@ -402,7 +421,8 @@ static void print_vsp_alpha_unit_t(
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_src_t(const char *pname, struct vsp_src_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -444,7 +464,8 @@ static void print_vsp_src_t(const char *pname, struct vsp_src_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_dst_t(const char *pname, struct vsp_dst_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -483,7 +504,8 @@ static void print_vsp_dst_t(const char *pname, struct vsp_dst_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_sru_t(const char *pname, struct vsp_sru_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -495,7 +517,8 @@ static void print_vsp_sru_t(const char *pname, struct vsp_sru_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_uds_t(const char *pname, struct vsp_uds_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -521,7 +544,8 @@ static void print_vsp_uds_t(const char *pname, struct vsp_uds_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_lut_t(const char *pname, struct vsp_lut_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -533,7 +557,8 @@ static void print_vsp_lut_t(const char *pname, struct vsp_lut_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_clu_t(const char *pname, struct vsp_clu_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -545,7 +570,8 @@ static void print_vsp_clu_t(const char *pname, struct vsp_clu_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_hst_t(const char *pname, struct vsp_hst_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -557,7 +583,8 @@ static void print_vsp_hst_t(const char *pname, struct vsp_hst_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_hsi_t(const char *pname, struct vsp_hsi_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -569,7 +596,8 @@ static void print_vsp_hsi_t(const char *pname, struct vsp_hsi_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_bld_dither_t(
 	const char *pname, struct vsp_bld_dither_t *ptr)
 {
@@ -586,7 +614,8 @@ static void print_vsp_bld_dither_t(
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_bld_vir_t(const char *pname, struct vsp_bld_vir_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -606,7 +635,8 @@ static void print_vsp_bld_vir_t(const char *pname, struct vsp_bld_vir_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_bld_ctrl_t(const char *pname, struct vsp_bld_ctrl_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -631,7 +661,8 @@ static void print_vsp_bld_ctrl_t(const char *pname, struct vsp_bld_ctrl_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_bld_rop_t(const char *pname, struct vsp_bld_rop_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -647,7 +678,8 @@ static void print_vsp_bld_rop_t(const char *pname, struct vsp_bld_rop_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_bru_t(const char *pname, struct vsp_bru_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -678,7 +710,8 @@ static void print_vsp_bru_t(const char *pname, struct vsp_bru_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_hgo_t(const char *pname, struct vsp_hgo_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -690,7 +723,8 @@ static void print_vsp_hgo_t(const char *pname, struct vsp_hgo_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_hgt_t(const char *pname, struct vsp_hgt_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -702,7 +736,8 @@ static void print_vsp_hgt_t(const char *pname, struct vsp_hgt_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_shp_t(const char *pname, struct vsp_shp_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -714,7 +749,8 @@ static void print_vsp_shp_t(const char *pname, struct vsp_shp_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_drc_t(const char *pname, struct vsp_drc_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -726,7 +762,8 @@ static void print_vsp_drc_t(const char *pname, struct vsp_drc_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_vsp_ctrl_t(const char *pname, struct vsp_ctrl_t *ptr)
 {
 	print_addr(pname, ptr);
@@ -749,7 +786,8 @@ static void print_vsp_ctrl_t(const char *pname, struct vsp_ctrl_t *ptr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 void print_vspm_entry(void *addr)
 {
 	struct vsp_start_t *ptr = addr;
@@ -773,7 +811,8 @@ void print_vspm_entry(void *addr)
 
 /*-----------------------------------------------------------------------------
  *
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 void print_vspm_entry_cb(void)
 {
 	DEBMSG("<<<< vspm_entry_job() call !!\n");
@@ -781,7 +820,8 @@ void print_vspm_entry_cb(void)
 
 /*-----------------------------------------------------------------------------
  * print version
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 static void print_version(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
 {
 #ifdef TYPE_GEN2
@@ -793,7 +833,8 @@ static void print_version(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
 
 /*-----------------------------------------------------------------------------
  * vspm debug flgag
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 
 static bool	s_vspmDebugFlag;
 
@@ -815,7 +856,8 @@ bool vsp2_debug_vspmDebug(void)
 
 /*-----------------------------------------------------------------------------
  * debug
- *----------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------
+ */
 
 void vsp2_debug(struct vsp2_device *vsp2, void *args)
 {
