@@ -605,6 +605,7 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 			fence = reservation_object_get_excl_rcu(resv);
 			if (fence) {
 				int ret = dma_fence_wait(fence, true);
+
 				if (ret)
 					return ret;
 				dma_fence_put(fence);
