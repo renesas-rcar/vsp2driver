@@ -75,8 +75,9 @@ struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
 					RWPF_PAD_SINK);
 }
 
-struct v4l2_rect *vsp2_rwpf_get_compose(struct vsp2_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config)
+static struct v4l2_rect *vsp2_rwpf_get_compose(
+	struct vsp2_rwpf *rwpf,
+	struct v4l2_subdev_pad_config *config)
 {
 	return v4l2_subdev_get_try_compose(&rwpf->entity.subdev, config,
 					   RWPF_PAD_SOURCE);
