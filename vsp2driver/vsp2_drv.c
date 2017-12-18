@@ -237,7 +237,6 @@ static void vsp2_free_buffers(struct vsp2_device *vsp2)
 				  HGT_BUFF_SIZE,
 				  vsp2->hgt->buff_v,
 				  vsp2->hgt->buff_h);
-
 }
 #endif
 
