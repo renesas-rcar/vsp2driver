@@ -394,6 +394,7 @@ static const struct vsp2_entity_operations wpf_entity_ops = {
 static const struct v4l2_ctrl_ops vsp2_wpf_ctrl_ops = {
 	.s_ctrl = vsp2_wpf_s_ctrl,
 };
+
 /* -----------------------------------------------------------------------------
  * Initialization and Cleanup
  */
