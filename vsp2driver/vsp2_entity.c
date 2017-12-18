@@ -472,7 +472,7 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	/* Allocate and initialize pads. */
 	entity->pads = devm_kzalloc(vsp2->dev, num_pads * sizeof(*entity->pads),
 				    GFP_KERNEL);
-	if (entity->pads == NULL)
+	if (!entity->pads)
 		return -ENOMEM;
 
 	for (i = 0; i < num_pads - 1; ++i)
@@ -503,7 +503,7 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	 * rectangles.
 	 */
 	entity->config = v4l2_subdev_alloc_pad_config(&entity->subdev);
-	if (entity->config == NULL) {
+	if (!entity->config) {
 		media_entity_cleanup(&entity->subdev.entity);
 		return -ENOMEM;
 	}

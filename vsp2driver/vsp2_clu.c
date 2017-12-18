@@ -220,7 +220,7 @@ static void clu_configure(struct vsp2_entity *entity,
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 
-	if (clu->buff_v == NULL) {
+	if (!clu->buff_v) {
 		VSP2_PRINT_ALERT("%s() error<1>!!", __func__);
 		return;
 	}
@@ -257,7 +257,7 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 	int                 ret;
 
 	clu = devm_kzalloc(vsp2->dev, sizeof(*clu), GFP_KERNEL);
-	if (clu == NULL)
+	if (!clu)
 		return ERR_PTR(-ENOMEM);
 
 	clu->entity.ops = &clu_entity_ops;

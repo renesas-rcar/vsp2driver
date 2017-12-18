@@ -134,7 +134,7 @@ static void hgt_configure(struct vsp2_entity *entity,
 		vsp_par->use_module |= VSP_HGT_USE;
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-		if (hgt->buff_v == NULL) {
+		if (!hgt->buff_v) {
 			VSP2_PRINT_ALERT("%s() error!!", __func__);
 			return;
 		}
@@ -183,7 +183,7 @@ struct vsp2_hgt *vsp2_hgt_create(struct vsp2_device *vsp2)
 	int ret;
 
 	hgt = devm_kzalloc(vsp2->dev, sizeof(*hgt), GFP_KERNEL);
-	if (hgt == NULL)
+	if (!hgt)
 		return ERR_PTR(-ENOMEM);
 
 	hgt->entity.ops = &hgt_entity_ops;

@@ -308,7 +308,7 @@ bool vsp2_pipeline_ready(struct vsp2_pipeline *pipe)
 
 void vsp2_pipeline_frame_end(struct vsp2_pipeline *pipe)
 {
-	if (pipe == NULL)
+	if (!pipe)
 		return;
 
 	if (pipe->frame_end)
@@ -354,11 +354,11 @@ void vsp2_pipelines_suspend(struct vsp2_device *vsp2)
 		struct vsp2_rwpf *wpf = vsp2->wpf[i];
 		struct vsp2_pipeline *pipe;
 
-		if (wpf == NULL)
+		if (!wpf)
 			continue;
 
 		pipe = wpf->pipe;
-		if (pipe == NULL)
+		if (!pipe)
 			continue;
 
 		spin_lock_irqsave(&pipe->irqlock, flags);
@@ -371,11 +371,11 @@ void vsp2_pipelines_suspend(struct vsp2_device *vsp2)
 		struct vsp2_rwpf *wpf = vsp2->wpf[i];
 		struct vsp2_pipeline *pipe;
 
-		if (wpf == NULL)
+		if (!wpf)
 			continue;
 
 		pipe = wpf->pipe;
-		if (pipe == NULL)
+		if (!pipe)
 			continue;
 
 		ret = wait_event_timeout(pipe->wq, vsp2_pipeline_stopped(pipe),
@@ -396,11 +396,11 @@ void vsp2_pipelines_resume(struct vsp2_device *vsp2)
 		struct vsp2_rwpf *wpf = vsp2->wpf[i];
 		struct vsp2_pipeline *pipe;
 
-		if (wpf == NULL)
+		if (!wpf)
 			continue;
 
 		pipe = wpf->pipe;
-		if (pipe == NULL)
+		if (!pipe)
 			continue;
 
 		spin_lock_irqsave(&pipe->irqlock, flags);

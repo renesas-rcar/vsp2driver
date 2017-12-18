@@ -96,7 +96,7 @@ static void rpf_set_memory(struct vsp2_entity *entity)
 	struct vsp2_rwpf *rpf = entity_to_rwpf(entity);
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 
-	if (vsp_in == NULL) {
+	if (!vsp_in) {
 		dev_err(rpf->entity.vsp2->dev,
 			"failed to rpf queue. Invalid RPF index.\n");
 		return;
@@ -125,7 +125,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 	u16 vspm_format;
 
-	if (vsp_in == NULL) {
+	if (!vsp_in) {
 		dev_err(rpf->entity.vsp2->dev,
 			"failed to rpf stream. Invalid RPF index.\n");
 		return;
@@ -305,7 +305,7 @@ struct vsp2_rwpf *vsp2_rpf_create(struct vsp2_device *vsp2, unsigned int index)
 	int ret;
 
 	rpf = devm_kzalloc(vsp2->dev, sizeof(*rpf), GFP_KERNEL);
-	if (rpf == NULL)
+	if (!rpf)
 		return ERR_PTR(-ENOMEM);
 
 	rpf->max_width = RPF_MAX_WIDTH;

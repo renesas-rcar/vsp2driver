@@ -214,7 +214,7 @@ static void lut_configure(struct vsp2_entity *entity,
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 
-	if (lut->buff_v == NULL) {
+	if (!lut->buff_v) {
 		VSP2_PRINT_ALERT("%s() error!!<1>", __func__);
 		return;
 	}
@@ -252,7 +252,7 @@ struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 	int ret;
 
 	lut = devm_kzalloc(vsp2->dev, sizeof(*lut), GFP_KERNEL);
-	if (lut == NULL)
+	if (!lut)
 		return ERR_PTR(-ENOMEM);
 
 	lut->entity.ops = &lut_entity_ops;

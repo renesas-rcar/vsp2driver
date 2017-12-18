@@ -362,7 +362,7 @@ struct vsp2_uds *vsp2_uds_create(struct vsp2_device *vsp2, unsigned int index)
 	int ret;
 
 	uds = devm_kzalloc(vsp2->dev, sizeof(*uds), GFP_KERNEL);
-	if (uds == NULL)
+	if (!uds)
 		return ERR_PTR(-ENOMEM);
 
 	uds->entity.ops = &uds_entity_ops;

@@ -132,7 +132,7 @@ static void hgo_configure(struct vsp2_entity *entity,
 		vsp_par->use_module |= VSP_HGO_USE;
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-		if (hgo->buff_v == NULL) {
+		if (!hgo->buff_v) {
 			VSP2_PRINT_ALERT("%s() error!!", __func__);
 			return;
 		}
@@ -179,7 +179,7 @@ struct vsp2_hgo *vsp2_hgo_create(struct vsp2_device *vsp2)
 	int ret;
 
 	hgo = devm_kzalloc(vsp2->dev, sizeof(*hgo), GFP_KERNEL);
-	if (hgo == NULL)
+	if (!hgo)
 		return ERR_PTR(-ENOMEM);
 
 	hgo->entity.ops = &hgo_entity_ops;

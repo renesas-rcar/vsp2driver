@@ -183,7 +183,7 @@ static void print_tabs(void)
 static void inc_tab(const char *pname)
 {
 	s_tab_count++;
-	if (pname != NULL) {
+	if (pname) {
 		print_tabs();
 		DEBMSG("# %s\n", pname);
 	}
@@ -236,7 +236,7 @@ static void print_ul(const char *pname, unsigned long value)
 static void print_addr(const char *pname, void *ptr)
 {
 	print_tabs();
-	if (ptr == NULL) {
+	if (!ptr) {
 		DEBMSG("- %s is NULL !!\n", pname);
 	} else {
 #ifdef TYPE_GEN2
@@ -258,7 +258,7 @@ static void print_vsp_irop_unit_t(
 	const char *pname, struct vsp_irop_unit_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_irop_unit_t");
 
 		print_uc("op_mode", ptr->op_mode);
@@ -281,7 +281,7 @@ static void print_vsp_ckey_unit_t(
 	const char *pname, struct vsp_ckey_unit_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_ckey_unit_t");
 
 		print_uc("mode", ptr->mode);
@@ -301,7 +301,7 @@ static void print_vsp_mult_unit_t(
 	const char *pname, struct vsp_mult_unit_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_mult_unit_t");
 
 		print_uc("a_mmd", ptr->a_mmd);
@@ -319,7 +319,7 @@ static void print_vsp_mult_unit_t(
 static void print_vsp_dl_t(const char *pname, struct vsp_dl_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_dl_t");
 
 		print_addr("hard_addr", ptr->hard_addr);
@@ -339,7 +339,7 @@ static void print_vsp_alpha_unit_t(
 	const char *pname, struct vsp_alpha_unit_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_alpha_unit_t");
 
 		print_addr("addr_a     ", ptr->addr_a);
@@ -366,7 +366,7 @@ static void print_vsp_alpha_unit_t(
 static void print_vsp_src_t(const char *pname, struct vsp_src_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_src_t");
 
 		print_addr("addr", ptr->addr);
@@ -409,7 +409,7 @@ static void print_vsp_src_t(const char *pname, struct vsp_src_t *ptr)
 static void print_vsp_dst_t(const char *pname, struct vsp_dst_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_dst_t");
 
 		print_addr("addr", ptr->addr);
@@ -449,7 +449,7 @@ static void print_vsp_dst_t(const char *pname, struct vsp_dst_t *ptr)
 static void print_vsp_sru_t(const char *pname, struct vsp_sru_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_sru_t");
 		dec_tab();
 	}
@@ -462,7 +462,7 @@ static void print_vsp_sru_t(const char *pname, struct vsp_sru_t *ptr)
 static void print_vsp_uds_t(const char *pname, struct vsp_uds_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_uds_t");
 
 		print_uc("amd        ", ptr->amd);
@@ -489,7 +489,7 @@ static void print_vsp_uds_t(const char *pname, struct vsp_uds_t *ptr)
 static void print_vsp_lut_t(const char *pname, struct vsp_lut_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_lut_t");
 		dec_tab();
 	}
@@ -502,7 +502,7 @@ static void print_vsp_lut_t(const char *pname, struct vsp_lut_t *ptr)
 static void print_vsp_clu_t(const char *pname, struct vsp_clu_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_clu_t");
 		dec_tab();
 	}
@@ -515,7 +515,7 @@ static void print_vsp_clu_t(const char *pname, struct vsp_clu_t *ptr)
 static void print_vsp_hst_t(const char *pname, struct vsp_hst_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_hst_t");
 		dec_tab();
 	}
@@ -528,7 +528,7 @@ static void print_vsp_hst_t(const char *pname, struct vsp_hst_t *ptr)
 static void print_vsp_hsi_t(const char *pname, struct vsp_hsi_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_hsi_t");
 		dec_tab();
 	}
@@ -542,7 +542,7 @@ static void print_vsp_bld_dither_t(
 	const char *pname, struct vsp_bld_dither_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_bld_dither_t");
 
 		print_uc("mode", ptr->mode);
@@ -559,7 +559,7 @@ static void print_vsp_bld_dither_t(
 static void print_vsp_bld_vir_t(const char *pname, struct vsp_bld_vir_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_bld_vir_t");
 
 		print_us("width         ", ptr->width);
@@ -580,7 +580,7 @@ static void print_vsp_bld_vir_t(const char *pname, struct vsp_bld_vir_t *ptr)
 static void print_vsp_bld_ctrl_t(const char *pname, struct vsp_bld_ctrl_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_bld_ctrl_t");
 
 		print_uc("rbc           ", ptr->rbc);
@@ -606,7 +606,7 @@ static void print_vsp_bld_ctrl_t(const char *pname, struct vsp_bld_ctrl_t *ptr)
 static void print_vsp_bld_rop_t(const char *pname, struct vsp_bld_rop_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_bld_rop_t");
 
 		print_uc("crop", ptr->crop);
@@ -623,7 +623,7 @@ static void print_vsp_bld_rop_t(const char *pname, struct vsp_bld_rop_t *ptr)
 static void print_vsp_bru_t(const char *pname, struct vsp_bru_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_bru_t");
 
 		print_ul("lay_order", ptr->lay_order);
@@ -655,7 +655,7 @@ static void print_vsp_bru_t(const char *pname, struct vsp_bru_t *ptr)
 static void print_vsp_hgo_t(const char *pname, struct vsp_hgo_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_hgo_t");
 		dec_tab();
 	}
@@ -668,7 +668,7 @@ static void print_vsp_hgo_t(const char *pname, struct vsp_hgo_t *ptr)
 static void print_vsp_hgt_t(const char *pname, struct vsp_hgt_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_hgt_t");
 		dec_tab();
 	}
@@ -681,7 +681,7 @@ static void print_vsp_hgt_t(const char *pname, struct vsp_hgt_t *ptr)
 static void print_vsp_shp_t(const char *pname, struct vsp_shp_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_shp_t");
 		dec_tab();
 	}
@@ -694,7 +694,7 @@ static void print_vsp_shp_t(const char *pname, struct vsp_shp_t *ptr)
 static void print_vsp_drc_t(const char *pname, struct vsp_drc_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_drc_t");
 		dec_tab();
 	}
@@ -707,7 +707,7 @@ static void print_vsp_drc_t(const char *pname, struct vsp_drc_t *ptr)
 static void print_vsp_ctrl_t(const char *pname, struct vsp_ctrl_t *ptr)
 {
 	print_addr(pname, ptr);
-	if (ptr != NULL) {
+	if (ptr) {
 		inc_tab("struct vsp_ctrl_t");
 		print_vsp_sru_t("sru", ptr->sru);/* super-resolution */
 		print_vsp_uds_t("uds", ptr->uds);/* up down scaler */

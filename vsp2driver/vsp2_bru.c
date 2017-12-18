@@ -464,7 +464,7 @@ struct vsp2_bru *vsp2_bru_create(struct vsp2_device *vsp2)
 	int ret;
 
 	bru = devm_kzalloc(vsp2->dev, sizeof(*bru), GFP_KERNEL);
-	if (bru == NULL)
+	if (!bru)
 		return ERR_PTR(-ENOMEM);
 
 	bru->entity.ops = &bru_entity_ops;

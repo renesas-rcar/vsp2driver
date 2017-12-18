@@ -406,7 +406,7 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 	int ret;
 
 	wpf = devm_kzalloc(vsp2->dev, sizeof(*wpf), GFP_KERNEL);
-	if (wpf == NULL)
+	if (!wpf)
 		return ERR_PTR(-ENOMEM);
 
 	wpf->max_width = WPF_MAX_WIDTH;

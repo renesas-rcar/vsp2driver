@@ -178,7 +178,7 @@ static int vsp2_vspm_alloc_vsp_in(struct device *dev, struct vsp_src_t **in)
 	struct vsp_src_t *vsp_in = NULL;
 
 	vsp_in = devm_kzalloc(dev, sizeof(*vsp_in), GFP_KERNEL);
-	if (vsp_in == NULL) {
+	if (!vsp_in) {
 		*in = NULL;
 		return -ENOMEM;
 	}
@@ -187,12 +187,12 @@ static int vsp2_vspm_alloc_vsp_in(struct device *dev, struct vsp_src_t **in)
 
 	vsp_in->alpha =
 	  devm_kzalloc(dev, sizeof(*vsp_in->alpha), GFP_KERNEL);
-	if (vsp_in->alpha == NULL)
+	if (!vsp_in->alpha)
 		return -ENOMEM;
 
 	vsp_in->alpha->mult =
 	  devm_kzalloc(dev, sizeof(*vsp_in->alpha->mult), GFP_KERNEL);
-	if (vsp_in->alpha->mult == NULL)
+	if (!vsp_in->alpha->mult)
 		return -ENOMEM;
 
 	return 0;
@@ -203,7 +203,7 @@ static int vsp2_vspm_alloc_vsp_bru(struct device *dev, struct vsp_bru_t **bru)
 	struct vsp_bru_t *vsp_bru = NULL;
 
 	vsp_bru = devm_kzalloc(dev, sizeof(*vsp_bru), GFP_KERNEL);
-	if (vsp_bru == NULL) {
+	if (!vsp_bru) {
 		*bru = NULL;
 		return -ENOMEM;
 	}
@@ -212,28 +212,28 @@ static int vsp2_vspm_alloc_vsp_bru(struct device *dev, struct vsp_bru_t **bru)
 
 	vsp_bru->blend_virtual =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_virtual), GFP_KERNEL);
-	if (vsp_bru->blend_virtual == NULL)
+	if (!vsp_bru->blend_virtual)
 		return -ENOMEM;
 
 	vsp_bru->blend_unit_a =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_unit_a), GFP_KERNEL);
-	if (vsp_bru->blend_unit_a == NULL)
+	if (!vsp_bru->blend_unit_a)
 		return -ENOMEM;
 	vsp_bru->blend_unit_b =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_unit_b), GFP_KERNEL);
-	if (vsp_bru->blend_unit_b == NULL)
+	if (!vsp_bru->blend_unit_b)
 		return -ENOMEM;
 	vsp_bru->blend_unit_c =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_unit_c), GFP_KERNEL);
-	if (vsp_bru->blend_unit_c == NULL)
+	if (!vsp_bru->blend_unit_c)
 		return -ENOMEM;
 	vsp_bru->blend_unit_d =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_unit_d), GFP_KERNEL);
-	if (vsp_bru->blend_unit_d == NULL)
+	if (!vsp_bru->blend_unit_d)
 		return -ENOMEM;
 	vsp_bru->blend_unit_e =
 	  devm_kzalloc(dev, sizeof(*vsp_bru->blend_unit_e), GFP_KERNEL);
-	if (vsp_bru->blend_unit_e == NULL)
+	if (!vsp_bru->blend_unit_e)
 		return -ENOMEM;
 
 	return 0;
@@ -244,7 +244,7 @@ static int vsp2_vspm_alloc_vsp_brs(struct device *dev, struct vsp_brs_t **brs)
 	struct vsp_brs_t *vsp_brs = NULL;
 
 	vsp_brs = devm_kzalloc(dev, sizeof(*vsp_brs), GFP_KERNEL);
-	if (vsp_brs == NULL) {
+	if (!vsp_brs) {
 		*brs = NULL;
 		return -ENOMEM;
 	}
@@ -253,16 +253,16 @@ static int vsp2_vspm_alloc_vsp_brs(struct device *dev, struct vsp_brs_t **brs)
 
 	vsp_brs->blend_virtual =
 	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_virtual), GFP_KERNEL);
-	if (vsp_brs->blend_virtual == NULL)
+	if (!vsp_brs->blend_virtual)
 		return -ENOMEM;
 
 	vsp_brs->blend_unit_a =
 	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_unit_a), GFP_KERNEL);
-	if (vsp_brs->blend_unit_a == NULL)
+	if (!vsp_brs->blend_unit_a)
 		return -ENOMEM;
 	vsp_brs->blend_unit_b =
 	  devm_kzalloc(dev, sizeof(*vsp_brs->blend_unit_b), GFP_KERNEL);
-	if (vsp_brs->blend_unit_b == NULL)
+	if (!vsp_brs->blend_unit_b)
 		return -ENOMEM;
 
 	return 0;
@@ -277,14 +277,14 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	dma_addr_t	hard_addr;		/* for dl_par */
 
 	vsp2->vspm = devm_kzalloc(vsp2->dev, sizeof(*vsp2->vspm), GFP_KERNEL);
-	if (vsp2->vspm == NULL)
+	if (!vsp2->vspm)
 		return -ENOMEM;
 
 	vsp2->vspm->ip_par.par.vsp =
 		devm_kzalloc(vsp2->dev,
 			     sizeof(*vsp2->vspm->ip_par.par.vsp),
 			     GFP_KERNEL);
-	if (vsp2->vspm->ip_par.par.vsp == NULL)
+	if (!vsp2->vspm->ip_par.par.vsp)
 		return -ENOMEM;
 
 	vsp_par = vsp2->vspm->ip_par.par.vsp;
@@ -297,17 +297,17 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 
 	vsp_par->dst_par =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->dst_par), GFP_KERNEL);
-	if (vsp_par->dst_par == NULL)
+	if (!vsp_par->dst_par)
 		return -ENOMEM;
 
 	vsp_par->dst_par->fcp =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->dst_par->fcp), GFP_KERNEL);
-	if (vsp_par->dst_par->fcp == NULL)
+	if (!vsp_par->dst_par->fcp)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par), GFP_KERNEL);
-	if (vsp_par->ctrl_par == NULL)
+	if (!vsp_par->ctrl_par)
 		return -ENOMEM;
 
 	ret = vsp2_vspm_alloc_vsp_bru(vsp2->dev, &vsp_par->ctrl_par->bru);
@@ -320,32 +320,32 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 
 	vsp_par->ctrl_par->uds =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par->uds), GFP_KERNEL);
-	if (vsp_par->ctrl_par->uds == NULL)
+	if (!vsp_par->ctrl_par->uds)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par->lut =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par->lut), GFP_KERNEL);
-	if (vsp_par->ctrl_par->lut == NULL)
+	if (!vsp_par->ctrl_par->lut)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par->clu =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par->clu), GFP_KERNEL);
-	if (vsp_par->ctrl_par->clu == NULL)
+	if (!vsp_par->ctrl_par->clu)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par->hgo =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par->hgo), GFP_KERNEL);
-	if (vsp_par->ctrl_par->hgo == NULL)
+	if (!vsp_par->ctrl_par->hgo)
 		return -ENOMEM;
 
 	vsp_par->ctrl_par->hgt =
 	  devm_kzalloc(vsp2->dev, sizeof(*vsp_par->ctrl_par->hgt), GFP_KERNEL);
-	if (vsp_par->ctrl_par->hgt == NULL)
+	if (!vsp_par->ctrl_par->hgt)
 		return -ENOMEM;
 
 	virt_addr = dma_alloc_coherent(vsp2->dev, (128 + 2048) * 8,
 				       &hard_addr, GFP_KERNEL | GFP_DMA);
-	if (virt_addr == NULL)
+	if (!virt_addr)
 		return -ENOMEM;
 
 	vsp_par->dl_par.hard_addr = (unsigned int)(hard_addr);

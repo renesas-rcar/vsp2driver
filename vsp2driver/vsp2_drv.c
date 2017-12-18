@@ -93,7 +93,7 @@ void vsp2_frame_end(struct vsp2_device *vsp2)
 		struct vsp2_rwpf *wpf = vsp2->wpf[i];
 		struct vsp2_pipeline *pipe;
 
-		if (wpf == NULL)
+		if (!wpf)
 			continue;
 
 		pipe = to_vsp2_pipeline(&wpf->entity.subdev.entity);
@@ -214,25 +214,25 @@ static int vsp2_create_links(struct vsp2_device *vsp2)
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 static void vsp2_free_buffers(struct vsp2_device *vsp2)
 {
-	if (vsp2->lut != NULL && vsp2->lut->buff_v != NULL)
+	if (vsp2->lut && vsp2->lut->buff_v)
 		dma_free_coherent(vsp2->dev,
 				  LUT_BUFF_SIZE,
 				  vsp2->lut->buff_v,
 				  vsp2->lut->buff_h);
 
-	if (vsp2->clu != NULL && vsp2->clu->buff_v != NULL)
+	if (vsp2->clu && vsp2->clu->buff_v)
 		dma_free_coherent(vsp2->dev,
 				  CLU_BUFF_SIZE,
 				  vsp2->clu->buff_v,
 				  vsp2->clu->buff_h);
 
-	if (vsp2->hgo != NULL && vsp2->hgo->buff_v != NULL)
+	if (vsp2->hgo && vsp2->hgo->buff_v)
 		dma_free_coherent(vsp2->dev,
 				  HGO_BUFF_SIZE,
 				  vsp2->hgo->buff_v,
 				  vsp2->hgo->buff_h);
 
-	if (vsp2->hgt != NULL && vsp2->hgt->buff_v != NULL)
+	if (vsp2->hgt && vsp2->hgt->buff_v)
 		dma_free_coherent(vsp2->dev,
 				  HGT_BUFF_SIZE,
 				  vsp2->hgt->buff_v,
@@ -640,7 +640,7 @@ static int vsp2_probe(struct platform_device *pdev)
 	int ret;
 
 	vsp2 = devm_kzalloc(&pdev->dev, sizeof(*vsp2), GFP_KERNEL);
-	if (vsp2 == NULL)
+	if (!vsp2)
 		return -ENOMEM;
 
 	vsp2->dev = &pdev->dev;

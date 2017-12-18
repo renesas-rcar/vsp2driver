@@ -121,7 +121,7 @@ static int vsp2_video_verify_format(struct vsp2_video *video)
 	int ret;
 
 	subdev = vsp2_video_remote_subdev(&video->pad, &fmt.pad);
-	if (subdev == NULL)
+	if (!subdev)
 		return -EINVAL;
 
 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
@@ -168,7 +168,7 @@ static int __vsp2_video_try_format(struct vsp2_video *video,
 	 * requested format isn't supported.
 	 */
 	info = vsp2_get_format_info(pix->pixelformat);
-	if (info == NULL)
+	if (!info)
 		info = vsp2_get_format_info(VSP2_VIDEO_DEF_FORMAT);
 
 	pix->pixelformat = info->fourcc;
@@ -274,7 +274,7 @@ static void vsp2_video_frame_end(struct vsp2_pipeline *pipe,
 	struct vsp2_vb2_buffer *buf;
 
 	buf = vsp2_video_complete_buffer(video);
-	if (buf == NULL)
+	if (!buf)
 		return;
 
 	video->rwpf->mem = buf->mem;
@@ -348,7 +348,7 @@ static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
 
 	while (1) {
-		if (pad == NULL) {
+		if (!pad) {
 			ret = -EPIPE;
 			goto out;
 		}
@@ -657,10 +657,10 @@ static void vsp2_video_buffer_finish(struct vb2_buffer *vb)
 
 	/* subdevice return proccess */
 
-	if (video->vsp2->hgo != NULL)
+	if (video->vsp2->hgo)
 		vsp2_hgo_buffer_finish(video->vsp2->hgo);
 
-	if (video->vsp2->hgt != NULL)
+	if (video->vsp2->hgt)
 		vsp2_hgt_buffer_finish(video->vsp2->hgt);
 }
 
@@ -737,7 +737,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	/* - HGO */
 
 	entity = &video->vsp2->hgo->entity;
-	if (entity != NULL) {
+	if (entity) {
 		if (entity->ops->configure)
 			entity->ops->configure(entity, pipe);
 	}
@@ -745,7 +745,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	/* - HGT */
 
 	entity = &video->vsp2->hgt->entity;
-	if (entity != NULL) {
+	if (entity) {
 		if (entity->ops->configure)
 			entity->ops->configure(entity, pipe);
 	}
@@ -1127,7 +1127,7 @@ static int vsp2_video_open(struct file *file)
 	int ret = 0;
 
 	vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
-	if (vfh == NULL)
+	if (!vfh)
 		return -ENOMEM;
 
 	v4l2_fh_init(vfh, &video->video);
