@@ -219,8 +219,8 @@ static void lut_configure(struct vsp2_entity *entity,
 		return;
 	}
 	if (copy_from_user(lut->buff_v,
-					(void __user *)lut->config.addr,
-					lut->config.tbl_num * 8))
+			   (void __user *)lut->config.addr,
+			   lut->config.tbl_num * 8))
 		VSP2_PRINT_ALERT("%s() error<2>!!", __func__);
 
 	vsp_lut->lut.hard_addr  = (unsigned int)lut->buff_h;
@@ -265,7 +265,8 @@ struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	lut->buff_v = dma_alloc_coherent(vsp2->dev,
-		LUT_BUFF_SIZE, &lut->buff_h, GFP_KERNEL|GFP_DMA);
+					 LUT_BUFF_SIZE, &lut->buff_h,
+					 GFP_KERNEL|GFP_DMA);
 #endif
 
 	return lut;

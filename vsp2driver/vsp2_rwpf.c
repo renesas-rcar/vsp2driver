@@ -177,9 +177,9 @@ static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
 			width = clamp_t(unsigned int, fmt->format.width,
 					RWPF_MIN_WIDTH, rwpf->max_width);
 			height = clamp_t(unsigned int, fmt->format.height,
-					RWPF_MIN_HEIGHT, rwpf->max_height);
-			sink = vsp2_entity_get_pad_format(&rwpf->entity,
-						config, RWPF_PAD_SINK);
+					 RWPF_MIN_HEIGHT, rwpf->max_height);
+			sink = vsp2_entity_get_pad_format(&rwpf->entity, config,
+							  RWPF_PAD_SINK);
 			if (width == sink->width && height == sink->height) {
 				/*
 				 * If same sizes are set for sink pad and source

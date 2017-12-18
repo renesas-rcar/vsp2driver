@@ -149,8 +149,8 @@ static int vsp2_create_sink_links(struct vsp2_device *vsp2,
 				continue;
 
 			ret = media_create_pad_link(&source->subdev.entity,
-						       source->source_pad,
-						       entity, pad, flags);
+						    source->source_pad,
+						    entity, pad, flags);
 			if (ret < 0)
 				return ret;
 
@@ -183,10 +183,10 @@ static int vsp2_create_links(struct vsp2_device *vsp2)
 		struct vsp2_rwpf *rpf = vsp2->rpf[i];
 
 		ret = media_create_pad_link(&rpf->video->video.entity, 0,
-					       &rpf->entity.subdev.entity,
-					       RWPF_PAD_SINK,
-					       MEDIA_LNK_FL_ENABLED |
-					       MEDIA_LNK_FL_IMMUTABLE);
+					    &rpf->entity.subdev.entity,
+					    RWPF_PAD_SINK,
+					    MEDIA_LNK_FL_ENABLED |
+					    MEDIA_LNK_FL_IMMUTABLE);
 		if (ret < 0)
 			return ret;
 	}
@@ -201,9 +201,9 @@ static int vsp2_create_links(struct vsp2_device *vsp2)
 		flags |= MEDIA_LNK_FL_IMMUTABLE;
 
 		ret = media_create_pad_link(&wpf->entity.subdev.entity,
-					       RWPF_PAD_SOURCE,
-					       &wpf->video->video.entity,
-					       0, flags);
+					    RWPF_PAD_SOURCE,
+					    &wpf->video->video.entity,
+					    0, flags);
 		if (ret < 0)
 			return ret;
 	}
@@ -216,27 +216,27 @@ static void vsp2_free_buffers(struct vsp2_device *vsp2)
 {
 	if (vsp2->lut != NULL && vsp2->lut->buff_v != NULL)
 		dma_free_coherent(vsp2->dev,
-							LUT_BUFF_SIZE,
-							vsp2->lut->buff_v,
-							vsp2->lut->buff_h);
+				  LUT_BUFF_SIZE,
+				  vsp2->lut->buff_v,
+				  vsp2->lut->buff_h);
 
 	if (vsp2->clu != NULL && vsp2->clu->buff_v != NULL)
 		dma_free_coherent(vsp2->dev,
-							CLU_BUFF_SIZE,
-							vsp2->clu->buff_v,
-							vsp2->clu->buff_h);
+				  CLU_BUFF_SIZE,
+				  vsp2->clu->buff_v,
+				  vsp2->clu->buff_h);
 
 	if (vsp2->hgo != NULL && vsp2->hgo->buff_v != NULL)
 		dma_free_coherent(vsp2->dev,
-							HGO_BUFF_SIZE,
-							vsp2->hgo->buff_v,
-							vsp2->hgo->buff_h);
+				  HGO_BUFF_SIZE,
+				  vsp2->hgo->buff_v,
+				  vsp2->hgo->buff_h);
 
 	if (vsp2->hgt != NULL && vsp2->hgt->buff_v != NULL)
 		dma_free_coherent(vsp2->dev,
-							HGT_BUFF_SIZE,
-							vsp2->hgt->buff_v,
-							vsp2->hgt->buff_h);
+				  HGT_BUFF_SIZE,
+				  vsp2->hgt->buff_v,
+				  vsp2->hgt->buff_h);
 
 }
 #endif

@@ -726,7 +726,7 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 	/* check rpf setting */
 
 	if (vsp_start->rpf_num > 0 &&
-		vsp_start->rpf_num != (max_index_rpf + 1)) {
+	    vsp_start->rpf_num != (max_index_rpf + 1)) {
 
 		VSP2_PRINT_ALERT("rpf setting error !!");
 
@@ -809,7 +809,7 @@ error_end:
 		struct vsp2_vb2_buffer *buffer;
 
 		buffer = list_entry(video->irqqueue.next,
-					struct vsp2_vb2_buffer, queue);
+				    struct vsp2_vb2_buffer, queue);
 		list_del(&buffer->queue);
 		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_QUEUED);
 	}
@@ -1009,7 +1009,7 @@ err_pipe:
 }
 
 static int vsp2_g_ext_ctrls(struct file *file, void *fh,
-		struct v4l2_ext_controls *ctrls)
+			    struct v4l2_ext_controls *ctrls)
 {
 	struct v4l2_fh *vfh = file->private_data;
 	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
@@ -1037,7 +1037,7 @@ static int vsp2_g_ext_ctrls(struct file *file, void *fh,
 }
 
 static int vsp2_s_ext_ctrls(struct file *file, void *fh,
-		struct v4l2_ext_controls *ctrls)
+			    struct v4l2_ext_controls *ctrls)
 {
 	struct v4l2_fh *vfh = file->private_data;
 	struct vsp2_video *video = to_vsp2_video(vfh->vdev);
@@ -1068,7 +1068,7 @@ static int vsp2_s_ext_ctrls(struct file *file, void *fh,
 }
 
 static int vsp2_try_ext_ctrls(struct file *file, void *fh,
-		struct v4l2_ext_controls *ctrls)
+			      struct v4l2_ext_controls *ctrls)
 {
 	struct v4l2_fh *vfh = file->private_data;
 	struct vsp2_video *video = to_vsp2_video(vfh->vdev);

@@ -226,8 +226,8 @@ static void clu_configure(struct vsp2_entity *entity,
 		return;
 	}
 	if (copy_from_user(clu->buff_v,
-					(void __user *)clu->config.addr,
-					clu->config.tbl_num * 8))
+			   (void __user *)clu->config.addr,
+			   clu->config.tbl_num * 8))
 		VSP2_PRINT_ALERT("%s() error<2>!!", __func__);
 
 	vsp_clu->clu.hard_addr  = (unsigned int)clu->buff_h;
@@ -271,7 +271,8 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	clu->buff_v = dma_alloc_coherent(vsp2->dev,
-		CLU_BUFF_SIZE, &clu->buff_h, GFP_KERNEL|GFP_DMA);
+					 CLU_BUFF_SIZE, &clu->buff_h,
+					 GFP_KERNEL|GFP_DMA);
 #endif
 
 	return clu;

@@ -428,14 +428,15 @@ struct vsp2_rwpf *vsp2_wpf_create(struct vsp2_device *vsp2, unsigned int index)
 		goto error;
 	}
 	wpf->rotinfo.vflip = v4l2_ctrl_new_std(&wpf->ctrls,
-					&vsp2_wpf_ctrl_ops,
-					V4L2_CID_VFLIP, 0, 1, 1, 0);
+					       &vsp2_wpf_ctrl_ops,
+					       V4L2_CID_VFLIP, 0, 1, 1, 0);
 	wpf->rotinfo.hflip = v4l2_ctrl_new_std(&wpf->ctrls,
-					&vsp2_wpf_ctrl_ops,
-					V4L2_CID_HFLIP, 0, 1, 1, 0);
+					       &vsp2_wpf_ctrl_ops,
+					       V4L2_CID_HFLIP, 0, 1, 1, 0);
 	wpf->rotinfo.rotangle = v4l2_ctrl_new_std(&wpf->ctrls,
-					&vsp2_wpf_ctrl_ops,
-					V4L2_CID_ROTATE, 0, 270, 90, 0);
+						  &vsp2_wpf_ctrl_ops,
+						  V4L2_CID_ROTATE,
+						  0, 270, 90, 0);
 	if (wpf->ctrls.error) {
 		ret = wpf->ctrls.error;
 		goto error;

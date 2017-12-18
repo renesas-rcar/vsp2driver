@@ -85,12 +85,12 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 		/* Initialize struct vsp_alpha_unit_t. */
 		temp_vp = vsp_par->src_par[i]->alpha->mult;
 		memset(vsp_par->src_par[i]->alpha,
-				0x00, sizeof(struct vsp_alpha_unit_t));
+		       0x00, sizeof(struct vsp_alpha_unit_t));
 		vsp_par->src_par[i]->alpha->mult = temp_vp;
 
 		/* Initialize struct vsp_mult_unit_t. */
 		memset(vsp_par->src_par[i]->alpha->mult,
-				0x00, sizeof(struct vsp_mult_unit_t));
+		       0x00, sizeof(struct vsp_mult_unit_t));
 	}
 
 	/* Initialize struct vsp_dst_t. */
@@ -108,15 +108,15 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 	vsp_par->ctrl_par->bru->lay_order	= 0;
 	vsp_par->ctrl_par->bru->adiv		= 0;
 	memset(vsp_par->ctrl_par->bru->dither_unit,
-		0x00,
-		sizeof(vsp_par->ctrl_par->bru->dither_unit));
+	       0x00,
+	       sizeof(vsp_par->ctrl_par->bru->dither_unit));
 	vsp_par->ctrl_par->bru->rop_unit	= NULL;
 	vsp_par->ctrl_par->bru->connect		= 0;
 
 	/* Initialize struct vsp_bld_vir_t. */
 	memset(vsp_par->ctrl_par->bru->blend_virtual,
-		0x00,
-		sizeof(struct vsp_bld_vir_t));
+	       0x00,
+	       sizeof(struct vsp_bld_vir_t));
 
 	for (i = 0; i < 5; i++) {
 		struct vsp_bld_ctrl_t *vsp_blend_ctrl;
@@ -155,22 +155,22 @@ void vsp2_vspm_param_init(struct vspm_job_t *par)
 	vsp_par->ctrl_par->brs->lay_order	= 0;
 	vsp_par->ctrl_par->brs->adiv		= 0;
 	memset(vsp_par->ctrl_par->brs->dither_unit,
-		0x00,
-		sizeof(vsp_par->ctrl_par->brs->dither_unit));
+	       0x00,
+	       sizeof(vsp_par->ctrl_par->brs->dither_unit));
 	vsp_par->ctrl_par->brs->connect		= 0;
 
 	/* Initialize struct vsp_bld_vir_t. */
 	memset(vsp_par->ctrl_par->brs->blend_virtual,
-		0x00,
-		sizeof(struct vsp_bld_vir_t));
+	       0x00,
+	       sizeof(struct vsp_bld_vir_t));
 
 	memset(vsp_par->ctrl_par->brs->blend_unit_a,
-		0x00,
-		sizeof(struct vsp_bld_ctrl_t));
+	       0x00,
+	       sizeof(struct vsp_bld_ctrl_t));
 
 	memset(vsp_par->ctrl_par->brs->blend_unit_b,
-		0x00,
-		sizeof(struct vsp_bld_ctrl_t));
+	       0x00,
+	       sizeof(struct vsp_bld_ctrl_t));
 }
 
 static int vsp2_vspm_alloc_vsp_in(struct device *dev, struct vsp_src_t **in)
@@ -282,8 +282,8 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 
 	vsp2->vspm->ip_par.par.vsp =
 		devm_kzalloc(vsp2->dev,
-		sizeof(*vsp2->vspm->ip_par.par.vsp),
-		GFP_KERNEL);
+			     sizeof(*vsp2->vspm->ip_par.par.vsp),
+			     GFP_KERNEL);
 	if (vsp2->vspm->ip_par.par.vsp == NULL)
 		return -ENOMEM;
 
@@ -344,7 +344,7 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 		return -ENOMEM;
 
 	virt_addr = dma_alloc_coherent(vsp2->dev, (128+2048)*8,
-						&hard_addr, GFP_KERNEL|GFP_DMA);
+				       &hard_addr, GFP_KERNEL|GFP_DMA);
 	if (virt_addr == NULL)
 		return -ENOMEM;
 
