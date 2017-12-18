@@ -456,7 +456,6 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	for (i = 0; i < ARRAY_SIZE(vsp2_routes); ++i) {
 		if (vsp2_routes[i].type == entity->type &&
 		    vsp2_routes[i].index == entity->index) {
-
 			flag = true; /* found !! */
 			break;
 		}

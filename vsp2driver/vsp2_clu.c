@@ -147,7 +147,6 @@ static int clu_set_format(
 	format = vsp2_entity_get_pad_format(&clu->entity, config, fmt->pad);
 
 	if (fmt->pad == CLU_PAD_SOURCE) {
-
 		/* The CLU output format can't be modified. */
 
 		format->code    = fmt->format.code;

@@ -105,9 +105,7 @@ const char *vsp2_debug_get_entity_name(struct vsp2_entity *pentity)
 	int     i;
 
 	for (i = 0; i < count; i++) {
-
 		if (pentry->type == pentity->type) {
-
 			pname = pentry->pname;
 			break;
 		}
@@ -186,7 +184,6 @@ static void inc_tab(const char *pname)
 {
 	s_tab_count++;
 	if (pname != NULL) {
-
 		print_tabs();
 		DEBMSG("# %s\n", pname);
 	}
@@ -323,7 +320,6 @@ static void print_vsp_dl_t(const char *pname, struct vsp_dl_t *ptr)
 {
 	print_addr(pname, ptr);
 	if (ptr != NULL) {
-
 		inc_tab("struct vsp_dl_t");
 
 		print_addr("hard_addr", ptr->hard_addr);

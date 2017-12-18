@@ -127,7 +127,6 @@ static void hgt_configure(struct vsp2_entity *entity,
 	struct vsp_hgt_t *vsp_hgt = vsp_par->ctrl_par->hgt;
 
 	if (hgt->set_hgt == 1) {
-
 		int i;
 
 		/* VSPM parameter */
@@ -163,7 +162,6 @@ static void hgt_configure(struct vsp2_entity *entity,
 		vsp_hgt->y_skip		= VSP_SKIP_OFF;
 
 		for (i = 0; i < 6; i++) {
-
 			vsp_hgt->area[i].lower	= hgt->config.area[i].lower;
 			vsp_hgt->area[i].upper	= hgt->config.area[i].upper;
 		}
@@ -218,19 +216,16 @@ void vsp2_hgt_buffer_finish(struct vsp2_hgt *hgt)
 	int i;
 
 	if (hgt->set_hgt == 1) {
-
 		hgt->set_hgt = 0;
 
 		remain = (int)copy_to_user(
 			hgt->config.addr, hgt->buff_v, HGT_BUFF_SIZE);
 
 		if (remain > 0) {
-
 			VSP2_PRINT_ALERT(
 				"hgt frame end error / remain = %d", remain);
 
 			for (i = 0; i < 10 && remain > 0; i++) {
-
 				remain = (int)copy_to_user(
 					hgt->config.addr, hgt->buff_v,
 						HGT_BUFF_SIZE);

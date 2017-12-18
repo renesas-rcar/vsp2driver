@@ -300,7 +300,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - BRU */
 
 	if (vsp2->pdata.features & VSP2_HAS_BRU) {
-
 		vsp2->bru = vsp2_bru_create(vsp2);
 		if (IS_ERR(vsp2->bru)) {
 			ret = PTR_ERR(vsp2->bru);
@@ -312,7 +311,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - BRS */
 
 	if (vsp2->pdata.features & VSP2_HAS_BRS) {
-
 		vsp2->brs = vsp2_brs_create(vsp2);
 		if (IS_ERR(vsp2->brs)) {
 			ret = PTR_ERR(vsp2->brs);
@@ -324,7 +322,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - LUT */
 
 	if (vsp2->pdata.features & VSP2_HAS_LUT) {
-
 		vsp2->lut = vsp2_lut_create(vsp2);
 		if (IS_ERR(vsp2->lut)) {
 			ret = PTR_ERR(vsp2->lut);
@@ -336,7 +333,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - CLU */
 
 	if (vsp2->pdata.features & VSP2_HAS_CLU) {
-
 		vsp2->clu = vsp2_clu_create(vsp2);
 		if (IS_ERR(vsp2->clu)) {
 			ret = PTR_ERR(vsp2->clu);
@@ -348,7 +344,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - HGO */
 
 	if (vsp2->pdata.features & VSP2_HAS_HGO) {
-
 		vsp2->hgo = vsp2_hgo_create(vsp2);
 		if (IS_ERR(vsp2->hgo)) {
 			ret = PTR_ERR(vsp2->hgo);
@@ -360,7 +355,6 @@ static int vsp2_create_entities(struct vsp2_device *vsp2)
 	/* - HGT */
 
 	if (vsp2->pdata.features & VSP2_HAS_HGT) {
-
 		vsp2->hgt = vsp2_hgt_create(vsp2);
 		if (IS_ERR(vsp2->hgt)) {
 			ret = PTR_ERR(vsp2->hgt);

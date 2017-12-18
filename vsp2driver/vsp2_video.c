@@ -717,7 +717,6 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 			entity->ops->configure(entity, pipe);
 
 		if (entity->type == VSP2_ENTITY_RPF) {
-
 			if ((int)entity->index > max_index_rpf)
 				max_index_rpf = entity->index;
 		}
@@ -727,7 +726,6 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 
 	if (vsp_start->rpf_num > 0 &&
 	    vsp_start->rpf_num != (max_index_rpf + 1)) {
-
 		VSP2_PRINT_ALERT("rpf setting error !!");
 
 		ret = -EINVAL;
@@ -740,7 +738,6 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 
 	entity = &video->vsp2->hgo->entity;
 	if (entity != NULL) {
-
 		if (entity->ops->configure)
 			entity->ops->configure(entity, pipe);
 	}
@@ -749,7 +746,6 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 
 	entity = &video->vsp2->hgt->entity;
 	if (entity != NULL) {
-
 		if (entity->ops->configure)
 			entity->ops->configure(entity, pipe);
 	}

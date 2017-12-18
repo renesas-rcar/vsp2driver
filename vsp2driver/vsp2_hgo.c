@@ -127,7 +127,6 @@ static void hgo_configure(struct vsp2_entity *entity,
 	struct vsp_hgo_t *vsp_hgo = vsp_par->ctrl_par->hgo;
 
 	if (hgo->set_hgo == 1) {
-
 		/* VSPM parameter */
 
 		vsp_par->use_module |= VSP_HGO_USE;
@@ -222,12 +221,10 @@ void vsp2_hgo_buffer_finish(struct vsp2_hgo *hgo)
 			hgo->config.addr, hgo->buff_v, copy_size);
 
 		if (remain > 0) {
-
 			VSP2_PRINT_ALERT(
 				"hgo frame end error / remain = %d", remain);
 
 			for (i = 0; i < 10 && remain > 0; i++) {
-
 				remain = (int)copy_to_user(
 					hgo->config.addr, hgo->buff_v,
 						copy_size);

@@ -71,7 +71,6 @@ struct vsp2_device;
 #endif
 
 struct vsp2_hgo {
-
 	/* entitiy */
 	struct vsp2_entity		entity;
 
