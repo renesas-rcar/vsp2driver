@@ -55,7 +55,6 @@
  * GNU General Public License for more details.
  */ /*************************************************************************/
 
-
 #ifndef __VSP2_CLU_H__
 #define __VSP2_CLU_H__
 

@@ -61,5 +61,4 @@
 unsigned long vsp2_addr_uv2kv(unsigned long uvaddr);
 unsigned long vsp2_addr_uv2hd(unsigned long uvaddr);
 
-
 #endif /* __VSP2_ADDR_H__ */

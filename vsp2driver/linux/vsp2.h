@@ -170,5 +170,4 @@ struct vsp2_debug {
 };
 #endif
 
-
 #endif	/* __VSP2_USER_H__ */

@@ -58,7 +58,6 @@
 #include <linux/device.h>
 #include <linux/gfp.h>
 
-
 #include <media/v4l2-subdev.h>
 
 #include "vsp2_device.h"

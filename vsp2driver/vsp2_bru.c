@@ -303,7 +303,6 @@ done:
  * V4L2 Subdevice Operations
  */
 
-
 static const struct v4l2_subdev_pad_ops bru_pad_ops = {
 	.init_cfg = vsp2_entity_init_cfg,
 	.enum_mbus_code = bru_enum_mbus_code,

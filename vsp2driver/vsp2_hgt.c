@@ -70,7 +70,6 @@
 #include <linux/dma-mapping.h>	/* for dl_par */
 #endif
 
-
 /* -----------------------------------------------------------------------------
  * V4L2 Subdevice Core Operations
  */
