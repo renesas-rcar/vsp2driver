@@ -128,7 +128,7 @@ struct vsp2_device {
 	struct device		*dev;
 	struct vsp2_platform_data pdata;
 
-	struct mutex		lock;
+	struct mutex		lock;	/* Protects the reference count */
 	int					ref_count;
 
 	struct vsp2_bru		*bru;

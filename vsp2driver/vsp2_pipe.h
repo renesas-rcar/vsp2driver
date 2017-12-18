@@ -132,7 +132,7 @@ struct vsp2_pipeline {
 
 	void (*frame_end)(struct vsp2_pipeline *pipe);
 
-	struct mutex lock;
+	struct mutex lock;	/* protects the stream count */
 	struct kref kref;
 	unsigned int stream_count;
 	unsigned int buffers_ready;

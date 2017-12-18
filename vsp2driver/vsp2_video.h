@@ -87,7 +87,7 @@ struct vsp2_video {
 	enum v4l2_buf_type type;
 	struct media_pad pad;
 
-	struct mutex lock;
+	struct mutex lock;	/* protects the video queue */
 
 	unsigned int pipe_index;
 
