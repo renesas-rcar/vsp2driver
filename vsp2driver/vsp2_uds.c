@@ -145,9 +145,9 @@ int vsp2_uds_check_ratio(struct vsp2_entity *entity)
 
 	hscale = uds_compute_ratio(input->width, output->width);
 	vscale = uds_compute_ratio(input->height, output->height);
-	if ((hscale < 0x100) || (hscale > 0xffff))
+	if (hscale < 0x100 || hscale > 0xffff)
 		return -EINVAL;
-	if ((vscale < 0x100) || (vscale > 0xffff))
+	if (vscale < 0x100 || vscale > 0xffff)
 		return -EINVAL;
 
 	return 0;

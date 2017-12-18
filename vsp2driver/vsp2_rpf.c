@@ -184,7 +184,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 		infmt |= VI6_RPF_INFMT_CSC;
 
 	vspm_format = (unsigned short)(infmt & 0x007F);
-	if ((vspm_format == 0x007F) || (vspm_format == 0x003F)) {
+	if (vspm_format == 0x007F || vspm_format == 0x003F) {
 		/* CLUT data. */
 		/* Set bytes per pixel (1). */
 		vspm_format	|= (1 << 8);

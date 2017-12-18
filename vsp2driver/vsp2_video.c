@@ -688,8 +688,8 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 		 * value is fixed to 255. Otherwise we need to scale the alpha
 		 * component only when available at the input RPF.
 		 */
-		if ((pipe->uds_input->type == VSP2_ENTITY_BRU) ||
-		    (pipe->uds_input->type == VSP2_ENTITY_BRS)) {
+		if (pipe->uds_input->type == VSP2_ENTITY_BRU ||
+		    pipe->uds_input->type == VSP2_ENTITY_BRS) {
 			uds->scale_alpha = false;
 		} else {
 			struct vsp2_rwpf *rpf =
