@@ -226,48 +226,12 @@ static void print_us(const char *pname, unsigned short value)
  *
  *-----------------------------------------------------------------------------
  */
-#if 0
-static void print_ui(const char *pname, unsigned int value)
-{
-	print_tabs();
-	DEBMSG("- %-20s = 0x%08x (%d)\n", pname, value, value);
-}
-#endif
-/*-----------------------------------------------------------------------------
- *
- *-----------------------------------------------------------------------------
- */
 static void print_ul(const char *pname, unsigned long value)
 {
 	print_tabs();
 	DEBMSG("- %-20s = 0x%08x (%d)\n", pname, (int)value, (int)value);
 }
 
-/*-----------------------------------------------------------------------------
- *
- *-----------------------------------------------------------------------------
- */
-#if 0
-static void print_ull(const char *pname, unsigned long long value)
-{
-	print_tabs();
-	DEBMSG("- %-20s = 0x%08x%08x\n",
-			pname,
-			(int)((value>>0)&0x00000000ffffffff),
-			(int)((value>>32)&0x00000000ffffffff));
-}
-#endif
-/*-----------------------------------------------------------------------------
- *
- *-----------------------------------------------------------------------------
- */
-#if 0
-static void print_null(const char *pname)
-{
-	print_tabs();
-	DEBMSG("- %s is NULL !!\n", pname);
-}
-#endif
 /*-----------------------------------------------------------------------------
  *
  *-----------------------------------------------------------------------------
@@ -288,21 +252,6 @@ static void print_addr(const char *pname, void *ptr)
 #endif
 	}
 }
-
-/*-----------------------------------------------------------------------------
- *
- *-----------------------------------------------------------------------------
- */
-#if 0
-static void print_vsp_xxx_t(const char *pname, struct vsp_xxx_t *ptr)
-{
-	print_addr(pname, ptr);
-	if (ptr != NULL) {
-		inc_tab("struct vsp_xxx_t");
-		dec_tab();
-	}
-}
-#endif
 
 /*-----------------------------------------------------------------------------
  *
