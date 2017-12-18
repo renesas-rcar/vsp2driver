@@ -286,8 +286,9 @@ static void wpf_configure(struct vsp2_entity *entity,
 	if (wpf->fcp_fcnl) {
 		vsp_out->fcp->fcnl = FCP_FCNL_ENABLE;
 		vsp_out->swap = VSP_SWAP_LL;
-	} else
+	} else {
 		vsp_out->fcp->fcnl = FCP_FCNL_DISABLE;
+	}
 }
 
 static void set_rotation(struct vsp2_rwpf *wpf, bool hflip,
