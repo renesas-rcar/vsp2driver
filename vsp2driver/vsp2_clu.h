@@ -70,7 +70,7 @@ struct vsp2_device;
 #define		CLU_PAD_SOURCE		(1)
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-#define	CLU_BUFF_SIZE			(9826*8)
+#define	CLU_BUFF_SIZE			(9826 * 8)
 #endif
 
 struct vsp2_clu {

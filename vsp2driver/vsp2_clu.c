@@ -271,7 +271,7 @@ struct vsp2_clu *vsp2_clu_create(struct vsp2_device *vsp2)
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	clu->buff_v = dma_alloc_coherent(vsp2->dev,
 					 CLU_BUFF_SIZE, &clu->buff_h,
-					 GFP_KERNEL|GFP_DMA);
+					 GFP_KERNEL | GFP_DMA);
 #endif
 
 	return clu;

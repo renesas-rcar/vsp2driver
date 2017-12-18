@@ -343,14 +343,14 @@ static int vsp2_vspm_alloc(struct vsp2_device *vsp2)
 	if (vsp_par->ctrl_par->hgt == NULL)
 		return -ENOMEM;
 
-	virt_addr = dma_alloc_coherent(vsp2->dev, (128+2048)*8,
-				       &hard_addr, GFP_KERNEL|GFP_DMA);
+	virt_addr = dma_alloc_coherent(vsp2->dev, (128 + 2048) * 8,
+				       &hard_addr, GFP_KERNEL | GFP_DMA);
 	if (virt_addr == NULL)
 		return -ENOMEM;
 
 	vsp_par->dl_par.hard_addr = (unsigned int)(hard_addr);
 	vsp_par->dl_par.virt_addr = virt_addr;
-	vsp_par->dl_par.tbl_num = 128+2048;
+	vsp_par->dl_par.tbl_num = 128 + 2048;
 
 	return 0;
 }
@@ -568,7 +568,7 @@ static void vsp2_vspm_free(struct vsp2_device *vsp2)
 	/* dl_par */
 	dma_free_coherent(
 		vsp2->dev,
-		(128+2048)*8,
+		(128 + 2048) * 8,
 		vsp_par->dl_par.virt_addr,
 		(dma_addr_t)(vsp_par->dl_par.hard_addr));
 }

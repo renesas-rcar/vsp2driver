@@ -266,7 +266,7 @@ struct vsp2_lut *vsp2_lut_create(struct vsp2_device *vsp2)
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	lut->buff_v = dma_alloc_coherent(vsp2->dev,
 					 LUT_BUFF_SIZE, &lut->buff_h,
-					 GFP_KERNEL|GFP_DMA);
+					 GFP_KERNEL | GFP_DMA);
 #endif
 
 	return lut;

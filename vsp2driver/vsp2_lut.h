@@ -70,7 +70,7 @@ struct vsp2_device;
 #define LUT_PAD_SOURCE				1
 
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
-#define	LUT_BUFF_SIZE				(256*8)
+#define	LUT_BUFF_SIZE				(256 * 8)
 #endif
 
 struct vsp2_lut {

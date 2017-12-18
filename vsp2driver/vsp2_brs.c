@@ -448,7 +448,7 @@ struct vsp2_brs *vsp2_brs_create(struct vsp2_device *vsp2)
 	brs->entity.type = VSP2_ENTITY_BRS;
 
 	ret = vsp2_entity_init(vsp2, &brs->entity, "brs",
-			       (BRS_PAD_SOURCE+1), &brs_ops,
+			       (BRS_PAD_SOURCE + 1), &brs_ops,
 			       MEDIA_ENT_F_PROC_VIDEO_COMPOSER);
 	if (ret < 0)
 		return ERR_PTR(ret);

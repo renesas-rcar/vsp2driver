@@ -197,7 +197,7 @@ struct vsp2_hgt *vsp2_hgt_create(struct vsp2_device *vsp2)
 #ifdef USE_BUFFER /* TODO: delete USE_BUFFER */
 	hgt->buff_v = dma_alloc_coherent(vsp2->dev,
 					 HGT_BUFF_SIZE, &hgt->buff_h,
-					 GFP_KERNEL|GFP_DMA);
+					 GFP_KERNEL | GFP_DMA);
 #endif
 
 	return hgt;
