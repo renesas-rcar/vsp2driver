@@ -126,7 +126,7 @@ enum vsp2_pipeline_state {
 struct vsp2_pipeline {
 	struct media_pipeline pipe;
 
-	spinlock_t irqlock;
+	spinlock_t irqlock;	/* protects the pipeline state */
 	enum vsp2_pipeline_state state;
 	wait_queue_head_t wq;
 

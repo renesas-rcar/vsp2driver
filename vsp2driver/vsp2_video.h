@@ -92,7 +92,7 @@ struct vsp2_video {
 	unsigned int pipe_index;
 
 	struct vb2_queue queue;
-	spinlock_t irqlock;
+	spinlock_t irqlock;	/* protects the video irqqueue */
 	struct list_head irqqueue;
 };
 
