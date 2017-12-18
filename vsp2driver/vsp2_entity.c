@@ -462,7 +462,7 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 		}
 	}
 
-	if (flag == false)
+	if (!flag)
 		return -EINVAL;
 
 	mutex_init(&entity->lock);
