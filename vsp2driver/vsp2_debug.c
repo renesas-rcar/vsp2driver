@@ -77,7 +77,7 @@
  * Get Entity Name
  *-----------------------------------------------------------------------------
  */
-const char *vsp2_debug_getEntityName(struct vsp2_entity *pentity)
+const char *vsp2_debug_get_entity_name(struct vsp2_entity *pentity)
 {
 	/* table */
 
@@ -121,7 +121,7 @@ const char *vsp2_debug_getEntityName(struct vsp2_entity *pentity)
  *
  *-----------------------------------------------------------------------------
  */
-static int s_tabCount;
+static int s_tab_count;
 
 /*-----------------------------------------------------------------------------
  *
@@ -131,7 +131,7 @@ static void print_tabs(void)
 {
 	const char	*ptabs = "";
 
-	switch (s_tabCount) {
+	switch (s_tab_count) {
 	case 0:
 		ptabs = "";
 		break;
@@ -184,7 +184,7 @@ static void print_tabs(void)
  */
 static void inc_tab(const char *pname)
 {
-	s_tabCount++;
+	s_tab_count++;
 	if (pname != NULL) {
 
 		print_tabs();
@@ -198,8 +198,8 @@ static void inc_tab(const char *pname)
  */
 static void dec_tab(void)
 {
-	if (s_tabCount > 0)
-		s_tabCount--;
+	if (s_tab_count > 0)
+		s_tab_count--;
 }
 
 /*-----------------------------------------------------------------------------
@@ -780,22 +780,22 @@ static void print_version(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
  *-----------------------------------------------------------------------------
  */
 
-static bool	s_vspmDebugFlag;
+static bool	s_vspm_debug_flag;
 
-static void setVspmDebug(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
+static void set_vspm_debug(struct vsp2_device *vsp2, struct vsp2_debug *pdeb)
 {
 	if (pdeb->param1 == 0) {
-		s_vspmDebugFlag = false;
+		s_vspm_debug_flag = false;
 		DEBMSG("## vspm debug : off\n");
 	} else {
-		s_vspmDebugFlag = true;
+		s_vspm_debug_flag = true;
 		DEBMSG("## vspm debug : on\n");
 	}
 }
 
-bool vsp2_debug_vspmDebug(void)
+bool vsp2_debug_vspm_debug(void)
 {
-	return s_vspmDebugFlag;
+	return s_vspm_debug_flag;
 }
 
 /*-----------------------------------------------------------------------------
@@ -815,7 +815,7 @@ void vsp2_debug(struct vsp2_device *vsp2, void *args)
 
 	case 1:
 		/* set vspm debug mode */
-		setVspmDebug(vsp2, pdeb);
+		set_vspm_debug(vsp2, pdeb);
 		break;
 
 	default:

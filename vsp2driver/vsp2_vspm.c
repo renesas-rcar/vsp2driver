@@ -439,7 +439,7 @@ static void vsp2_vspm_drv_entry_cb(unsigned long job_id, long result,
 	struct vsp2_device *vsp2;
 
 #ifdef VSP2_DEBUG
-	if (vsp2_debug_vspmDebug() == true)
+	if (vsp2_debug_vspm_debug() == true)
 		print_vspm_entry_cb();
 #endif
 
@@ -510,7 +510,7 @@ static void vsp2_vspm_drv_entry_work(struct work_struct *work)
 	vsp2_vspm_yvup_swap(vsp2);
 
 #ifdef VSP2_DEBUG
-	if (vsp2_debug_vspmDebug() == true)
+	if (vsp2_debug_vspm_debug() == true)
 		print_vspm_entry(vsp2->vspm->ip_par.par.vsp);
 #endif
 
