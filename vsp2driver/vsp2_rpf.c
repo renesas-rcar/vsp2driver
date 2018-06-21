@@ -124,6 +124,8 @@ static void rpf_configure(struct vsp2_entity *entity,
 	u32 stride_c = 0;
 	struct vsp_src_t *vsp_in = rpf_get_vsp_in(rpf);
 	u16 vspm_format;
+	u8 quantization = format->quantization;
+	bool is_rgb = false;
 
 	if (!vsp_in) {
 		dev_err(rpf->entity.vsp2->dev,
@@ -190,6 +192,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 		vspm_format	|= (1 << 8);
 	} else if (vspm_format < 0x0040) {
 		/* RGB format. */
+		is_rgb = true;
 		/* Set bytes per pixel. */
 		vspm_format	|= (fmtinfo->bpp[0] / 8) << 8;
 	} else {
@@ -202,9 +205,15 @@ static void rpf_configure(struct vsp2_entity *entity,
 	vsp_in->cext		= (infmt & (3 << 12)) >> 12;
 	vsp_in->csc		= (infmt & (1 <<  8)) >>  8;
 	vsp_in->iturbt		= (infmt & (3 << 10)) >> 10;
-	vsp_in->clrcng		= (infmt & (1 <<  9)) >>  9;
 
 	vsp_in->swap		= fmtinfo->swap;
+
+	if (quantization == V4L2_QUANTIZATION_DEFAULT)
+		quantization = V4L2_MAP_QUANTIZATION_DEFAULT(
+			is_rgb, format->colorspace, format->ycbcr_enc);
+
+	vsp_in->clrcng = (quantization == V4L2_QUANTIZATION_FULL_RANGE) ?
+		0x01 : 0x00;
 
 	/* Output location */
 	if (pipe->bru) {
