@@ -60,6 +60,7 @@
 #include "vsp2_device.h"
 #include "vsp2_rwpf.h"
 #include "vsp2_video.h"
+#include "vsp2_pipe.h"
 
 #define RWPF_MIN_WIDTH				1
 #define RWPF_MIN_HEIGHT				1
@@ -108,6 +109,25 @@ int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity)
 	}
 
 	return ret;
+}
+
+void vsp2_rwpf_get_csc_element(struct vsp2_entity *entity, unsigned int *mbus,
+			       unsigned char *ycbcr_enc,
+			       unsigned char *quantization)
+{
+	struct vsp2_rwpf *rwpf = entity_to_rwpf(entity);
+	const struct v4l2_pix_format_mplane *format = &rwpf->format;
+
+	*mbus = rwpf->fmtinfo->mbus;
+	*ycbcr_enc = format->ycbcr_enc;
+	*quantization = format->quantization;
+}
+
+void vsp2_rwpf_set_csc_mode(struct vsp2_entity *entity, int csc_mode)
+{
+	struct vsp2_rwpf *rwpf = entity_to_rwpf(entity);
+
+	rwpf->csc_mode = csc_mode;
 }
 
 /* -----------------------------------------------------------------------------

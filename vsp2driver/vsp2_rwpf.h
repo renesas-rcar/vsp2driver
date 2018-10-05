@@ -70,6 +70,12 @@
 
 #define FCP_FCNL_DEF_VALUE	(0x00)
 
+#define CSC_MODE_601_LIMITED	(0)
+#define CSC_MODE_601_FULL	(1)
+#define CSC_MODE_709_LIMITED	(2)
+#define CSC_MODE_709_FULL	(3)
+#define CSC_MODE_DEFAULT	CSC_MODE_601_LIMITED
+
 struct v4l2_ctrl;
 struct vsp2_pipeline;
 struct vsp2_rwpf;
@@ -107,6 +113,8 @@ struct vsp2_rwpf {
 		unsigned char rotation;
 		bool swap_sizes;
 	} rotinfo;
+
+	int csc_mode;
 };
 
 static inline struct vsp2_rwpf *to_rwpf(struct v4l2_subdev *subdev)
@@ -129,6 +137,10 @@ extern const struct v4l2_subdev_pad_ops vsp2_rwpf_pad_ops;
 struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
 				     struct v4l2_subdev_pad_config *config);
 int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity);
+void vsp2_rwpf_get_csc_element(struct vsp2_entity *entity, unsigned int *mbus,
+			       unsigned char *ycbcr_enc,
+			       unsigned char *quantization);
+void vsp2_rwpf_set_csc_mode(struct vsp2_entity *entity, int csc_mode);
 /**
  * vsp2_rwpf_set_memory - Configure DMA addresses for a [RW]PF
  * @rwpf: the [RW]PF instance

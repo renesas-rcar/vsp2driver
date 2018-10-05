@@ -183,6 +183,8 @@ static void rpf_configure(struct vsp2_entity *entity,
 	if (sink_format->code != source_format->code)
 		infmt |= VI6_RPF_INFMT_CSC;
 
+	infmt |= rpf->csc_mode << 9;
+
 	vspm_format = (unsigned short)(infmt & 0x007F);
 	if (vspm_format == 0x007F || vspm_format == 0x003F) {
 		/* CLUT data. */

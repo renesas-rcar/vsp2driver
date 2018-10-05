@@ -256,6 +256,8 @@ static void wpf_configure(struct vsp2_entity *entity,
 
 	outfmt |= wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT;
 
+	outfmt |= wpf->csc_mode << 9;
+
 	/* Take the control handler lock to ensure that the PDV value won't be
 	 * changed behind our back by a set control operation.
 	 */

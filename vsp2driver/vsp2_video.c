@@ -222,6 +222,150 @@ static int __vsp2_video_try_format(struct vsp2_video *video,
 	return 0;
 }
 
+struct csc_element {
+	unsigned int mbus;
+	unsigned char ycbcr_enc;
+	unsigned char quant;
+};
+
+static unsigned char determine_ycbcr_enc(unsigned char ycbcr_enc)
+{
+	if (ycbcr_enc == V4L2_YCBCR_ENC_709)
+		return V4L2_YCBCR_ENC_709;
+	return V4L2_YCBCR_ENC_601;
+}
+
+static unsigned char determine_quantization(unsigned int mbus,
+					    unsigned char quant)
+{
+	if (mbus == MEDIA_BUS_FMT_ARGB8888_1X32) {
+		if (quant == V4L2_QUANTIZATION_LIM_RANGE)
+			return V4L2_QUANTIZATION_LIM_RANGE;
+		return V4L2_QUANTIZATION_FULL_RANGE;
+	}
+
+	/* MEDIA_BUS_FMT_AYUV8_1X32 */
+	if (quant == V4L2_QUANTIZATION_FULL_RANGE)
+		return V4L2_QUANTIZATION_FULL_RANGE;
+	return V4L2_QUANTIZATION_LIM_RANGE;
+}
+
+static bool need_csc(struct csc_element *wpf, struct csc_element *rpf,
+		     int rpf_cnt)
+{
+	int i;
+
+	for (i = 0; i < rpf_cnt; i++) {
+		if (wpf->mbus != rpf[i].mbus)
+			return true;	/* need color space conversion */
+	}
+
+	return false;
+}
+
+static int get_csc_mode(struct csc_element *wpf, struct csc_element *rpf)
+{
+	struct csc_element *rgb;
+	struct csc_element *yuv;
+
+	if (wpf->mbus == MEDIA_BUS_FMT_ARGB8888_1X32) {
+		rgb = wpf;
+		yuv = rpf;
+	} else {
+		rgb = rpf;
+		yuv = wpf;
+	}
+
+	if (rgb->quant == V4L2_QUANTIZATION_FULL_RANGE) {
+		if (yuv->quant == V4L2_QUANTIZATION_LIM_RANGE) {
+			if (yuv->ycbcr_enc == V4L2_YCBCR_ENC_601)
+				return CSC_MODE_601_LIMITED;
+			else
+				return CSC_MODE_709_LIMITED;
+		}
+
+		/* yuv->quant == V4L2_QUANTIZATION_FULL_RANGE */
+		if (yuv->ycbcr_enc == V4L2_YCBCR_ENC_601)
+			return CSC_MODE_601_FULL;
+
+		return -1;	/* wrong */
+	}
+
+	/* rgb->quant == V4L2_QUANTIZATION_LIM_RANGE */
+	if (yuv->quant != V4L2_QUANTIZATION_LIM_RANGE)
+		return -1;	/* wrong */
+	if (yuv->ycbcr_enc != V4L2_YCBCR_ENC_709)
+		return -1;	/* wrong */
+
+	return CSC_MODE_709_FULL;
+}
+
+static int vsp2_determine_csc_mode(struct vsp2_pipeline *pipe)
+{
+	struct vsp2_entity *entity;
+	struct csc_element csc_wpf;
+	struct csc_element csc_rpf[5];
+	unsigned int mbus;
+	unsigned char ycbcr_enc;
+	unsigned char quant;
+	int rpf_cnt;
+	int csc_mode = -1;
+	int ret;
+	int i;
+
+	rpf_cnt = 0;
+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+		if (entity->type == VSP2_ENTITY_WPF) {
+			/* clear csc mode */
+			vsp2_rwpf_set_csc_mode(entity, CSC_MODE_DEFAULT);
+
+			vsp2_rwpf_get_csc_element(entity, &mbus, &ycbcr_enc,
+						  &quant);
+			csc_wpf.mbus = mbus;
+			csc_wpf.ycbcr_enc = determine_ycbcr_enc(ycbcr_enc);
+			csc_wpf.quant = determine_quantization(mbus, quant);
+		} else if (entity->type == VSP2_ENTITY_RPF) {
+			/* clear csc mode */
+			vsp2_rwpf_set_csc_mode(entity, CSC_MODE_DEFAULT);
+
+			vsp2_rwpf_get_csc_element(entity, &mbus, &ycbcr_enc,
+						  &quant);
+			csc_rpf[rpf_cnt].mbus = mbus;
+			csc_rpf[rpf_cnt].ycbcr_enc =
+					determine_ycbcr_enc(ycbcr_enc);
+			csc_rpf[rpf_cnt].quant =
+					determine_quantization(mbus, quant);
+			rpf_cnt++;
+		}
+	}
+
+	if (!need_csc(&csc_wpf, csc_rpf, rpf_cnt))
+		return 0;	/* not required */
+
+	for (i = 0; i < rpf_cnt; i++) {
+		if (csc_wpf.mbus == csc_rpf[i].mbus)
+			continue;
+
+		ret = get_csc_mode(&csc_wpf, &csc_rpf[i]);
+		if (ret < 0)
+			return -1;	/* wrong combination */
+
+		if (csc_mode == -1)
+			csc_mode = ret;
+		else if (csc_mode != ret)
+			return -1;	/* wrong combination */
+	}
+
+	/* set csc mode */
+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+		if (entity->type == VSP2_ENTITY_WPF ||
+		    entity->type == VSP2_ENTITY_RPF)
+			vsp2_rwpf_set_csc_mode(entity, csc_mode);
+	}
+
+	return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * Pipeline Management
  */
@@ -708,6 +852,9 @@ static int vsp2_video_setup_pipeline(struct vsp2_pipeline *pipe,
 			uds->scale_alpha = rpf->fmtinfo->alpha;
 		}
 	}
+
+	if (vsp2_determine_csc_mode(pipe) < 0)
+		VSP2_PRINT_ALERT("CSC mode is wrong. Use default.");
 
 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
 		vsp2_entity_route_setup(entity);
