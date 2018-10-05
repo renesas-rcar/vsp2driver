@@ -94,6 +94,8 @@
 #define VSP2_VIDEO_MAX_WIDTH		8190U
 #define VSP2_VIDEO_MIN_HEIGHT		2U
 #define VSP2_VIDEO_MAX_HEIGHT		8190U
+#define VSP2_VIDEO_MIN_WIDTH_RGB	1U
+#define VSP2_VIDEO_MIN_HEIGHT_RGB	1U
 
 /* -----------------------------------------------------------------------------
  * Helper functions
@@ -181,9 +183,17 @@ static int __vsp2_video_try_format(struct vsp2_video *video,
 	height = round_down(height, info->vsub);
 
 	/* Clamp the width and height. */
-	pix->width = clamp(width, VSP2_VIDEO_MIN_WIDTH, VSP2_VIDEO_MAX_WIDTH);
-	pix->height = clamp(height, VSP2_VIDEO_MIN_HEIGHT,
-			    VSP2_VIDEO_MAX_HEIGHT);
+	if (info->mbus == MEDIA_BUS_FMT_ARGB8888_1X32) {
+		pix->width = clamp(width, VSP2_VIDEO_MIN_WIDTH_RGB,
+				   VSP2_VIDEO_MAX_WIDTH);
+		pix->height = clamp(height, VSP2_VIDEO_MIN_HEIGHT_RGB,
+				    VSP2_VIDEO_MAX_HEIGHT);
+	} else {
+		pix->width = clamp(width, VSP2_VIDEO_MIN_WIDTH,
+				   VSP2_VIDEO_MAX_WIDTH);
+		pix->height = clamp(height, VSP2_VIDEO_MIN_HEIGHT,
+				    VSP2_VIDEO_MAX_HEIGHT);
+	}
 
 	for (i = 0; i < min(info->planes, 2U); ++i) {
 		unsigned int hsub = i > 0 ? info->hsub : 1;
