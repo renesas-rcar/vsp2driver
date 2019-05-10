@@ -764,7 +764,8 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 	}
 
 	for (i = 0; i < vb->num_planes; ++i) {
-		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
+		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i) +
+                           vb->planes[i].data_offset;
 
 		if (vb2_plane_size(vb, i) < format->plane_fmt[i].sizeimage)
 			return -EINVAL;
