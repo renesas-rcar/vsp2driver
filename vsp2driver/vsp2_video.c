@@ -59,7 +59,7 @@
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
-#include <linux/reservation.h>
+#include <linux/dma-resv.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/v4l2-mediabus.h>
@@ -747,12 +747,12 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 
 	if (vq->memory == VB2_MEMORY_DMABUF &&
 	    vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-		struct reservation_object *resv = vb->planes[0].dbuf->resv;
+		struct dma_resv *resv = vb->planes[0].dbuf->resv;
 
 		if (resv) {
 			struct dma_fence *fence;
 
-			fence = reservation_object_get_excl_rcu(resv);
+			fence = dma_resv_get_excl_rcu(resv);
 			if (fence) {
 				int ret = dma_fence_wait(fence, true);
 
