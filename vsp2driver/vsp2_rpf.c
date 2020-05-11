@@ -240,7 +240,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 
 	switch (fmtinfo->fourcc) {
 	case V4L2_PIX_FMT_ARGB555:
-		if (CONFIG_VIDEO_RENESAS_VSP_ALPHA_BIT_ARGB1555 == 1)
+		if (CONFIG_VIDEO_RENESAS_VSP_ALPHA_BIT_ARGB1555 == 0)
 			alph_sel = (2 << 28) | (1 << 18) |
 				   (0xFF << 8) | (rpf->alpha & 0xFF);
 		else
