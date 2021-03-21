@@ -1385,7 +1385,7 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 	video->video.fops = &vsp2_video_fops;
 	snprintf(video->video.name, sizeof(video->video.name), "%s %s",
 		 rwpf->entity.subdev.name, direction);
-	video->video.vfl_type = VFL_TYPE_GRABBER;
+	video->video.vfl_type = VFL_TYPE_VIDEO;
 	video->video.release = video_device_release_empty;
 	video->video.ioctl_ops = &vsp2_video_ioctl_ops;
 
@@ -1408,7 +1408,7 @@ struct vsp2_video *vsp2_video_create(struct vsp2_device *vsp2,
 
 	/* ... and register the video device. */
 	video->video.queue = &video->queue;
-	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
+	ret = video_register_device(&video->video, VFL_TYPE_VIDEO, -1);
 	if (ret < 0) {
 		dev_err(video->vsp2->dev, "failed to register video device\n");
 		goto error;
