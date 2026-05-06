@@ -133,14 +133,16 @@ static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
 int vsp2_uds_check_ratio(struct vsp2_entity *entity)
 {
 	struct vsp2_uds *uds = to_uds(&entity->subdev);
+	struct v4l2_subdev_state *state;
 	const struct v4l2_mbus_framefmt *output;
 	const struct v4l2_mbus_framefmt *input;
 	unsigned int hscale;
 	unsigned int vscale;
-
-	input = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+	state = vsp2_entity_get_state(&uds->entity, NULL,
+                  V4L2_SUBDEV_FORMAT_ACTIVE);
+	input = vsp2_entity_get_pad_format(&uds->entity, state,
 					   UDS_PAD_SINK);
-	output = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+	output = vsp2_entity_get_pad_format(&uds->entity, state,
 					    UDS_PAD_SOURCE);
 
 	hscale = uds_compute_ratio(input->width, output->width);
@@ -158,7 +160,7 @@ int vsp2_uds_check_ratio(struct vsp2_entity *entity)
  */
 
 static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg,
+			      struct v4l2_subdev_state *state,
 			      struct v4l2_subdev_mbus_code_enum *code)
 {
 	static const unsigned int codes[] = {
@@ -166,20 +168,20 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
 		MEDIA_BUS_FMT_AYUV8_1X32,
 	};
 
-	return vsp2_subdev_enum_mbus_code(subdev, cfg, code, codes,
+	return vsp2_subdev_enum_mbus_code(subdev, state, code, codes,
 					  ARRAY_SIZE(codes));
 }
 
 static int uds_enum_frame_size(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vsp2_uds *uds = to_uds(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	int ret = 0;
 
-	config = vsp2_entity_get_pad_config(&uds->entity, cfg, fse->which);
+	config = vsp2_entity_get_state(&uds->entity, state, fse->which);
 	if (!config)
 		return -EINVAL;
 
@@ -211,7 +213,7 @@ done:
 }
 
 static void uds_try_format(struct vsp2_uds *uds,
-			   struct v4l2_subdev_pad_config *config,
+			   struct v4l2_subdev_state *state,
 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
 {
 	struct v4l2_mbus_framefmt *format;
@@ -233,7 +235,7 @@ static void uds_try_format(struct vsp2_uds *uds,
 
 	case UDS_PAD_SOURCE:
 		/* The UDS scales but can't perform format conversion. */
-		format = vsp2_entity_get_pad_format(&uds->entity, config,
+		format = vsp2_entity_get_pad_format(&uds->entity, state,
 						    UDS_PAD_SINK);
 		fmt->code = format->code;
 
@@ -249,17 +251,17 @@ static void uds_try_format(struct vsp2_uds *uds,
 }
 
 static int uds_set_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
+	struct v4l2_subdev *subdev, struct v4l2_subdev_state *state,
 	struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_uds *uds = to_uds(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	int ret = 0;
 
 	mutex_lock(&uds->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&uds->entity, cfg, fmt->which);
+	config = vsp2_entity_get_state(&uds->entity, state, fmt->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;
@@ -308,6 +310,7 @@ static void uds_configure(struct vsp2_entity *entity,
 			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_uds *uds = to_uds(&entity->subdev);
+	struct v4l2_subdev_state *state;
 	const struct v4l2_mbus_framefmt *output;
 	const struct v4l2_mbus_framefmt *input;
 	unsigned int hscale;
@@ -316,10 +319,12 @@ static void uds_configure(struct vsp2_entity *entity,
 	struct vsp_start_t *vsp_par =
 		uds->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_uds_t *vsp_uds = vsp_par->ctrl_par->uds;
+	state = vsp2_entity_get_state(&uds->entity, NULL,
+                  V4L2_SUBDEV_FORMAT_ACTIVE);
 
-	input = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+	input = vsp2_entity_get_pad_format(&uds->entity, state,
 					   UDS_PAD_SINK);
-	output = vsp2_entity_get_pad_format(&uds->entity, uds->entity.config,
+	output = vsp2_entity_get_pad_format(&uds->entity, state,
 					    UDS_PAD_SOURCE);
 
 	hscale = uds_compute_ratio(input->width, output->width);

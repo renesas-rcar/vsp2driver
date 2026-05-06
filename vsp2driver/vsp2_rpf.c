@@ -111,6 +111,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 			  struct vsp2_pipeline *pipe)
 {
 	struct vsp2_rwpf *rpf = to_rwpf(&entity->subdev);
+	struct v4l2_subdev_state *state = rpf->entity.config;
 	const struct vsp2_format_info *fmtinfo = rpf->fmtinfo;
 	const struct v4l2_pix_format_mplane *format = &rpf->format;
 	const struct v4l2_mbus_framefmt *source_format;
@@ -137,7 +138,7 @@ static void rpf_configure(struct vsp2_entity *entity,
 	 * left corner in the plane buffer. Only two offsets are needed, as
 	 * planes 2 and 3 always have identical strides.
 	 */
-	crop = vsp2_rwpf_get_crop(rpf, rpf->entity.config);
+	crop = vsp2_rwpf_get_crop(rpf, state);
 
 	stride_y = format->plane_fmt[0].bytesperline;
 	if (format->num_planes > 1)
@@ -166,10 +167,10 @@ static void rpf_configure(struct vsp2_entity *entity,
 
 	/* Format */
 	sink_format = vsp2_entity_get_pad_format(&rpf->entity,
-						 rpf->entity.config,
+						 state,
 						 RWPF_PAD_SINK);
 	source_format = vsp2_entity_get_pad_format(&rpf->entity,
-						   rpf->entity.config,
+						   state,
 						   RWPF_PAD_SOURCE);
 
 	infmt = VI6_RPF_INFMT_CIPM
@@ -211,7 +212,6 @@ static void rpf_configure(struct vsp2_entity *entity,
 	/* Output location */
 	if (pipe->bru) {
 		const struct v4l2_rect *compose;
-
 		compose = vsp2_entity_get_pad_selection(pipe->bru,
 							pipe->bru->config,
 							rpf->bru_input,
@@ -222,7 +222,6 @@ static void rpf_configure(struct vsp2_entity *entity,
 
 	if (pipe->brs) {
 		const struct v4l2_rect *compose;
-
 		compose = vsp2_entity_get_pad_selection(pipe->brs,
 							pipe->brs->config,
 							rpf->brs_input,

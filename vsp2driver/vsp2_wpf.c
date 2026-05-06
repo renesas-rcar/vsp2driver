@@ -163,13 +163,15 @@ static void wpf_set_memory(struct vsp2_entity *entity)
 	struct v4l2_pix_format_mplane *format = &wpf->format;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
 	const struct v4l2_rect *compose;
-
+	struct v4l2_subdev_state *state;
 	struct vsp_start_t *vsp_par =
 		wpf->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_dst_t *vsp_out = vsp_par->dst_par;
 
+	state = vsp2_entity_get_state(&wpf->entity, NULL,
+	                    V4L2_SUBDEV_FORMAT_ACTIVE);
 	compose = vsp2_entity_get_pad_selection(&wpf->entity,
-						wpf->entity.config,
+						state,
 						RWPF_PAD_SOURCE,
 						V4L2_SEL_TGT_COMPOSE);
 	vsp_out->addr = ((unsigned int)wpf->mem.addr[0])
@@ -203,6 +205,7 @@ static void wpf_configure(struct vsp2_entity *entity,
 	const struct v4l2_mbus_framefmt *source_format;
 	const struct v4l2_mbus_framefmt *sink_format;
 	const struct vsp2_format_info *fmtinfo = wpf->fmtinfo;
+	struct v4l2_subdev_state *state;
 	u32 outfmt = 0;
 	u32 stride_y = 0;
 	u32 stride_c = 0;
@@ -220,17 +223,18 @@ static void wpf_configure(struct vsp2_entity *entity,
 	vsp_out->stride			= stride_y;
 	if (format->num_planes > 1)
 		vsp_out->stride_c	= stride_c;
-
+	state = vsp2_entity_get_state(&wpf->entity, NULL,
+	                    V4L2_SUBDEV_FORMAT_ACTIVE);
 	/* Format */
 	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
-						 wpf->entity.config,
+						 state,
 						 RWPF_PAD_SINK);
 	source_format = vsp2_entity_get_pad_format(&wpf->entity,
-						   wpf->entity.config,
+						   state,
 						   RWPF_PAD_SOURCE);
 
 	compose = vsp2_entity_get_pad_selection(&wpf->entity,
-						wpf->entity.config,
+						state,
 						RWPF_PAD_SOURCE,
 						V4L2_SEL_TGT_COMPOSE);
 	vsp_out->width		= compose->width;
@@ -299,6 +303,7 @@ static void set_rotation(struct vsp2_rwpf *wpf, bool hflip,
 	struct v4l2_mbus_framefmt *sink_format;
 	struct v4l2_mbus_framefmt *source_format;
 	struct v4l2_rect *compose;
+	struct v4l2_subdev_state *state;
 	bool swap_work;
 	int i = 0;
 
@@ -310,13 +315,14 @@ static void set_rotation(struct vsp2_rwpf *wpf, bool hflip,
 			wpf->rotinfo.rotation = v4l2tovspm[i].vspm_rotation;
 		}
 	}
-
+	state = vsp2_entity_get_state(&wpf->entity, NULL,
+	                      V4L2_SUBDEV_FORMAT_ACTIVE);
 	swap_work = wpf->rotinfo.swap_sizes;
 	sink_format = vsp2_entity_get_pad_format(&wpf->entity,
-						 wpf->entity.config,
+						 state,
 						 RWPF_PAD_SINK);
 	source_format = vsp2_entity_get_pad_format(&wpf->entity,
-						   wpf->entity.config,
+						   state,
 						   RWPF_PAD_SOURCE);
 	switch (wpf->rotinfo.rotation) {
 	case VSP_ROT_90:
@@ -345,7 +351,7 @@ static void set_rotation(struct vsp2_rwpf *wpf, bool hflip,
 
 	mutex_lock(&wpf->entity.lock);
 	compose = vsp2_entity_get_pad_selection(&wpf->entity,
-						wpf->entity.config,
+						state,
 						RWPF_PAD_SOURCE,
 						V4L2_SEL_TGT_COMPOSE);
 	if (wpf->rotinfo.swap_sizes) {

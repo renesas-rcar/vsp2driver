@@ -100,7 +100,7 @@ static long clu_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
  */
 
 static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg,
+			      struct v4l2_subdev_state *state,
 			      struct v4l2_subdev_mbus_code_enum *code)
 {
 	static const unsigned int codes[] = {
@@ -109,31 +109,31 @@ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
 		MEDIA_BUS_FMT_AYUV8_1X32,
 	};
 
-	return vsp2_subdev_enum_mbus_code(subdev, cfg, code, codes,
+	return vsp2_subdev_enum_mbus_code(subdev, state, code, codes,
 					  ARRAY_SIZE(codes));
 }
 
 static int clu_enum_frame_size(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
-	return vsp2_subdev_enum_frame_size(subdev, cfg, fse, CLU_MIN_SIZE,
+	return vsp2_subdev_enum_frame_size(subdev, state, fse, CLU_MIN_SIZE,
 					   CLU_MIN_SIZE, CLU_MAX_SIZE,
 					   CLU_MAX_SIZE);
 }
 
 static int clu_set_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
+	struct v4l2_subdev *subdev, struct v4l2_subdev_state *state,
 	struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_clu *clu = to_clu(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	int ret = 0;
 
 	mutex_lock(&clu->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+	config = vsp2_entity_get_state(&clu->entity, state, fmt->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;

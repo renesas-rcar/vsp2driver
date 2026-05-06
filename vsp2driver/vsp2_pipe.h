@@ -152,10 +152,13 @@ struct vsp2_pipeline {
 
 static inline struct vsp2_pipeline *to_vsp2_pipeline(struct media_entity *e)
 {
-	if (likely(e->pipe))
-		return container_of(e->pipe, struct vsp2_pipeline, pipe);
-	else
-		return NULL;
+	struct media_pipeline *pipe;
+    if (!e)
+        return NULL;
+    pipe = media_entity_pipeline(e);
+    if (!pipe)
+        return NULL;
+    return container_of(pipe, struct vsp2_pipeline, pipe);
 }
 
 void vsp2_pipeline_reset(struct vsp2_pipeline *pipe);

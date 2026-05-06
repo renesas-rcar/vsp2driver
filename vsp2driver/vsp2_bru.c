@@ -103,7 +103,7 @@ static const struct v4l2_ctrl_ops bru_ctrl_ops = {
  */
 
 static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg,
+			      struct v4l2_subdev_state *state,
 			      struct v4l2_subdev_mbus_code_enum *code)
 {
 	static const unsigned int codes[] = {
@@ -111,12 +111,12 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
 		MEDIA_BUS_FMT_AYUV8_1X32,
 	};
 
-	return vsp2_subdev_enum_mbus_code(subdev, cfg, code, codes,
+	return vsp2_subdev_enum_mbus_code(subdev, state, code, codes,
 					  ARRAY_SIZE(codes));
 }
 
 static int bru_enum_frame_size(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
 	if (fse->index)
@@ -135,14 +135,14 @@ static int bru_enum_frame_size(struct v4l2_subdev *subdev,
 }
 
 static struct v4l2_rect *bru_get_compose(struct vsp2_bru *bru,
-					 struct v4l2_subdev_pad_config *cfg,
+					 struct v4l2_subdev_state *state,
 					 unsigned int pad)
 {
-	return v4l2_subdev_get_try_compose(&bru->entity.subdev, cfg, pad);
+	return v4l2_subdev_get_try_compose(&bru->entity.subdev, state, pad);
 }
 
 static void bru_try_format(struct vsp2_bru *bru,
-			   struct v4l2_subdev_pad_config *config,
+			   struct v4l2_subdev_state *state,
 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
 {
 	struct v4l2_mbus_framefmt *format;
@@ -157,7 +157,7 @@ static void bru_try_format(struct vsp2_bru *bru,
 
 	default:
 		/* The BRU can't perform format conversion. */
-		format = vsp2_entity_get_pad_format(&bru->entity, config,
+		format = vsp2_entity_get_pad_format(&bru->entity, state,
 						    BRU_PAD_SINK(0));
 		fmt->code = format->code;
 		break;
@@ -170,17 +170,17 @@ static void bru_try_format(struct vsp2_bru *bru,
 }
 
 static int bru_set_format(
-	struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
+	struct v4l2_subdev *subdev, struct v4l2_subdev_state *state,
 	struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_bru *bru = to_bru(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	int ret = 0;
 
 	mutex_lock(&bru->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&bru->entity, cfg, fmt->which);
+	config = vsp2_entity_get_state(&bru->entity, state, fmt->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;
@@ -219,11 +219,11 @@ done:
 }
 
 static int bru_get_selection(struct v4l2_subdev *subdev,
-			     struct v4l2_subdev_pad_config *cfg,
+			     struct v4l2_subdev_state *state,
 			     struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_bru *bru = to_bru(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 
 	if (sel->pad == BRU_PAD_SOURCE)
 		return -EINVAL;
@@ -237,7 +237,7 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
 		return 0;
 
 	case V4L2_SEL_TGT_COMPOSE:
-		config = vsp2_entity_get_pad_config(&bru->entity, cfg,
+		config = vsp2_entity_get_state(&bru->entity, state,
 						    sel->which);
 		if (!config)
 			return -EINVAL;
@@ -253,11 +253,11 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
 }
 
 static int bru_set_selection(struct v4l2_subdev *subdev,
-			     struct v4l2_subdev_pad_config *cfg,
+			     struct v4l2_subdev_state *state,
 			     struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_bru *bru = to_bru(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	struct v4l2_rect *compose;
 	int ret = 0;
@@ -270,7 +270,7 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
 
 	mutex_lock(&bru->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&bru->entity, cfg, sel->which);
+	config = vsp2_entity_get_state(&bru->entity, state, sel->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;
@@ -326,14 +326,16 @@ static void bru_configure(struct vsp2_entity *entity,
 {
 	struct vsp2_bru *bru = to_bru(&entity->subdev);
 	struct v4l2_mbus_framefmt *format;
+	struct v4l2_subdev_state *state;
 	unsigned int flags;
 	unsigned int i;
 	struct vsp_start_t *vsp_par =
 		bru->entity.vsp2->vspm->ip_par.par.vsp;
 	struct vsp_bru_t *vsp_bru = vsp_par->ctrl_par->bru;
 	u32 inctrl;
-
-	format = vsp2_entity_get_pad_format(&bru->entity, bru->entity.config,
+	state = vsp2_entity_get_state(&bru->entity, NULL,
+	                      V4L2_SUBDEV_FORMAT_ACTIVE);
+	format = vsp2_entity_get_pad_format(&bru->entity, state,
 					    BRU_PAD_SOURCE);
 
 	/* The hardware is extremely flexible but we have no userspace API to

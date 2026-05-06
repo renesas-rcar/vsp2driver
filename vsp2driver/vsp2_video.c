@@ -101,12 +101,33 @@
  * Helper functions
  */
 
+static struct media_pad *vsp2_media_entity_remote_pad(struct media_pad *pad)
+{
+    struct media_link *link;
+
+    if (!pad)
+        return NULL;
+
+    list_for_each_entry(link, &pad->entity->links, list) {
+        if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+            continue;
+
+        if (link->source == pad)
+            return link->sink;
+
+        if (link->sink == pad)
+            return link->source;
+    }
+
+    return NULL;
+}
+
 static struct v4l2_subdev *
 vsp2_video_remote_subdev(struct media_pad *local, u32 *pad)
 {
 	struct media_pad *remote;
 
-	remote = media_entity_remote_pad(local);
+	remote = vsp2_media_entity_remote_pad(local);
 	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
 		return NULL;
 
@@ -499,7 +520,7 @@ static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 	if (ret < 0)
 		return ret;
 
-	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
+	pad = vsp2_media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
 
 	while (1) {
 		if (!pad) {
@@ -564,7 +585,7 @@ static int vsp2_video_pipeline_build_branch(struct vsp2_pipeline *pipe,
 		 * activated.
 		 */
 		pad = &entity->pads[entity->source_pad];
-		pad = media_entity_remote_pad(pad);
+		pad = vsp2_media_entity_remote_pad(pad);
 	}
 
 	/* The last entity must be the output WPF. */
@@ -750,15 +771,19 @@ static int vsp2_video_buffer_prepare(struct vb2_buffer *vb)
 		struct dma_resv *resv = vb->planes[0].dbuf->resv;
 
 		if (resv) {
-			struct dma_fence *fence;
+			struct dma_fence *fence = NULL;
+			int ret;
 
-			fence = dma_resv_get_excl_rcu(resv);
+			ret = dma_resv_get_singleton(resv, DMA_RESV_USAGE_WRITE,
+						     &fence);
+			if (ret)
+				return ret;
+
 			if (fence) {
-				int ret = dma_fence_wait(fence, true);
-
+				ret = dma_fence_wait(fence, true);
+				dma_fence_put(fence);
 				if (ret)
 					return ret;
-				dma_fence_put(fence);
 			}
 		}
 	}
@@ -1000,7 +1025,7 @@ static void vsp2_video_stop_streaming(struct vb2_queue *vq)
 	}
 	mutex_unlock(&pipe->lock);
 
-	media_pipeline_stop(&video->video.entity);
+	media_pipeline_stop(&video->pad);
 	vsp2_video_pipeline_put(pipe);
 
 	/* Remove all buffers from the IRQ queue. */
@@ -1126,7 +1151,7 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 		return PTR_ERR(pipe);
 	}
 
-	ret = __media_pipeline_start(&video->video.entity, &pipe->pipe);
+	ret = __media_pipeline_start(&video->pad, &pipe->pipe);
 	if (ret < 0) {
 		mutex_unlock(&mdev->graph_mutex);
 		goto err_pipe;
@@ -1149,7 +1174,7 @@ vsp2_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 	return 0;
 
 err_stop:
-	media_pipeline_stop(&video->video.entity);
+	media_pipeline_stop(&video->pad);
 err_pipe:
 	vsp2_video_pipeline_put(pipe);
 	return ret;

@@ -135,7 +135,7 @@ int vsp2_rwpf_init_ctrls(struct vsp2_rwpf *rwpf);
 extern const struct v4l2_subdev_pad_ops vsp2_rwpf_pad_ops;
 
 struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config);
+				     struct v4l2_subdev_state *state);
 int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity);
 void vsp2_rwpf_get_csc_element(struct vsp2_entity *entity, unsigned int *mbus,
 			       unsigned char *ycbcr_enc,

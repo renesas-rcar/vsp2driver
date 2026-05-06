@@ -67,99 +67,107 @@ struct vsp2_device;
 struct vsp2_pipeline;
 
 enum vsp2_entity_type {
-	VSP2_ENTITY_BRU,
-	VSP2_ENTITY_LUT,
-	VSP2_ENTITY_CLU,
-	VSP2_ENTITY_RPF,
-	VSP2_ENTITY_UDS,
-	VSP2_ENTITY_HGO,
-	VSP2_ENTITY_HGT,
-	VSP2_ENTITY_WPF,
-	VSP2_ENTITY_BRS,
+    VSP2_ENTITY_BRU,
+    VSP2_ENTITY_LUT,
+    VSP2_ENTITY_CLU,
+    VSP2_ENTITY_RPF,
+    VSP2_ENTITY_UDS,
+    VSP2_ENTITY_HGO,
+    VSP2_ENTITY_HGT,
+    VSP2_ENTITY_WPF,
+    VSP2_ENTITY_BRS,
 };
 
 /**
  * struct vsp2_entity_operations - Entity operations
- * @destroy:	Destroy the entity.
- * @set_memory:	Setup memory buffer access. This operation applies the settings
- *		stored in the rwpf mem field to the hardware. Valid for RPF and
- *		WPF only.
- * @configure:	Setup the hardware based on the entity state (pipeline, formats,
- *		selection rectangles, ...)
+ * @destroy:    Destroy the entity.
+ * @set_memory:    Setup memory buffer access.
+ * @configure:    Setup the hardware based on the entity state.
  */
 struct vsp2_entity_operations {
-	void (*destroy)(struct vsp2_entity *);
-	void (*set_memory)(struct vsp2_entity *);
-	void (*configure)(struct vsp2_entity *, struct vsp2_pipeline *);
+    void (*destroy)(struct vsp2_entity *);
+    void (*set_memory)(struct vsp2_entity *);
+    void (*configure)(struct vsp2_entity *, struct vsp2_pipeline *);
 };
 
 struct vsp2_entity {
-	struct vsp2_device *vsp2;
+    struct vsp2_device *vsp2;
 
-	const struct vsp2_entity_operations *ops;
+    const struct vsp2_entity_operations *ops;
 
-	enum vsp2_entity_type type;
-	unsigned int index;
+    enum vsp2_entity_type type;
+    unsigned int index;
 
-	struct list_head list_dev;
-	struct list_head list_pipe;
+    struct list_head list_dev;
+    struct list_head list_pipe;
 
-	struct media_pad *pads;
-	unsigned int source_pad;
+    struct media_pad *pads;
+    unsigned int source_pad;
 
-	struct media_entity *sink;
-	unsigned int sink_pad;
+    struct media_entity *sink;
+    unsigned int sink_pad;
 
-	struct v4l2_subdev subdev;
-	struct v4l2_subdev_pad_config *config;
+    struct v4l2_subdev subdev;
+    struct v4l2_subdev_state *config;
 
-	struct mutex lock;	/* Protects the pad config */
+    struct mutex lock;    /* Protects the pad config */
 };
 
 static inline struct vsp2_entity *to_vsp2_entity(struct v4l2_subdev *subdev)
 {
-	return container_of(subdev, struct vsp2_entity, subdev);
+    return container_of(subdev, struct vsp2_entity, subdev);
 }
 
 int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
-		     const char *name, unsigned int num_pads,
-		     const struct v4l2_subdev_ops *ops, u32 function);
+             const char *name, unsigned int num_pads,
+             const struct v4l2_subdev_ops *ops, u32 function);
+
 void vsp2_entity_destroy(struct vsp2_entity *entity);
 
 extern const struct v4l2_subdev_internal_ops vsp2_subdev_internal_ops;
 
 int vsp2_entity_link_setup(struct media_entity *entity,
-			   const struct media_pad *local,
-			   const struct media_pad *remote, u32 flags);
+               const struct media_pad *local,
+               const struct media_pad *remote,
+               u32 flags);
 
-struct v4l2_subdev_pad_config *
-vsp2_entity_get_pad_config(struct vsp2_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
-			   enum v4l2_subdev_format_whence which);
+struct v4l2_subdev_state *
+vsp2_entity_get_state(struct vsp2_entity *entity,
+              struct v4l2_subdev_state *state,
+              enum v4l2_subdev_format_whence which);
+
 struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
-			   unsigned int pad);
+               struct v4l2_subdev_state *state,
+               unsigned int pad);
+
 struct v4l2_rect *
 vsp2_entity_get_pad_selection(struct vsp2_entity *entity,
-			      struct v4l2_subdev_pad_config *cfg,
-			      unsigned int pad, unsigned int target);
+                  struct v4l2_subdev_state *state,
+                  unsigned int pad,
+                  unsigned int target);
+
 int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
-			 struct v4l2_subdev_pad_config *cfg);
+             struct v4l2_subdev_state *state);
 
 void vsp2_entity_route_setup(struct vsp2_entity *source);
 
 int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_format *fmt);
+                   struct v4l2_subdev_state *state,
+                   struct v4l2_subdev_format *fmt);
+
 int vsp2_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_mbus_code_enum *code,
-			       const unsigned int *codes, unsigned int ncodes);
+                   struct v4l2_subdev_state *state,
+                   struct v4l2_subdev_mbus_code_enum *code,
+                   const unsigned int *codes,
+                   unsigned int ncodes);
+
 int vsp2_subdev_enum_frame_size(struct v4l2_subdev *subdev,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_frame_size_enum *fse,
-				unsigned int min_w, unsigned int min_h,
-				unsigned int max_w, unsigned int max_h);
+                struct v4l2_subdev_state *state,
+                struct v4l2_subdev_frame_size_enum *fse,
+                unsigned int min_width,
+                unsigned int min_height,
+                unsigned int max_width,
+                unsigned int max_height);
 
 #endif /* __VSP2_ENTITY_H__ */

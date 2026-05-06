@@ -66,50 +66,56 @@
 #define RWPF_MIN_HEIGHT				1
 
 struct v4l2_rect *vsp2_rwpf_get_crop(struct vsp2_rwpf *rwpf,
-				     struct v4l2_subdev_pad_config *config)
+				     struct v4l2_subdev_state *state)
 {
-	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
+	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, state,
 					RWPF_PAD_SINK);
 }
 
 static struct v4l2_rect *vsp2_rwpf_get_compose(
 	struct vsp2_rwpf *rwpf,
-	struct v4l2_subdev_pad_config *config)
+	struct v4l2_subdev_state *state)
 {
-	return v4l2_subdev_get_try_compose(&rwpf->entity.subdev, config,
+	return v4l2_subdev_get_try_compose(&rwpf->entity.subdev, state,
 					   RWPF_PAD_SOURCE);
 }
 
+
 int vsp2_rwpf_check_compose_size(struct vsp2_entity *entity)
 {
-	struct vsp2_rwpf *wpf = entity_to_rwpf(entity);
-	const struct v4l2_mbus_framefmt *format;
-	const struct v4l2_rect *compose;
-	int ret = 0;
-
-	if (entity->type != VSP2_ENTITY_WPF)
-		return 0;
-
-	format = vsp2_entity_get_pad_format(entity, entity->config,
-					    RWPF_PAD_SINK);
-
-	compose = vsp2_entity_get_pad_selection(entity,
-						entity->config,
-						RWPF_PAD_SOURCE,
-						V4L2_SEL_TGT_COMPOSE);
-
-	if (!wpf->rotinfo.swap_sizes) {
-		if (format->width != compose->width ||
-		    format->height != compose->height)
-			ret = -EINVAL;
-	} else {
-		if (format->width != compose->height ||
-		    format->height != compose->width)
-			ret = -EINVAL;
-	}
-
-	return ret;
+    struct vsp2_rwpf *wpf = entity_to_rwpf(entity);
+    struct v4l2_subdev_state *state;
+    const struct v4l2_mbus_framefmt *format;
+    const struct v4l2_rect *compose;
+    int ret = 0;
+    if (entity->type != VSP2_ENTITY_WPF)
+        return 0;
+    state = vsp2_entity_get_state(entity, NULL,
+                      V4L2_SUBDEV_FORMAT_ACTIVE);
+    if (!state)
+        return -EINVAL;
+    format = vsp2_entity_get_pad_format(entity, state,
+                        RWPF_PAD_SINK);
+    if (!format)
+        return -EINVAL;
+    compose = vsp2_entity_get_pad_selection(entity,
+                        state,
+                        RWPF_PAD_SOURCE,
+                        V4L2_SEL_TGT_COMPOSE);
+    if (!compose)
+        return -EINVAL;
+    if (!wpf->rotinfo.swap_sizes) {
+        if (format->width != compose->width ||
+            format->height != compose->height)
+            ret = -EINVAL;
+    } else {
+        if (format->width != compose->height ||
+            format->height != compose->width)
+            ret = -EINVAL;
+    }
+    return ret;
 }
+
 
 void vsp2_rwpf_get_csc_element(struct vsp2_entity *entity, unsigned int *mbus,
 			       unsigned char *ycbcr_enc,
@@ -135,7 +141,7 @@ void vsp2_rwpf_set_csc_mode(struct vsp2_entity *entity, int csc_mode)
  */
 
 static int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-				    struct v4l2_subdev_pad_config *cfg,
+				    struct v4l2_subdev_state *state,
 				    struct v4l2_subdev_mbus_code_enum *code)
 {
 	static const unsigned int codes[] = {
@@ -152,29 +158,29 @@ static int vsp2_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
 }
 
 static int vsp2_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
-				     struct v4l2_subdev_pad_config *cfg,
+				     struct v4l2_subdev_state *state,
 				     struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
 
-	return vsp2_subdev_enum_frame_size(subdev, cfg, fse, RWPF_MIN_WIDTH,
+	return vsp2_subdev_enum_frame_size(subdev, state, fse, RWPF_MIN_WIDTH,
 					   RWPF_MIN_HEIGHT, rwpf->max_width,
 					   rwpf->max_height);
 }
 
 static int vsp2_rwpf_set_format(struct v4l2_subdev *subdev,
-				struct v4l2_subdev_pad_config *cfg,
+				struct v4l2_subdev_state *state,
 				struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	struct v4l2_rect *compose;
 	int ret = 0;
 
 	mutex_lock(&rwpf->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&rwpf->entity, cfg, fmt->which);
+	config = vsp2_entity_get_state(&rwpf->entity, state, fmt->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;
@@ -280,11 +286,11 @@ done:
 }
 
 static int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
-				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_state *state,
 				   struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	int ret = 0;
 
@@ -309,7 +315,7 @@ static int vsp2_rwpf_get_selection(struct v4l2_subdev *subdev,
 
 	mutex_lock(&rwpf->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&rwpf->entity, cfg, sel->which);
+	config = vsp2_entity_get_state(&rwpf->entity, state, sel->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;
@@ -353,11 +359,11 @@ done:
 }
 
 static int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
-				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_state *state,
 				   struct v4l2_subdev_selection *sel)
 {
 	struct vsp2_rwpf *rwpf = to_rwpf(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 	struct v4l2_mbus_framefmt *format;
 	struct v4l2_rect *crop;
 	int ret = 0;
@@ -381,7 +387,7 @@ static int vsp2_rwpf_set_selection(struct v4l2_subdev *subdev,
 
 	mutex_lock(&rwpf->entity.lock);
 
-	config = vsp2_entity_get_pad_config(&rwpf->entity, cfg, sel->which);
+	config = vsp2_entity_get_state(&rwpf->entity, state, sel->which);
 	if (!config) {
 		ret = -EINVAL;
 		goto done;

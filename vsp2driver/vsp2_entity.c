@@ -153,32 +153,17 @@ void vsp2_entity_route_setup(struct vsp2_entity *source)
 /* -----------------------------------------------------------------------------
  * V4L2 Subdevice Operations
  */
-
-/**
- * vsp2_entity_get_pad_config - Get the pad configuration for an entity
- * @entity: the entity
- * @cfg: the TRY pad configuration
- * @which: configuration selector (ACTIVE or TRY)
- *
- * When called with which set to V4L2_SUBDEV_FORMAT_ACTIVE the caller must hold
- * the entity lock to access the returned configuration.
- *
- * Return the pad configuration requested by the which argument. The TRY
- * configuration is passed explicitly to the function through the cfg argument
- * and simply returned when requested. The ACTIVE configuration comes from the
- * entity structure.
- */
-struct v4l2_subdev_pad_config *
-vsp2_entity_get_pad_config(struct vsp2_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
-			   enum v4l2_subdev_format_whence which)
+struct v4l2_subdev_state *
+vsp2_entity_get_state(struct vsp2_entity *entity,
+              struct v4l2_subdev_state *state,
+              enum v4l2_subdev_format_whence which)
 {
 	switch (which) {
 	case V4L2_SUBDEV_FORMAT_ACTIVE:
 		return entity->config;
 	case V4L2_SUBDEV_FORMAT_TRY:
 	default:
-		return cfg;
+		return state;
 	}
 }
 
@@ -193,10 +178,10 @@ vsp2_entity_get_pad_config(struct vsp2_entity *entity,
  */
 struct v4l2_mbus_framefmt *
 vsp2_entity_get_pad_format(struct vsp2_entity *entity,
-			   struct v4l2_subdev_pad_config *cfg,
+			   struct v4l2_subdev_state *state,
 			   unsigned int pad)
 {
-	return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
+	return v4l2_subdev_get_try_format(&entity->subdev, state, pad);
 }
 
 /**
@@ -212,14 +197,14 @@ vsp2_entity_get_pad_format(struct vsp2_entity *entity,
  */
 struct v4l2_rect *
 vsp2_entity_get_pad_selection(struct vsp2_entity *entity,
-			      struct v4l2_subdev_pad_config *cfg,
+			      struct v4l2_subdev_state *state,
 			      unsigned int pad, unsigned int target)
 {
 	switch (target) {
 	case V4L2_SEL_TGT_COMPOSE:
-		return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
+		return v4l2_subdev_get_try_compose(&entity->subdev, state, pad);
 	case V4L2_SEL_TGT_CROP:
-		return v4l2_subdev_get_try_crop(&entity->subdev, cfg, pad);
+		return v4l2_subdev_get_try_crop(&entity->subdev, state, pad);
 	default:
 		return NULL;
 	}
@@ -234,22 +219,22 @@ vsp2_entity_get_pad_selection(struct vsp2_entity *entity,
  * function can be used as a handler for the subdev pad::init_cfg operation.
  */
 int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
-			 struct v4l2_subdev_pad_config *cfg)
+             struct v4l2_subdev_state *state)
 {
-	struct v4l2_subdev_format format;
-	unsigned int pad;
+    struct v4l2_subdev_format format;
+    unsigned int pad;
 
-	for (pad = 0; pad < subdev->entity.num_pads - 1; ++pad) {
-		memset(&format, 0, sizeof(format));
+    for (pad = 0; pad < subdev->entity.num_pads - 1; ++pad) {
+        memset(&format, 0, sizeof(format));
 
-		format.pad = pad;
-		format.which = cfg ? V4L2_SUBDEV_FORMAT_TRY
-			     : V4L2_SUBDEV_FORMAT_ACTIVE;
+        format.pad = pad;
+        format.which = state ? V4L2_SUBDEV_FORMAT_TRY
+                     : V4L2_SUBDEV_FORMAT_ACTIVE;
 
-		v4l2_subdev_call(subdev, pad, set_fmt, cfg, &format);
-	}
+        v4l2_subdev_call(subdev, pad, set_fmt, state, &format);
+    }
 
-	return 0;
+    return 0;
 }
 
 /*
@@ -262,13 +247,13 @@ int vsp2_entity_init_cfg(struct v4l2_subdev *subdev,
  * a direct drop-in for the operation handler.
  */
 int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *state,
 			       struct v4l2_subdev_format *fmt)
 {
 	struct vsp2_entity *entity = to_vsp2_entity(subdev);
-	struct v4l2_subdev_pad_config *config;
+	struct v4l2_subdev_state *config;
 
-	config = vsp2_entity_get_pad_config(entity, cfg, fmt->which);
+	config = vsp2_entity_get_state(entity, state, fmt->which);
 	if (!config)
 		return -EINVAL;
 
@@ -293,38 +278,42 @@ int vsp2_subdev_get_pad_format(struct v4l2_subdev *subdev,
  * the sink pad.
  */
 int vsp2_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_mbus_code_enum *code,
-			       const unsigned int *codes, unsigned int ncodes)
+                   struct v4l2_subdev_state *state,
+                   struct v4l2_subdev_mbus_code_enum *code,
+                   const unsigned int *codes, unsigned int ncodes)
 {
-	struct vsp2_entity *entity = to_vsp2_entity(subdev);
+    struct vsp2_entity *entity = to_vsp2_entity(subdev);
 
-	if (code->pad == 0) {
-		if (code->index >= ncodes)
-			return -EINVAL;
+    if (code->pad == 0) {
+        if (code->index >= ncodes)
+            return -EINVAL;
 
-		code->code = codes[code->index];
-	} else {
-		struct v4l2_subdev_pad_config *config;
-		struct v4l2_mbus_framefmt *format;
+        code->code = codes[code->index];
+    } else {
+        struct v4l2_subdev_state *config;
+        struct v4l2_mbus_framefmt *format;
 
-		/* The entity can't perform format conversion, the sink format
-		 * is always identical to the source format.
-		 */
-		if (code->index)
-			return -EINVAL;
+        if (code->index)
+            return -EINVAL;
 
-		config = vsp2_entity_get_pad_config(entity, cfg, code->which);
-		if (!config)
-			return -EINVAL;
+        config = vsp2_entity_get_state(entity, state, code->which);
+        if (!config)
+            return -EINVAL;
 
-		mutex_lock(&entity->lock);
-		format = vsp2_entity_get_pad_format(entity, config, 0);
-		code->code = format->code;
-		mutex_unlock(&entity->lock);
-	}
+        mutex_lock(&entity->lock);
 
-	return 0;
+        format = vsp2_entity_get_pad_format(entity, config, 0);
+        if (!format) {
+            mutex_unlock(&entity->lock);
+            return -EINVAL;
+        }
+
+        code->code = format->code;
+
+        mutex_unlock(&entity->lock);
+    }
+
+    return 0;
 }
 
 /*
@@ -343,46 +332,48 @@ int vsp2_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
  * source pad size identical to the sink pad.
  */
 int vsp2_subdev_enum_frame_size(struct v4l2_subdev *subdev,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_frame_size_enum *fse,
-				unsigned int min_width, unsigned int min_height,
-				unsigned int max_width, unsigned int max_height)
+                struct v4l2_subdev_state *state,
+                struct v4l2_subdev_frame_size_enum *fse,
+                unsigned int min_width, unsigned int min_height,
+                unsigned int max_width, unsigned int max_height)
 {
-	struct vsp2_entity *entity = to_vsp2_entity(subdev);
-	struct v4l2_subdev_pad_config *config;
-	struct v4l2_mbus_framefmt *format;
-	int ret = 0;
+    struct vsp2_entity *entity = to_vsp2_entity(subdev);
+    struct v4l2_subdev_state *config;
+    struct v4l2_mbus_framefmt *format;
+    int ret = 0;
 
-	config = vsp2_entity_get_pad_config(entity, cfg, fse->which);
-	if (!config)
-		return -EINVAL;
+    config = vsp2_entity_get_state(entity, state, fse->which);
+    if (!config)
+        return -EINVAL;
 
-	format = vsp2_entity_get_pad_format(entity, config, fse->pad);
+    mutex_lock(&entity->lock);
 
-	mutex_lock(&entity->lock);
-	if (fse->index || fse->code != format->code) {
-		ret = -EINVAL;
-		goto done;
-	}
+    format = vsp2_entity_get_pad_format(entity, config, fse->pad);
+    if (!format) {
+        ret = -EINVAL;
+        goto done;
+    }
 
-	if (fse->pad == 0) {
-		fse->min_width = min_width;
-		fse->max_width = max_width;
-		fse->min_height = min_height;
-		fse->max_height = max_height;
-	} else {
-		/* The size on the source pad are fixed and always identical to
-		 * the size on the sink pad.
-		 */
-		fse->min_width = format->width;
-		fse->max_width = format->width;
-		fse->min_height = format->height;
-		fse->max_height = format->height;
-	}
+    if (fse->index || fse->code != format->code) {
+        ret = -EINVAL;
+        goto done;
+    }
+
+    if (fse->pad == 0) {
+        fse->min_width = min_width;
+        fse->max_width = max_width;
+        fse->min_height = min_height;
+        fse->max_height = max_height;
+    } else {
+        fse->min_width = format->width;
+        fse->max_width = format->width;
+        fse->min_height = format->height;
+        fse->max_height = format->height;
+    }
 
 done:
-	mutex_unlock(&entity->lock);
-	return ret;
+    mutex_unlock(&entity->lock);
+    return ret;
 }
 
 /* -----------------------------------------------------------------------------
@@ -448,6 +439,7 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 		     const char *name, unsigned int num_pads,
 		     const struct v4l2_subdev_ops *ops, u32 function)
 {
+	static struct lock_class_key key;
 	struct v4l2_subdev *subdev;
 	unsigned int i;
 	bool flag = false;
@@ -502,10 +494,11 @@ int vsp2_entity_init(struct vsp2_device *vsp2, struct vsp2_entity *entity,
 	/* Allocate the pad configuration to store formats and selection
 	 * rectangles.
 	 */
-	entity->config = v4l2_subdev_alloc_pad_config(&entity->subdev);
-	if (!entity->config) {
+	entity->config = __v4l2_subdev_state_alloc(&entity->subdev,
+						   "vsp2:config->lock", &key);
+	if (IS_ERR(entity->config)) {
 		media_entity_cleanup(&entity->subdev.entity);
-		return -ENOMEM;
+		return PTR_ERR(entity->config);
 	}
 
 	return 0;
@@ -517,6 +510,6 @@ void vsp2_entity_destroy(struct vsp2_entity *entity)
 		entity->ops->destroy(entity);
 	if (entity->subdev.ctrl_handler)
 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
-	v4l2_subdev_free_pad_config(entity->config);
+	__v4l2_subdev_state_free(entity->config);
 	media_entity_cleanup(&entity->subdev.entity);
 }
